@@ -35,7 +35,7 @@ DELETE k
 
 Cleanup:
 ```
-MATCH ()-[f:FREQ_COMM|FREQ_COMM_DIR]->()
+MATCH ()-[f:FREQ_COMM]->()
 DELETE f
 ```
 
@@ -47,16 +47,12 @@ Construct overlay graph:
 MATCH (p1:Person)-[:KNOWS]-(p2:Person),
   (c1:Comment)-[:HAS_CREATOR]->(p1),
   (c2:Comment)-[:HAS_CREATOR]->(p2),
-  (c1)-[r:REPLY_OF]->(c2)
-WITH p1, p2, count(r) AS interactionCount
-WHERE interactionCount > $threshold
-MATCH
-  (c1:Comment)-[:HAS_CREATOR]->(p1),
-  (c2:Comment)-[:HAS_CREATOR]->(p2),
-  (c1)<-[r:REPLY_OF]-(c2)
-WITH p1, p2, count(r) AS interactionCount
-WHERE interactionCount > $threshold
+  (c1)-[r:REPLY_OF]-(c2)
+WITH p1, p2, collect({c1: c1, r: r, c2: c2}) AS interactions
+WITH p1, p2, [cs IN interactions WHERE startNode(cs.r) = cs.c1 | cs] AS fwd, [cs IN interactions WHERE endNode(cs.r) = cs.c1 | cs] AS bwd
+WHERE size(fwd) > $threshold AND size(bwd) > $threshold
 CREATE (p1)-[:FREQ_COMM]->(p2)
+
 ```
 
 Shortest path:
@@ -67,16 +63,4 @@ RETURN p1.id, p2.id, s
 ```
 MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
 RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
-```
-
-Faster alternative:
-```
-MATCH (c1:Comment)-[:HAS_CREATOR]->(p1:Person)-[:KNOWS]-(p2:Person)<-[:HAS_CREATOR]-(c2:Comment)-[r:REPLY_OF]->(c1)
-WITH p1, p2, count(r) AS interactionCount
-WHERE interactionCount > 4
-CREATE (p1)-[:FREQ_COMM_DIR]->(p2)
-```
-```
-MATCH (p1:Person)-[:FREQ_COMM_DIR]->(p2:Person)-[:FREQ_COMM_DIR]->(p1)
-CREATE (p1)-[:FREQ_COMM]->(p2)
 ```

@@ -1,5 +1,7 @@
 # SIGMOD 2014 Programming Contest
 
+## Loading the data
+
 Navigate to the `preprocess/` directory and use the `convert-csvs.sh` script with the corresponding character encoding.
 
 ```bash
@@ -17,4 +19,64 @@ export CSV_INPUT_DIR=
 ./import-to-neo4j.sh $CSV_INPUT_DIR
 $NEO4J_HOME/bin/neo4j-admin set-initial-password admin
 ./restart-neo4j.sh
+```
+
+Once Neo4j is running, open the web browswer and delete redundant `KNOWS` edges:
+
+```
+MATCH (p1:Person)-[k:KNOWS]->(p2:Person)
+WHERE p1.id < p2.id
+DELETE k
+```
+
+## Queries
+
+### Q1
+
+Cleanup:
+```
+MATCH ()-[f:FREQ_COMM|FREQ_COMM_DIR]->()
+DELETE f
+```
+
+Construct overlay graph:
+```
+:param [{threshold, p1id, p2id}] => {RETURN 4 AS threshold, 848 AS p1id, 414 AS p2id}
+```
+```
+MATCH (p1:Person)-[:KNOWS]-(p2:Person),
+  (c1:Comment)-[:HAS_CREATOR]->(p1),
+  (c2:Comment)-[:HAS_CREATOR]->(p2),
+  (c1)-[r:REPLY_OF]->(c2)
+WITH p1, p2, count(r) AS interactionCount
+WHERE interactionCount > $threshold
+MATCH
+  (c1:Comment)-[:HAS_CREATOR]->(p1),
+  (c2:Comment)-[:HAS_CREATOR]->(p2),
+  (c1)<-[r:REPLY_OF]-(c2)
+WITH p1, p2, count(r) AS interactionCount
+WHERE interactionCount > $threshold
+CREATE (p1)-[:FREQ_COMM]->(p2)
+```
+
+Shortest path:
+```
+MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
+RETURN p1.id, p2.id, s
+```
+```
+MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
+RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
+```
+
+Faster alternative:
+```
+MATCH (c1:Comment)-[:HAS_CREATOR]->(p1:Person)-[:KNOWS]-(p2:Person)<-[:HAS_CREATOR]-(c2:Comment)-[r:REPLY_OF]->(c1)
+WITH p1, p2, count(r) AS interactionCount
+WHERE interactionCount > 4
+CREATE (p1)-[:FREQ_COMM_DIR]->(p2)
+```
+```
+MATCH (p1:Person)-[:FREQ_COMM_DIR]->(p2:Person)-[:FREQ_COMM_DIR]->(p1)
+CREATE (p1)-[:FREQ_COMM]->(p2)
 ```

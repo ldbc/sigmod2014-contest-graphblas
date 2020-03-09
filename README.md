@@ -1,6 +1,8 @@
 # SIGMOD 2014 Programming Contest
 
-## Loading the data
+## Data
+
+### Preprocessing
 
 Navigate to the `preprocess/` directory and use the `convert-csvs.sh` script with the corresponding character encoding.
 
@@ -10,7 +12,14 @@ cd preprocess/
 ./convert-csvs.sh outputDir-10k outputDir-10k-converted
 ```
 
-Then load the data from the converted CSVs to Neo4j. Set the `NEO4J_HOME` environment variable and invoke the shell script provided.
+Data set that have been converted with this script are available in my Dropbox as zip archives:
+
+* 1k persons: <https://www.dropbox.com/s/sgrwihjji551teq/sf1k.zip?dl=1>
+* 10k persons: <https://www.dropbox.com/s/goabh7c3q5k4ex4/sf10k.zip?dl=1>
+
+### Loading
+
+To load the data from the converted CSVs to Neo4j, set the `NEO4J_HOME` environment variable and invoke the shell script provided.
 
 ```bash
 export NEO4J_HOME=
@@ -29,17 +38,19 @@ WHERE p1.id < p2.id
 DELETE k
 ```
 
+No all is set to work with the queries.
+
 ## Queries
 
 ### Q1
 
-Cleanup:
+Cleanup step between runs:
 ```
 MATCH ()-[f:FREQ_COMM]->()
 DELETE f
 ```
 
-Construct overlay graph:
+Constructing the overlay graph:
 ```
 :param [{threshold, p1id, p2id}] => {RETURN 4 AS threshold, 848 AS p1id, 414 AS p2id}
 ```
@@ -55,11 +66,12 @@ CREATE (p1)-[:FREQ_COMM]->(p2)
 
 ```
 
-Shortest path:
+Compute the Shortest path:
 ```
 MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
 RETURN p1.id, p2.id, s
 ```
+To get *just the node ids* in the path, you can use a list comprehension.
 ```
 MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
 RETURN p1.id, p2.id, [n IN nodes(s) | n.id]

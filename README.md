@@ -8,8 +8,8 @@ Navigate to the `preprocess/` directory and use the `convert-csvs.sh` script wit
 
 ```bash
 cd preprocess/
-./convert-csvs.sh outputDir-1k outputDir-1k-converted macintosh
-./convert-csvs.sh outputDir-10k outputDir-10k-converted
+./convert-csvs.sh /path/to/outputDir-1k /path/to/outputDir-1k-converted macintosh
+./convert-csvs.sh /path/to/outputDir-10k /path/to/outputDir-10k-converted
 ```
 
 Data set that have been converted with this script are available in my Dropbox as zip archives:

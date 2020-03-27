@@ -2,11 +2,11 @@
 
 ## Data
 
-We use [Neo4j 4.0 Community](https://neo4j.com/download-center/#community).
+For quick experiments on graphs (e.g. running Cypher queries to see the expected result of an algorithm), we use the [Neo4j 4.0 Community](https://neo4j.com/download-center/#community) graph database.
 
 ### Preprocessing
 
-Navigate to the `preprocess/` directory and use the `convert-csvs.sh` script with the corresponding character encoding.
+Navigate to the `preprocess/` directory and use the `convert-csvs.sh` script with the files and their respective character encoding.
 
 ```bash
 cd preprocess/
@@ -14,14 +14,16 @@ cd preprocess/
 ./convert-csvs.sh /path/to/outputDir-10k /path/to/outputDir-10k-converted
 ```
 
-Data set that have been converted with this script are available in my Dropbox as zip archives:
+:bulb: It is possible to skip this step – data sets that **have already been converted** with this script are available in Gabor's Dropbox as zip archives:
 
 * 1k persons: <https://www.dropbox.com/s/sgrwihjji551teq/sf1k.zip?dl=1>
 * 10k persons: <https://www.dropbox.com/s/goabh7c3q5k4ex4/sf10k.zip?dl=1>
 
 ### Loading
 
-To load the data from the converted CSVs to Neo4j, set the `NEO4J_HOME` environment variable and invoke the shell script provided.
+:warning: These scripts are potentially destructive. Be cautious when running them on your machine.
+
+To load the data from the converted CSVs to Neo4j, set the `NEO4J_HOME` and the `CSV_INPUT_DIR` environment variables, and invoke the provided shell scripts as follows:
 
 ```bash
 export NEO4J_HOME=
@@ -32,7 +34,7 @@ $NEO4J_HOME/bin/neo4j-admin set-initial-password admin
 ./restart-neo4j.sh
 ```
 
-Once Neo4j is running, open the web browswer and delete redundant `KNOWS` edges:
+Once Neo4j is running, open the web browser and delete the redundant `KNOWS` edges (thus effective converting the `KNOWS` graph to directed which is the recommended way of storing undirected edges in a graph database):
 
 ```
 MATCH (p1:Person)-[k:KNOWS]->(p2:Person)
@@ -40,7 +42,7 @@ WHERE p1.id < p2.id
 DELETE k
 ```
 
-No all is set to work with the queries.
+Now all is set to work with the queries in the Programming Contest.
 
 ## Queries
 
@@ -77,3 +79,15 @@ To get *just the node ids* in the path, you can use a list comprehension.
 MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
 RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
 ```
+
+### Q2
+
+TBD.
+
+### Q3
+
+TBD.
+
+### Q4
+
+TBD.

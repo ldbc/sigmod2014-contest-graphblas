@@ -2,6 +2,8 @@
 
 ## Data
 
+We use [Neo4j 4.0 Community](https://neo4j.com/download-center/#community).
+
 ### Preprocessing
 
 Navigate to the `preprocess/` directory and use the `convert-csvs.sh` script with the corresponding character encoding.
@@ -63,7 +65,6 @@ WITH p1, p2, collect({c1: c1, r: r, c2: c2}) AS interactions
 WITH p1, p2, [cs IN interactions WHERE startNode(cs.r) = cs.c1 | cs] AS fwd, [cs IN interactions WHERE endNode(cs.r) = cs.c1 | cs] AS bwd
 WHERE size(fwd) > $threshold AND size(bwd) > $threshold
 CREATE (p1)-[:FREQ_COMM]->(p2)
-
 ```
 
 Compute the Shortest path:

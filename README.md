@@ -86,7 +86,66 @@ TBD.
 
 ### Q3
 
-TBD.
+Set the `$place` parameter, e.g.
+
+```
+:param place => "South_America"
+```
+
+```
+// set parameters k and h manually:
+// - k in the last `LIMIT` clause
+// - h in the `KNOWS*1...` bit of the last MATCH clause
+CALL {
+    MATCH (persX:Person)-[:IS_LOCATED_IN]->(:Place)-[:IS_PART_OF*0..2]->(:Place {name: $place})
+    RETURN persX
+  UNION
+    MATCH (persX:Person)-[:WORK_AT]->(:Company)-[:IS_LOCATED_IN]->(country:Place)-[:IS_PART_OF*0..1]->(:Place {name: $place})
+    RETURN persX
+  UNION
+    MATCH (persX:Person)-[:STUDY_AT]->(:University)-[:IS_LOCATED_IN]->(city:Place)-[:IS_PART_OF*0..2]->(:Place {name: $place})
+    RETURN persX
+}
+// option 1: return nodes with
+// RETURN persX
+// option 2: label nodes with
+// SET persX:PersX
+// option 3: compute the scores using the following (inefficient) method:
+WITH collect(persX) AS persXnodes
+MATCH
+  (p1:Person)-[:HAS_INTEREST]->(t:Tag)<-[:HAS_INTEREST]-(p2:Person),
+  (p1)-[:KNOWS*1..2]-(p2)
+WHERE p1.id < p2.id
+  AND p1 IN persXnodes
+  AND p2 IN persXnodes
+WITH p1, p2, count(DISTINCT t) AS numTags
+RETURN p1.id, p2.id, numTags
+ORDER BY numTags DESC, p1.id ASC, p2.id ASC
+LIMIT 3
+```
+
+If you go with option 2, you can compute the results with a separate query:
+
+```
+// set parameters k and h manually:
+// - k in the last `LIMIT` clause
+// - h in the `KNOWS*1...` expression
+MATCH
+  (p1:PersX)-[:HAS_INTEREST]->(t:Tag)<-[:HAS_INTEREST]-(p2:PersX),
+  (p1)-[:KNOWS*1..2]-(p2)
+WHERE p1.id < p2.id
+WITH p1, p2, count(DISTINCT t) AS numTags
+RETURN p1.id, p2.id, numTags
+ORDER BY numTags DESC, p1.id ASC, p2.id ASC
+LIMIT 3
+```
+
+Cleanup labels:
+
+```
+MATCH (p:PersX)
+REMOVE p:PersX
+```
 
 ### Q4
 

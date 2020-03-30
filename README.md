@@ -96,6 +96,7 @@ Set the `$place` parameter, e.g.
 // set parameters k and h manually:
 // - k in the last `LIMIT` clause
 // - h in the `KNOWS*1...` bit of the last MATCH clause
+CYPHER runtime=interpreted
 CALL {
     MATCH (persX:Person)-[:IS_LOCATED_IN]->(:Place)-[:IS_PART_OF*0..2]->(:Place {name: $place})
     RETURN persX
@@ -112,8 +113,9 @@ CALL {
 // SET persX:PersX
 // option 3: compute the scores using the following (inefficient) method:
 WITH collect(persX) AS persXnodes
+UNWIND persXnodes AS p1
 MATCH
-  (p1:Person)-[:HAS_INTEREST]->(t:Tag)<-[:HAS_INTEREST]-(p2:Person),
+  (p1)-[:HAS_INTEREST]->(t:Tag)<-[:HAS_INTEREST]-(p2:Person),
   (p1)-[:KNOWS*1..2]-(p2)
 WHERE p1.id < p2.id
   AND p1 IN persXnodes

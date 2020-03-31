@@ -126,6 +126,8 @@ ORDER BY numTags DESC, p1.id ASC, p2.id ASC
 LIMIT 3
 ```
 
+Note that in Neo4j Enterprise, you need to use `CYPHER runtime=interpreted` due to a [bug in the slotted runtime](https://github.com/neo4j/neo4j/issues/12441).
+
 If you go with option 2, you can compute the results with a separate query:
 
 ```

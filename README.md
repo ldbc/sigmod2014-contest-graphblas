@@ -1,5 +1,7 @@
 # SIGMOD 2014 Programming Contest
 
+See our website at <https://ftsrg.mit.bme.hu/paper-lsgda2020/>.
+
 ## Data
 
 For quick experiments on graphs (e.g. running Cypher queries to see the expected result of an algorithm), we use the [Neo4j 4.0 Community](https://neo4j.com/download-center/#community) graph database.

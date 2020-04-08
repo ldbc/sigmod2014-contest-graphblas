@@ -3,6 +3,8 @@ import sys
 import logging
 from pygraphblas import *
 import glob
+import errno
+import os
 
 
 # Setup logger
@@ -15,7 +17,10 @@ log.setLevel(logging.INFO)
 class DataLoader:
     
     def __init__(self, data_dir):
-        self.data_dir = data_dir
+        if os.path.isdir(data_dir):
+            self.data_dir = data_dir
+        else:
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), data_dir)
         
     def load_node(self, filename):
         with open(filename, newline='') as csvfile:

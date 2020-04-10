@@ -50,7 +50,7 @@ Now all is set to work with the queries in the Programming Contest.
 
 ### Q1
 
-Cleanup step between runs:
+Cleanup between experiments by running:
 ```
 MATCH ()-[f:FREQ_COMM]->()
 DELETE f
@@ -155,4 +155,58 @@ REMOVE p:PersX
 
 ### Q4
 
-TBD.
+#### Prerequisites
+
+Edit the `$NEO4J_HOME/conf/neo4j.conf` file, add the following line and restart the database.
+```
+cypher.forbid_shortestpath_common_nodes=false
+```
+
+Cleanup between experiments by running:
+```
+MATCH ()-[f:MEMBERFRIENDS]->()
+DELETE f
+```
+
+#### Queries
+
+Set tag parameter `$t`:
+```
+:param t => 'Bill_Clinton'
+```
+
+Construct the overlay graph:
+```
+MATCH
+  (f1:Forum)-[:HAS_TAG]->(t:Tag {name: $t})<-[:HAS_TAG]-(f2:Forum),
+  (f1)-[:HAS_MEMBER]->(personA),
+  (f2)-[:HAS_MEMBER]->(personB),
+  (personA:Person)-[:KNOWS]-(personB:Person)
+CREATE (personA)-[:MEMBERFRIENDS]->(personB)
+```
+
+Calculate score. Set person parameter `$p` to keep the evaluation time reasonable.
+```
+:param p => 385
+```
+
+```
+CALL { // n: number of vertices in the induced graph
+  MATCH (p:Person)
+  WHERE (p)-[:MEMBERFRIENDS]-()
+  RETURN count(p) AS n
+}
+WITH n
+CALL { // r: number of vertices reacahable from p (inclusive)
+  MATCH shortestPath((p:Person {id: $p})-[:MEMBERFRIENDS*0..]-(p2:Person))
+  RETURN p, count(DISTINCT p2) AS r
+}
+WITH n, r
+CALL { // s: the sum of geodesic distances to all other reachable persons from p
+  MATCH path=shortestPath((p:Person {id: $p})-[:MEMBERFRIENDS*]-(p2:Person))
+  WITH p, length(path) AS geodesic, p2
+  RETURN p, sum(geodesic) AS s
+}
+//RETURN n, r, s
+RETURN ((r-1)*(r-1))/toFloat((n-1)*s) AS score
+```

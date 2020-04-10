@@ -178,37 +178,31 @@ Set tag parameter `$t`:
 Construct the overlay graph:
 ```
 MATCH
-  (f1:Forum)-[:HAS_TAG]->(t:Tag {name: $t})<-[:HAS_TAG]-(f2:Forum),
+  (t:Tag {name: $t})<-[:HAS_TAG]-(f1:Forum)
+MATCH
+  (t:Tag {name: $t})<-[:HAS_TAG]-(f2:Forum)
+MATCH
   (f1)-[:HAS_MEMBER]->(personA),
   (f2)-[:HAS_MEMBER]->(personB),
   (personA:Person)-[:KNOWS]-(personB:Person)
-WITH DISTINCT personA, personB
 WHERE ID(personA) < ID(personB)
+WITH DISTINCT personA, personB
 CREATE (personA)-[:MEMBERFRIENDS]->(personB)
 ```
 
-Calculate score. Set person parameter `$p` to keep the evaluation time reasonable:
 ```
-:param p => 385
-```
+// n
+MATCH (anyPerson:Person)
+WHERE (anyPerson)-[:MEMBERFRIENDS]-()
+WITH count(anyPerson) AS n
 
-```
-CALL { // n: number of vertices in the induced graph
-  MATCH (p:Person)
-  WHERE (p)-[:MEMBERFRIENDS]-()
-  RETURN count(p) AS n
-}
-WITH n
-CALL { // r: number of vertices reacahable from p (inclusive)
-  MATCH shortestPath((p:Person {id: $p})-[:MEMBERFRIENDS*0..]-(p2:Person))
-  RETURN p, count(DISTINCT p2) AS r
-}
-WITH n, r
-CALL { // s: the sum of geodesic distances to all other reachable persons from p
-  MATCH path=shortestPath((p:Person {id: $p})-[:MEMBERFRIENDS*]-(p2:Person))
-  WITH p, length(path) AS geodesic, p2
-  RETURN p, sum(geodesic) AS s
-}
-//RETURN n, r, s
-RETURN ((r-1)*(r-1))/toFloat((n-1)*s) AS score
+// optimization
+UNWIND [385, 492, 819] AS pID MATCH (p:Person {id: pID})
+// s: the sum of geodesic distances to all other reachable persons from p
+// r: number of vertices reachable from p (inclusive)
+MATCH path=shortestPath((p)-[:MEMBERFRIENDS*0..]-(p2:Person))
+WITH p, n, count(DISTINCT p2) AS r, sum(length(path)) AS s
+WHERE s <> 0
+RETURN p.id, ((r-1)*(r-1))/toFloat((n-1)*s) AS score
+LIMIT 3
 ```

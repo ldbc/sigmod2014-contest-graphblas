@@ -204,5 +204,6 @@ MATCH path=shortestPath((p)-[:MEMBERFRIENDS*0..]-(p2:Person))
 WITH p, n, count(DISTINCT p2) AS r, sum(length(path)) AS s
 WHERE s <> 0
 RETURN p.id, ((r-1)*(r-1))/toFloat((n-1)*s) AS score
+ORDER BY score DESC
 LIMIT 3
 ```

@@ -157,7 +157,7 @@ REMOVE p:PersX
 
 #### Prerequisites
 
-Edit the `$NEO4J_HOME/conf/neo4j.conf` file, add the following line and restart the database.
+Edit the `$NEO4J_HOME/conf/neo4j.conf` file, add the following line and restart the database:
 ```
 cypher.forbid_shortestpath_common_nodes=false
 ```
@@ -177,12 +177,17 @@ Set tag parameter `$t`:
 
 Construct the overlay graph:
 ```
-MATCH (personA:Person)-[:KNOWS]-(personB:Person)
-WHERE (personA)<-[:HAS_MEMBER]-(:Forum)-[:HAS_TAG]->(:Tag {name: $t})<-[:HAS_TAG]-(:Forum)-[:HAS_MEMBER]->(personB)
+MATCH
+  (f1:Forum)-[:HAS_TAG]->(t:Tag {name: $t})<-[:HAS_TAG]-(f2:Forum),
+  (f1)-[:HAS_MEMBER]->(personA),
+  (f2)-[:HAS_MEMBER]->(personB),
+  (personA:Person)-[:KNOWS]-(personB:Person)
+WITH DISTINCT personA, personB
+WHERE ID(personA) < ID(personB)
 CREATE (personA)-[:MEMBERFRIENDS]->(personB)
 ```
 
-Calculate score. Set person parameter `$p` to keep the evaluation time reasonable.
+Calculate score. Set person parameter `$p` to keep the evaluation time reasonable:
 ```
 :param p => 385
 ```

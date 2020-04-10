@@ -177,11 +177,8 @@ Set tag parameter `$t`:
 
 Construct the overlay graph:
 ```
-MATCH
-  (f1:Forum)-[:HAS_TAG]->(t:Tag {name: $t})<-[:HAS_TAG]-(f2:Forum),
-  (f1)-[:HAS_MEMBER]->(personA),
-  (f2)-[:HAS_MEMBER]->(personB),
-  (personA:Person)-[:KNOWS]-(personB:Person)
+MATCH (personA:Person)-[:KNOWS]-(personB:Person)
+WHERE (personA)<-[:HAS_MEMBER]-(:Forum)-[:HAS_TAG]->(:Tag {name: $t})<-[:HAS_TAG]-(:Forum)-[:HAS_MEMBER]->(personB)
 CREATE (personA)-[:MEMBERFRIENDS]->(personB)
 ```
 

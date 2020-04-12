@@ -86,8 +86,6 @@ OPTIONAL MATCH
 WITH p1, p2, count(DISTINCT c2) AS c2count
 WHERE c2count > $threshold
 
-WITH DISTINCT p1, p2
-
 CREATE (p1)-[:FREQ_COMM]->(p2)
 
 WITH count(*) AS dummy

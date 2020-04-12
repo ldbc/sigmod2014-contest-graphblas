@@ -31,6 +31,7 @@ To load the data from the converted CSVs to Neo4j, set the `NEO4J_HOME` and the 
 export NEO4J_HOME=
 export NEO4J_DATA_DIR=${NEO4J_HOME}/data/
 export CSV_INPUT_DIR=
+echo -e "$NEO4J_HOME\n$NEO4J_DATA_DIR\n$CSV_INPUT_DIR"
 ./delete-neo4j-database.sh
 ./import-to-neo4j.sh
 $NEO4J_HOME/bin/neo4j-admin set-initial-password admin

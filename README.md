@@ -69,13 +69,25 @@ WITH count(*) AS dummy
 
 MATCH
   (p1:Person)-[:KNOWS]-(p2:Person)
+
+// p1 has written enough replies
 OPTIONAL MATCH
   (c1:Comment)-[:HAS_CREATOR]->(p1),
   (c2:Comment)-[:HAS_CREATOR]->(p2),
-  (c1)-[r:REPLY_OF]-(c2)
-WITH DISTINCT p1, p2, collect({c1: c1, r: r, c2: c2}) AS interactions
-WITH p1, p2, [cs IN interactions WHERE startNode(cs.r) = cs.c1 | cs] AS fwd, [cs IN interactions WHERE endNode(cs.r) = cs.c1 | cs] AS bwd
-WHERE size(fwd) > $threshold AND size(bwd) > $threshold
+  (c1)-[r:REPLY_OF]->(c2)
+WITH p1, p2, count(DISTINCT c1) AS c1count
+WHERE c1count > $threshold
+
+// p2 has written enough replies
+OPTIONAL MATCH
+  (c1:Comment)-[:HAS_CREATOR]->(p1),
+  (c2:Comment)-[:HAS_CREATOR]->(p2),
+  (c1)<-[r:REPLY_OF]-(c2)
+WITH p1, p2, count(DISTINCT c2) AS c2count
+WHERE c2count > $threshold
+
+WITH DISTINCT p1, p2
+
 CREATE (p1)-[:FREQ_COMM]->(p2)
 
 WITH count(*) AS dummy
@@ -83,6 +95,8 @@ WITH count(*) AS dummy
 MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
 RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
 ```
+
+This query takes approx 1.5-2 minutes.
 
 ### Q2
 

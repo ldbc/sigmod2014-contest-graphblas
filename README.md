@@ -51,17 +51,21 @@ Now all is set to work with the queries in the Programming Contest.
 
 ### Q1
 
-Cleanup between experiments by running:
+Set the parameters:
+```
+:param [{p1id, p2id, threshold}] => {
+  WITH [858, 587, 1] AS params
+  RETURN params[0] AS p1id, params[1] AS p2id, params[2] AS threshold
+}
+```
+
+Cleanup, construct the overlay graph, query and compute the shortest path using a single query:
 ```
 MATCH ()-[f:FREQ_COMM]->()
 DELETE f
-```
 
-Constructing the overlay graph:
-```
-:param [{threshold, p1id, p2id}] => {RETURN 4 AS threshold, 848 AS p1id, 414 AS p2id}
-```
-```
+WITH count(*) AS dummy
+
 MATCH
   (p1:Person)-[:KNOWS]-(p2:Person)
 OPTIONAL MATCH
@@ -72,15 +76,9 @@ WITH DISTINCT p1, p2, collect({c1: c1, r: r, c2: c2}) AS interactions
 WITH p1, p2, [cs IN interactions WHERE startNode(cs.r) = cs.c1 | cs] AS fwd, [cs IN interactions WHERE endNode(cs.r) = cs.c1 | cs] AS bwd
 WHERE size(fwd) > $threshold AND size(bwd) > $threshold
 CREATE (p1)-[:FREQ_COMM]->(p2)
-```
 
-Compute the Shortest path:
-```
-MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
-RETURN p1.id, p2.id, s
-```
-To get *just the node ids* in the path, you can use a list comprehension.
-```
+WITH count(*) AS dummy
+
 MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
 RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
 ```

@@ -1,8 +1,6 @@
 #!/bin/bash
 
-NEO4J_CSV_DIR=$1
-
-$NEO4J_HOME/bin/neo4j-admin import \
+${NEO4J_HOME}/bin/neo4j-admin import \
   --id-type=INTEGER \
   --nodes=Place="${NEO4J_CSV_DIR}/place.csv" \
   --nodes=Organisation="${NEO4J_CSV_DIR}/organisation.csv" \

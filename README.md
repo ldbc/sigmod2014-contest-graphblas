@@ -32,7 +32,7 @@ export NEO4J_HOME=
 export NEO4J_DATA_DIR=
 export CSV_INPUT_DIR=
 ./delete-neo4j-database.sh
-./import-to-neo4j.sh $CSV_INPUT_DIR
+./import-to-neo4j.sh
 $NEO4J_HOME/bin/neo4j-admin set-initial-password admin
 ./restart-neo4j.sh
 ```

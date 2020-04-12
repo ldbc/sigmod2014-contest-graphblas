@@ -61,11 +61,13 @@ Constructing the overlay graph:
 :param [{threshold, p1id, p2id}] => {RETURN 4 AS threshold, 848 AS p1id, 414 AS p2id}
 ```
 ```
-MATCH (p1:Person)-[:KNOWS]-(p2:Person),
+MATCH
+  (p1:Person)-[:KNOWS]-(p2:Person)
+OPTIONAL MATCH
   (c1:Comment)-[:HAS_CREATOR]->(p1),
   (c2:Comment)-[:HAS_CREATOR]->(p2),
   (c1)-[r:REPLY_OF]-(c2)
-WITH p1, p2, collect({c1: c1, r: r, c2: c2}) AS interactions
+WITH DISTINCT p1, p2, collect({c1: c1, r: r, c2: c2}) AS interactions
 WITH p1, p2, [cs IN interactions WHERE startNode(cs.r) = cs.c1 | cs] AS fwd, [cs IN interactions WHERE endNode(cs.r) = cs.c1 | cs] AS bwd
 WHERE size(fwd) > $threshold AND size(bwd) > $threshold
 CREATE (p1)-[:FREQ_COMM]->(p2)

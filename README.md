@@ -29,7 +29,7 @@ To load the data from the converted CSVs to Neo4j, set the `NEO4J_HOME` and the 
 
 ```bash
 export NEO4J_HOME=
-export NEO4J_DATA_DIR=
+export NEO4J_DATA_DIR=${NEO4J_HOME}/data/
 export CSV_INPUT_DIR=
 ./delete-neo4j-database.sh
 ./import-to-neo4j.sh

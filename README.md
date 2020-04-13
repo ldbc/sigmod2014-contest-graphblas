@@ -60,6 +60,8 @@ Set the parameters:
 }
 ```
 
+#### Approach #1
+
 Cleanup, construct the overlay graph, query and compute the shortest path using a single query:
 ```
 MATCH ()-[f:FREQ_COMM]->()
@@ -95,6 +97,50 @@ RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
 ```
 
 This query takes approx 1.5-2 minutes.
+
+#### Approach #2
+
+Precompute the number of interactions:
+```
+MATCH (p1:Person)-[k:KNOWS]-(p2:Person)
+WHERE p1.id < p2.id
+
+// p1's replies
+OPTIONAL MATCH
+  (c1:Comment)-[:HAS_CREATOR]->(p1),
+  (c2:Comment)-[:HAS_CREATOR]->(p2),
+  (c1)-[r:REPLY_OF]->(c2)
+WITH p1, p2, k, count(DISTINCT c1) AS c1count
+
+// p2's replies
+OPTIONAL MATCH
+  (c1:Comment)-[:HAS_CREATOR]->(p1),
+  (c2:Comment)-[:HAS_CREATOR]->(p2),
+  (c1)<-[r:REPLY_OF]-(c2)
+WITH k, c1count, count(DISTINCT c2) AS c2count
+
+// we use CASE to express min(c1count, c2count)
+SET k.interactions = CASE WHEN c1count < c2count THEN c1count ELSE c2count END
+```
+
+Run the query as follows:
+```
+MATCH ()-[f:FREQ_COMM]->()
+DELETE f
+
+WITH count(*) AS dummy
+
+// add a FREQ_COMM edge where the number of interactions is above the threshold
+MATCH (p1:Person)-[k:KNOWS]->(p2:Person)
+WHERE k.interactions > $threshold
+CREATE (p1)-[:FREQ_COMM]->(p2)
+
+WITH count(*) AS dummy
+
+MATCH s=shortestPath((p1:Person {id: $p1id})-[:FREQ_COMM*]-(p2:Person {id: $p2id}))
+RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
+```
+
 
 ### Q2
 

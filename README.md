@@ -144,7 +144,60 @@ RETURN p1.id, p2.id, [n IN nodes(s) | n.id]
 
 ### Q2
 
-TBD.
+Install [APOC 4.0.0.6](https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.6/apoc-4.0.0.6-all.jar) to `$NEO4J_HOME/plugins`.
+Edit the `$NEO4J_HOME/conf/neo4j.conf` file, add the following lines and restart the database:
+```
+dbms.security.procedures.unrestricted=apoc.*
+dbms.security.procedures.whitelist=apoc.*
+```
+
+:warning: The queries are destructive. Load the database before new query.
+
+Set parameter:
+```
+:param [{topK, birthday}] => {
+  WITH [3, '1986-06-14'] AS params
+  RETURN params[0] AS topK, date(params[1]) AS birthday
+}
+```
+Expected result: `Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5`
+
+```
+MATCH (t:Tag)<-[:HAS_INTEREST]-(p:Person)
+WHERE p.birthday>=$birthday
+WITH t, collect(p) AS persons
+CALL apoc.create.addLabels(persons, ['HasInterest_' + t.id]) YIELD node
+RETURN count(*)
+```
+
+```
+CALL apoc.periodic.commit("
+  MATCH (t:Tag)<-[:HAS_INTEREST]-(p1:Person)
+  WHERE p1.birthday>=$birthday
+  WITH t, min(p1) AS p1
+  CREATE (t)-[:COMPONENT]->(comp:Component)
+  WITH t, p1, comp
+  CALL apoc.path.subgraphNodes(p1,
+    {labelFilter: 'HasInterest_' + t.id,
+    relationshipFilter: 'KNOWS'}) YIELD node AS p2
+  CREATE (comp)-[:PERSON]->(p2)
+  WITH t, comp, p2
+  MATCH (t)<-[hi:HAS_INTEREST]-(p2)
+  DELETE hi
+  WITH t, comp, count(*) AS componentSize
+  SET comp.size = componentSize
+  RETURN count(*)
+  // limit - to bypass mandatory limit",
+  {birthday: $birthday})
+```
+
+```
+MATCH (t:Tag)
+OPTIONAL MATCH (t)-[:COMPONENT]->(comp:Component)
+return t.name, coalesce(max(comp.size), 0) AS score
+ORDER BY score DESC, t.name ASC
+LIMIT $topK
+```
 
 ### Q3
 

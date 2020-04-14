@@ -2,6 +2,18 @@
 
 See our website at <https://ftsrg.mit.bme.hu/paper-lsgda2020/>.
 
+## Use [pygraphblas](https://github.com/michelp/pygraphblas) in notebooks
+
+### Requirements
+- Docker
+
+### Steps
+- Clone [fixes branch](https://github.com/szarnyasg/pygraphblas/tree/fixes) of https://github.com/szarnyasg/pygraphblas/
+- Run `./build.sh v3.2.0` to build the Docker image with slight modifications
+- Mount this repo to the container by adding `-v «PATH»/sigmod2014-pc:/home/jovyan/sigmod2014-pc` to [notebook.sh](https://github.com/szarnyasg/pygraphblas/blob/fixes/notebook.sh)
+- Start `./notebook.sh`
+- Open Jupyter Notebook at: http://127.0.0.1:8888/?token=«TOKEN»
+
 ## Data
 
 For quick experiments on graphs (e.g. running Cypher queries to see the expected result of an algorithm), we use the [Neo4j 4.0 Community](https://neo4j.com/download-center/#community) graph database.

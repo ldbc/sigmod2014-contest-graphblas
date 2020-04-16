@@ -14,14 +14,14 @@ int main() {
                              src_indices.data(), trg_indices.data(),
                              array_of_true(src_indices.size()).get(),
                              src_indices.size(), GrB_LOR));
-    WriteOutDebugMatrix("matrix", mx.get());
+    WriteOutDebugMatrix(mx.get(), "matrix");
 
     GBxx_Object<GrB_Vector> vec = GB(GrB_Vector_new, GrB_BOOL, 4);
     ok(GrB_Vector_build_BOOL(vec.get(),
                              src_indices.data(),
                              array_of_true(src_indices.size()).get(),
                              src_indices.size(), GrB_LOR));
-    WriteOutDebugVector("vector", vec.get());
+    WriteOutDebugVector(vec.get(), "vector");
 
     // Cleanup
     ok(LAGraph_finalize());

@@ -34,8 +34,10 @@ std::unique_ptr<bool[]> array_of_true(size_t n) {
  * DEBUG FUNCTIONS
  */
 
-inline void WriteOutDebugMatrix(const char *title, GrB_Matrix result) {
-    printf("%s:\n", title);
+inline void WriteOutDebugMatrix(GrB_Matrix result, const char *title = nullptr) {
+    if (title)
+        printf("%s:\n", title);
+
     GrB_Index rows, cols;
     ok(GrB_Matrix_nrows(&rows, result));
     ok(GrB_Matrix_ncols(&cols, result));
@@ -60,8 +62,10 @@ inline void WriteOutDebugMatrix(const char *title, GrB_Matrix result) {
     }
 }
 
-inline void WriteOutDebugVector(const char *title, GrB_Vector result) {
-    printf("%s:\n", title);
+inline void WriteOutDebugVector(GrB_Vector result, const char *title = nullptr) {
+    if (title)
+        printf("%s:\n", title);
+
     GrB_Index size;
     ok(GrB_Vector_size(&size, result));
     double element;

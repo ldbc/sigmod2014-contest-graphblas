@@ -51,25 +51,5 @@ public:
                top_scores_vector);
     }
 
-    virtual void load_updates(int iteration, typename InputT::Update_Type &current_updates) {
-        input.load_and_apply_updates(iteration, current_updates, parameters);
-    }
-
-    void update(int iteration) override {
-        using namespace std::chrono;
-        auto update_start = high_resolution_clock::now();
-
-        typename InputT::Update_Type current_updates;
-        load_updates(iteration, current_updates);
-        std::vector<uint64_t> top_scores_vector = update_calculation(iteration, current_updates);
-
-        report(parameters, iteration, BenchmarkPhase::Update,
-               round<nanoseconds>(high_resolution_clock::now() - update_start),
-               top_scores_vector);
-    }
-
     virtual std::vector<uint64_t> initial_calculation() = 0;
-
-    virtual std::vector<uint64_t>
-    update_calculation(int iteration, const typename InputT::Update_Type &current_updates) = 0;
 };

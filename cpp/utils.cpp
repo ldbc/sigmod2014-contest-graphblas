@@ -20,7 +20,6 @@ BenchmarkParameters parse_benchmark_params() {
 
     params.ChangePath = getenv_string("ChangePath");
     params.RunIndex = getenv_string("RunIndex");
-    params.Sequences = std::stoi(getenv_string("Sequences"));
     params.Tool = "CPP";
     params.ChangeSet = getenv_string("ChangeSet");
     params.Query = getenv_string("Query");
@@ -38,7 +37,6 @@ BenchmarkParameters parse_benchmark_params() {
 const std::string BenchmarkPhase::Initialization = "Initialization";
 const std::string BenchmarkPhase::Load = "Load";
 const std::string BenchmarkPhase::Initial = "Initial";
-const std::string BenchmarkPhase::Update = "Update";
 
 void report_info(const BenchmarkParameters &parameters, int iteration, const std::string &phase) {
     std::cout

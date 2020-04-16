@@ -13,7 +13,6 @@ extern "C" {
 struct BenchmarkParameters {
     std::string ChangePath;
     std::string RunIndex;
-    int Sequences;
     std::string Tool;
     std::string ChangeSet;
     std::string Query;
@@ -28,7 +27,6 @@ struct BenchmarkPhase {
     static const std::string Initialization;
     static const std::string Load;
     static const std::string Initial;
-    static const std::string Update;
 };
 
 void report(const BenchmarkParameters &parameters, int iteration, const std::string &phase,

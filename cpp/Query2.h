@@ -147,8 +147,4 @@ public:
     std::vector<uint64_t> initial_calculation() override {
         return convert_score_type_to_comment_id(calculate_score(), input);
     }
-
-    std::vector<uint64_t> update_calculation(int iteration, const Q2_Input::Update_Type &current_updates) override {
-        return convert_score_type_to_comment_id(calculate_score(), input);
-    }
 };

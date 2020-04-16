@@ -8,8 +8,9 @@
 #include <set>
 #include "utils.h"
 #include "load.h"
+#include "Query.h"
 
-class Q2_Solution_Batch : public Solution<Q2_Input> {
+class Query2 : public Query<Q2_Input> {
 protected:
     static std::vector<uint64_t>
     convert_score_type_to_comment_id(const std::vector<score_type> &top_scores, const Q2_Input &input) {
@@ -83,7 +84,7 @@ protected:
     }
 
 public:
-    using Q2_Solution::Q2_Solution;
+    using Query::Query;
 
     virtual void compute_score_for_all_comments(const GrB_Index *likes_comment_array_begin,
                                                 const GrB_Index *likes_comment_array_end,

@@ -5,7 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 
 link_libraries(graphblas lagraph)
 
-add_executable(sigmod2014pc_cpp main.cpp)
+add_executable(sigmod2014pc_cpp
+        main.cpp
+        load.cpp
+        utils.cpp)
 
 add_executable(grb-example
         grb-example.cpp)

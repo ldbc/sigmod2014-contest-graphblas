@@ -21,7 +21,7 @@ BenchmarkParameters parse_benchmark_params() {
     params.ChangePath = getenv_string("ChangePath");
     params.RunIndex = getenv_string("RunIndex");
     params.Sequences = std::stoi(getenv_string("Sequences"));
-    params.Tool = getenv_string("Tool");
+    params.Tool = "CPP";
     params.ChangeSet = getenv_string("ChangeSet");
     params.Query = getenv_string("Query");
 

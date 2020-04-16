@@ -4,7 +4,7 @@
 #include <utility>
 #include "load.h"
 
-struct BaseSolution {
+struct BaseQuery {
     virtual void load() = 0;
 
     virtual void initial() = 0;

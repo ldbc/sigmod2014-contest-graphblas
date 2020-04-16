@@ -3,11 +3,11 @@
 #include <chrono>
 #include <utility>
 #include "load.h"
-#include "BaseSolution.h"
+#include "BaseQuery.h"
 #include "gb_utils.h"
 
 template<typename InputT>
-class Solution : public BaseSolution {
+class Query : public BaseQuery {
 protected:
     BenchmarkParameters parameters;
     InputT input;
@@ -30,7 +30,7 @@ protected:
     }
 
 public:
-    explicit Solution(BenchmarkParameters parameters) : parameters{std::move(parameters)} {}
+    explicit Query(BenchmarkParameters parameters) : parameters{std::move(parameters)} {}
 
     void load() override {
         using namespace std::chrono;

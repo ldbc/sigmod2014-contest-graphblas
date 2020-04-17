@@ -6,6 +6,7 @@
 #include "load.h"
 #include <cassert>
 #include "utils.h"
+#include "csv.h"
 
 template<char Delimiter>
 struct ignore_until {
@@ -29,7 +30,7 @@ bool read_comment_or_post_line(std::ifstream &file, uint64_t &id, time_t &timest
         return false;
 
     // depending on current time zone
-    // it's acceptable since we only use these for ordering
+    // it's acceptable since we only use these for comparison
     timestamp = std::mktime(&t);
 
     return true;
@@ -80,9 +81,9 @@ bool read_likes_line(GrB_Index &user_column, GrB_Index &comment_column, std::ifs
 }
 
 Q2_Input Q2_Input::load_initial(const BenchmarkParameters &parameters) {
-    std::string comments_path = parameters.ChangePath + "/csv-comments-initial.csv";
-    std::string friends_path = parameters.ChangePath + "/csv-friends-initial.csv";
-    std::string likes_path = parameters.ChangePath + "/csv-likes-initial.csv";
+    std::string comments_path = parameters.ChangePath + "/tag.csv";
+    std::string friends_path = parameters.ChangePath + "/person_knows_person.csv";
+    std::string likes_path = parameters.ChangePath + "/person_hasInterest_tag.csv";
 
     std::ifstream
             comments_file{comments_path},
@@ -91,6 +92,10 @@ Q2_Input Q2_Input::load_initial(const BenchmarkParameters &parameters) {
     if (!(comments_file && friends_file && likes_file)) {
         throw std::runtime_error{"Failed to open input files"};
     }
+
+    VertexCollection<Vertex> coll{comments_path};
+
+    return {};
 
     Q2_Input input;
 

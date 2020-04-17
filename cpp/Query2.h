@@ -20,7 +20,7 @@ protected:
         // convert row indices to original comment IDs
         std::transform(top_scores.rbegin(), top_scores.rend(), std::back_inserter(top_scores_vector),
                        [&input](const auto &score_tuple) {
-                           return input.comments[std::get<2>(score_tuple)].comment_id;
+                           return input.comments[std::get<2>(score_tuple)].id;
                        });
 
         return top_scores_vector;

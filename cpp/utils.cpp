@@ -19,6 +19,9 @@ BenchmarkParameters parse_benchmark_params() {
     BenchmarkParameters params;
 
     params.ChangePath = getenv_string("ChangePath");
+    if (*params.ChangePath.rbegin() != '/')
+        params.ChangePath += '/';
+
     params.RunIndex = getenv_string("RunIndex");
     params.Tool = "CPP";
     params.ChangeSet = getenv_string("ChangeSet");
@@ -70,4 +73,16 @@ report(const BenchmarkParameters &parameters, int iteration, const std::string &
         std::cout << std::endl;
     }
 
+}
+
+time_t parseTimestamp(const char *timestamp_str, const char *timestamp_format) {
+    std::istringstream birthday_stream{timestamp_str};
+
+    std::tm t = {};
+    if (!(birthday_stream >> std::get_time(&t, timestamp_format)))
+        throw std::invalid_argument{std::string{"Cannot parse timestamp: "} + timestamp_str};
+
+    // depending on current time zone
+    // it's acceptable since we only use these for comparison
+    return std::mktime(&t);
 }

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <utility>
+#include <memory>
 #include "load.h"
 #include "BaseQuery.h"
 #include "gb_utils.h"
@@ -10,7 +11,7 @@ template<typename InputT>
 class Query : public BaseQuery {
 protected:
     BenchmarkParameters parameters;
-    InputT input;
+    std::unique_ptr<InputT> input;
     inline static const int top_count = 3;
 
     static void add_score_to_toplist(std::vector<score_type> &top_scores, score_type score) {
@@ -36,7 +37,7 @@ public:
         using namespace std::chrono;
         auto load_start = high_resolution_clock::now();
 
-        input = InputT::load_initial(parameters);
+        input = std::make_unique<InputT>(parameters);
 
         report(parameters, 0, BenchmarkPhase::Load, round<nanoseconds>(high_resolution_clock::now() - load_start));
     }

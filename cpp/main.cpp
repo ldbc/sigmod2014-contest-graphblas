@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include "gb_utils.h"
 #include "Query2.h"
 

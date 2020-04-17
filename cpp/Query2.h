@@ -11,6 +11,7 @@
 #include "Query.h"
 
 class Query2 : public Query<Q2_Input> {
+    /*
 protected:
     static std::vector<uint64_t>
     convert_score_type_to_comment_id(const std::vector<score_type> &top_scores, const Q2_Input &input) {
@@ -146,5 +147,12 @@ public:
 
     std::vector<uint64_t> initial_calculation() override {
         return convert_score_type_to_comment_id(calculate_score(), input);
+    }*/
+
+public:
+    using Query::Query;
+
+    std::vector<uint64_t> initial_calculation() override {
+        return std::vector<uint64_t>();
     }
 };

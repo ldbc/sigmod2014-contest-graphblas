@@ -37,7 +37,13 @@ Use the [LDBC Datagen's `grb-exps` branch](https://github.com/ldbc/ldbc_snb_data
 
 The generated data set will be in the `outputDir/` directory. The conversion script works on these files as well.
 
-## Experiments with Neo4j.
+Generated datasets:
+
+* 1k persons: <https://www.dropbox.com/s/d68r4hddl28cli3/p1k.tar.zst?dl=0>
+* 10k persons: <https://www.dropbox.com/s/2xwhz1o7ioajy6x/p10k.tar.zst?dl=0>
+* 100k persons: <https://www.dropbox.com/s/ex4byfcs0af72gc/p100k.tar.zst?dl=0>
+* 1000k persons: TBA
+
+## Experiments with Neo4j
 
 See [instructions on how to experiment with Neo4j](neo4j.md).
-

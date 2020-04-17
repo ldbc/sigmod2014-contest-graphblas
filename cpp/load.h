@@ -13,11 +13,14 @@
 #include "csv.h"
 #include "gb_utils.h"
 
-template<typename T>
-struct VertexCollection {
+struct BaseVertexCollection {
     std::string vertex_name;
-    std::vector<T> vertices;
     std::map<uint64_t, GrB_Index> id_to_index;
+};
+
+template<typename T>
+struct VertexCollection : public BaseVertexCollection {
+    std::vector<T> vertices;
 
     VertexCollection(const std::string &file_path) {
         importFile(file_path);
@@ -140,6 +143,18 @@ struct Person : public Vertex {
 
 #pragma clang diagnostic pop
 
+struct EdgeCollection{
+    BaseVertexCollection src, trg;
+
+    EdgeCollection(const std::string &file_path){
+        importFile(file_path);
+    }
+
+    void importFile(const std::string &file_path) {
+
+    }
+};
+
 struct Q2_Input {
     /*
     std::vector<Comment> comments;
@@ -173,7 +188,7 @@ struct Q2_Input {
 
         VertexCollection<Tag> tags{(parameters.ChangePath + "tag.csv")};
         VertexCollection<Person> persons{(parameters.ChangePath + "person.csv")};
-
+        std::vector<std::reference_wrapper<const BaseVertexCollection>> vertex_collections{tags, persons};
 
 /*
         Q2_Input input;

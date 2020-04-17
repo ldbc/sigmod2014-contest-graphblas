@@ -96,5 +96,5 @@ class DataLoader:
             from_node = from_node.replace(self.data_dir, '')
             to_node = to_node.replace('.csv', '')    
             matrices[edge_name] = self.load_edge(edge_file, mappings[from_node], mappings[to_node])
-            log.info('Finished loading all data!')
+        log.info('Finished loading edge data!')
         return vertices, mappings, matrices

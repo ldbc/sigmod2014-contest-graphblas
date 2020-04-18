@@ -10,7 +10,7 @@
 #include "load.h"
 #include "Query.h"
 
-class Query2 : public Query<Q2_Input> {
+class Query2 : public Query<Q2Input> {
     /*
 protected:
     static std::vector<uint64_t>

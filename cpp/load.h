@@ -8,6 +8,7 @@
 #include "load.h"
 #include <cassert>
 #include <map>
+#include <utility>
 #include <vector>
 #include "utils.h"
 #include "csv.h"
@@ -177,19 +178,24 @@ struct EdgeCollection {
     }
 };
 
-struct Q2_Input {
+struct QueryInput {
+    std::vector<std::reference_wrapper<BaseVertexCollection>> vertexCollections;
+
+    explicit QueryInput(std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections)
+            : vertexCollections(std::move(vertex_collections)) {}
+};
+
+struct Q2Input : public QueryInput {
     VertexCollection<Tag> tags;
     VertexCollection<Person> persons;
 
-    std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections;
-
     EdgeCollection knows;
-    EdgeCollection has_interest;
+    EdgeCollection hasInterest;
 
-    explicit Q2_Input(const BenchmarkParameters &parameters) :
+    explicit Q2Input(const BenchmarkParameters &parameters) :
+            QueryInput{{tags, persons}},
             tags{parameters.ChangePath + "tag.csv"},
             persons{parameters.ChangePath + "person.csv"},
-            vertex_collections{tags, persons},
-            knows{parameters.ChangePath + "person_knows_person.csv", vertex_collections},
-            has_interest{parameters.ChangePath + "person_hasInterest_tag.csv", vertex_collections} {}
+            knows{parameters.ChangePath + "person_knows_person.csv", vertexCollections},
+            hasInterest{parameters.ChangePath + "person_hasInterest_tag.csv", vertexCollections} {}
 };

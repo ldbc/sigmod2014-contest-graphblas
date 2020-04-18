@@ -136,21 +136,28 @@ struct EdgeCollection {
     GBxx_Object<GrB_Matrix> matrix;
 
     EdgeCollection(const std::string &file_path,
-                   const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) {
-        importFile(file_path, vertex_collection);
+                   const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection,
+                   bool transpose = false) {
+        importFile(file_path, vertex_collection, transpose);
     }
 
     static const BaseVertexCollection &findVertexCollection(const std::string &vertex_name,
                                                             const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection);
 
-    void importFile(const std::string &file_path,
-                    const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) {
+    void importFile(std::string const &file_path,
+                    std::vector<std::reference_wrapper<BaseVertexCollection>> const &vertex_collection,
+                    bool transpose) {
         auto[csv_file, full_column_names, header_line] = openFileWithHeader(file_path);
 
+        char const *src_prefix = ":START_ID(", *trg_prefix = ":END_ID(", *postfix = ")";
         std::string src_column_name = full_column_names[0];
         std::string trg_column_name = full_column_names[1];
-        std::string src_vertex_name = parseHeaderField(src_column_name, ":START_ID(", ")");
-        std::string trg_vertex_name = parseHeaderField(trg_column_name, ":END_ID(", ")");
+        if (transpose) {
+            std::swap(src_column_name, trg_column_name);
+            std::swap(src_prefix, trg_prefix);
+        }
+        std::string src_vertex_name = parseHeaderField(src_column_name, src_prefix, postfix);
+        std::string trg_vertex_name = parseHeaderField(trg_column_name, trg_prefix, postfix);
 
         src = &findVertexCollection(src_vertex_name, vertex_collection);
         trg = &findVertexCollection(trg_vertex_name, vertex_collection);
@@ -190,12 +197,12 @@ struct Q2Input : public QueryInput {
     VertexCollection<Person> persons;
 
     EdgeCollection knows;
-    EdgeCollection hasInterest;
+    EdgeCollection hasInterestTran;
 
     explicit Q2Input(const BenchmarkParameters &parameters) :
             QueryInput{{tags, persons}},
             tags{parameters.ChangePath + "tag.csv"},
             persons{parameters.ChangePath + "person.csv"},
             knows{parameters.ChangePath + "person_knows_person.csv", vertexCollections},
-            hasInterest{parameters.ChangePath + "person_hasInterest_tag.csv", vertexCollections} {}
+            hasInterestTran{parameters.ChangePath + "person_hasInterest_tag.csv", vertexCollections, true} {}
 };

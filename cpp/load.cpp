@@ -102,3 +102,16 @@ std::string parseHeaderField(std::string const &field, char const *prefix, char 
            && field.compare(field_len - postfix_len, postfix_len, postfix) == 0);
     return field.substr(prefix_len, field_len - prefix_len - postfix_len);
 }
+
+const BaseVertexCollection &EdgeCollection::findVertexCollection(const std::string &vertex_name,
+                                                                 const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) {
+    auto iterator = std::find_if(vertex_collection.begin(), vertex_collection.end(),
+                                 [&](const BaseVertexCollection &vertex) {
+                                     return vertex.vertex_name == vertex_name;
+                                 });
+
+    if (iterator == vertex_collection.end())
+        throw std::invalid_argument{"Vertex is not loaded: " + vertex_name};
+
+    return *iterator;
+}

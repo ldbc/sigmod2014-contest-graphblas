@@ -20,6 +20,10 @@ std::string parseHeaderField(std::string const &field, char const *prefix, char 
 struct BaseVertexCollection {
     std::string vertex_name;
     std::map<uint64_t, GrB_Index> id_to_index;
+
+    GrB_Index size() const {
+        return id_to_index.size();
+    }
 };
 
 template<typename T>
@@ -32,8 +36,6 @@ struct VertexCollection : public BaseVertexCollection {
 
     void importFile(const std::string &file_path) {
         auto[csv_file, full_column_names, header_line] = openFileWithHeader(file_path);
-
-        std::cout << header_line << std::endl;
 
         auto extra_columns_array = T::extraColumns();
         constexpr auto selected_columns_count = extra_columns_array.size() + 1;
@@ -127,95 +129,67 @@ struct Person : public Vertex {
 
 #pragma clang diagnostic pop
 
-struct EdgeCollection{
-    BaseVertexCollection src, trg;
+struct EdgeCollection {
+    const BaseVertexCollection *src, *trg;
+    GrB_Index edge_number;
+    GBxx_Object<GrB_Matrix> matrix;
 
-    EdgeCollection(const std::string &file_path){
-        importFile(file_path);
+    EdgeCollection(const std::string &file_path,
+                   const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) {
+        importFile(file_path, vertex_collection);
     }
 
-    void importFile(const std::string &file_path) {
+    static const BaseVertexCollection &findVertexCollection(const std::string &vertex_name,
+                                                            const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection);
 
+    void importFile(const std::string &file_path,
+                    const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) {
+        auto[csv_file, full_column_names, header_line] = openFileWithHeader(file_path);
+
+        std::string src_column_name = full_column_names[0];
+        std::string trg_column_name = full_column_names[1];
+        std::string src_vertex_name = parseHeaderField(src_column_name, ":START_ID(", ")");
+        std::string trg_vertex_name = parseHeaderField(trg_column_name, ":END_ID(", ")");
+
+        src = &findVertexCollection(src_vertex_name, vertex_collection);
+        trg = &findVertexCollection(trg_vertex_name, vertex_collection);
+
+        io::CSVReader<2, io::trim_chars<>, io::no_quote_escape<'|'>> csv_reader(file_path, csv_file);
+
+        csv_reader.read_header(io::ignore_extra_column, src_column_name, trg_column_name);
+
+        std::vector<GrB_Index> src_indices, trg_indices;
+        uint64_t src_id, trg_id;
+        while (csv_reader.read_row(src_id, trg_id)) {
+            GrB_Index src_index = src->id_to_index.find(src_id)->second;
+            GrB_Index trg_index = trg->id_to_index.find(trg_id)->second;
+
+            src_indices.push_back(src_index);
+            trg_indices.push_back(trg_index);
+        }
+        edge_number = src_indices.size();
+
+        matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
+        ok(GrB_Matrix_build_BOOL(matrix.get(),
+                                 src_indices.data(), trg_indices.data(),
+                                 array_of_true(edge_number).get(),
+                                 edge_number, GrB_LOR));
     }
 };
 
 struct Q2_Input {
-    /*
-    std::vector<Comment> comments;
-    std::map<uint64_t, GrB_Index> comment_id_to_column;
+    VertexCollection<Tag> tags;
+    VertexCollection<Person> persons;
 
-    std::map<uint64_t, GrB_Index> user_id_to_column;
+    std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections;
 
-    GBxx_Object<GrB_Matrix> likes_matrix_tran, friends_matrix;
+    EdgeCollection knows;
+    EdgeCollection has_interest;
 
-    GrB_Index likes_num, friends_num;
-
-    auto users_size() const {
-        return user_id_to_column.size();
-    }
-
-    auto comments_size() const {
-        return comments.size();
-    }*/
-
-    explicit Q2_Input(const BenchmarkParameters &parameters) {
-        std::string knows_path = parameters.ChangePath + "person_knows_person.csv";
-        std::string likes_path = parameters.ChangePath + "person_hasInterest_tag.csv";
-
-        std::ifstream
-                comments_file{(parameters.ChangePath + "/tag.csv")},
-                friends_file{knows_path},
-                likes_file{likes_path};
-        if (!(comments_file && friends_file && likes_file)) {
-            throw std::runtime_error{"Failed to open input files"};
-        }
-
-        VertexCollection<Tag> tags{(parameters.ChangePath + "tag.csv")};
-        VertexCollection<Person> persons{(parameters.ChangePath + "person.csv")};
-        std::vector<std::reference_wrapper<const BaseVertexCollection>> vertex_collections{tags, persons};
-
-/*
-        Q2_Input input;
-
-        while (read_comment_line(comments_file, input));
-
-        std::vector<GrB_Index> friends_src_columns, friends_trg_columns;
-        GrB_Index user1_column, user2_column;
-        while (read_friends_line(user1_column, user2_column, friends_file, input)) {
-            friends_src_columns.emplace_back(user1_column);
-            friends_trg_columns.emplace_back(user2_column);
-        }
-
-        std::vector<GrB_Index> likes_src_user_columns, likes_trg_comment_columns;
-        GrB_Index user_column, comment_column;
-        while (read_likes_line(user_column, comment_column, likes_file, input)) {
-            likes_src_user_columns.emplace_back(user_column);
-            likes_trg_comment_columns.emplace_back(comment_column);
-        }
-
-        input.likes_num = likes_src_user_columns.size();
-
-        input.likes_matrix_tran = GB(GrB_Matrix_new, GrB_BOOL, input.comments_size(), input.users_size());
-        ok(GrB_Matrix_build_BOOL(input.likes_matrix_tran.get(),
-                                 likes_trg_comment_columns.data(), likes_src_user_columns.data(),
-                                 array_of_true(input.likes_num).get(),
-                                 input.likes_num, GrB_LOR));
-
-        input.friends_num = friends_src_columns.size();
-
-        input.friends_matrix = GB(GrB_Matrix_new, GrB_BOOL, input.users_size(), input.users_size());
-        ok(GrB_Matrix_build_BOOL(input.friends_matrix.get(),
-                                 friends_src_columns.data(), friends_trg_columns.data(),
-                                 array_of_true(input.friends_num).get(),
-                                 input.friends_num, GrB_LOR));
-
-        // make sure tuples are in row-major order (SuiteSparse extension)
-        GxB_Format_Value format;
-        ok(GxB_Matrix_Option_get(input.likes_matrix_tran.get(), GxB_FORMAT, &format));
-        if (format != GxB_BY_ROW) {
-            throw std::runtime_error{"Matrix is not CSR"};
-        }
-
-        return input;*/
-    }
+    explicit Q2_Input(const BenchmarkParameters &parameters) :
+            tags{parameters.ChangePath + "tag.csv"},
+            persons{parameters.ChangePath + "person.csv"},
+            vertex_collections{tags, persons},
+            knows{parameters.ChangePath + "person_knows_person.csv", vertex_collections},
+            has_interest{parameters.ChangePath + "person_hasInterest_tag.csv", vertex_collections} {}
 };

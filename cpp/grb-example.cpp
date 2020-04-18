@@ -22,6 +22,11 @@ int main() {
                              src_indices.size(), GrB_LOR));
     WriteOutDebugVector(vec.get(), "vector");
 
+    GBxx_Object<GrB_Vector> result = GB(GrB_Vector_new, GrB_BOOL, 3);
+    ok(GrB_vxm(result.get(), GrB_NULL, GrB_NULL,
+               GxB_LOR_LAND_BOOL, vec.get(), mx.get(), GrB_NULL));
+    WriteOutDebugVector(result.get(), "result");
+
     // Cleanup
     ok(LAGraph_finalize());
 

@@ -6,153 +6,103 @@
 #include <numeric>
 #include <memory>
 #include <set>
+#include <cstdio>
 #include "utils.h"
 #include "load.h"
 #include "Query.h"
 
-class Query2 : public Query<Q2Input> {
-    /*
-protected:
-    static std::vector<uint64_t>
-    convert_score_type_to_comment_id(const std::vector<score_type> &top_scores, const Q2_Input &input) {
-        std::vector<uint64_t> top_scores_vector;
-        top_scores_vector.reserve(top_count);
-
-        // convert row indices to original comment IDs
-        std::transform(top_scores.rbegin(), top_scores.rend(), std::back_inserter(top_scores_vector),
-                       [&input](const auto &score_tuple) {
-                           return input.comments[std::get<2>(score_tuple)].id;
-                       });
-
-        return top_scores_vector;
-    }
-
-    static inline void
-    compute_score_for_comment(const Q2_Input &input, GrB_Index comment_col, const GrB_Index *likes_comment_array_begin,
-                              const GrB_Index *likes_comment_array_end, const GrB_Index *likes_user_array_begin,
-                              std::vector<score_type> &top_scores) __attribute__ ((always_inline)) {
-        // find tuple sequences of each comment in row-major array
-        // users liking a comment are stored consecutively
-        auto[likes_comment_begin, likes_comment_end] = std::equal_range(likes_comment_array_begin,
-                                                                        likes_comment_array_end, comment_col);
-        if (likes_comment_begin != likes_comment_end) {
-            GrB_Index likes_count = std::distance(likes_comment_begin, likes_comment_end);
-            // get position of first user liking that comment
-            const GrB_Index *likes_user_begin =
-                    likes_user_array_begin + std::distance(likes_comment_array_begin, likes_comment_begin);
-
-            // extract friendships submatrix of users liking the comment
-            GBxx_Object<GrB_Matrix> friends_overlay_graph = GB(GrB_Matrix_new, GrB_BOOL, likes_count, likes_count);
-            ok(GrB_Matrix_extract(friends_overlay_graph.get(), GrB_NULL, GrB_NULL,
-                                  input.friends_matrix.get(),
-                                  likes_user_begin, likes_count, likes_user_begin, likes_count,
-                                  GrB_NULL));
-
-            // assuming that all component_ids will be in [0, n)
-            GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv, friends_overlay_graph.get(), false);
-
-            GrB_Index nvals;
-#ifndef NDEBUG
-            nvals = input.likes_num;
-            ok(GrB_Vector_nvals(&nvals, components_vector.get()));
-            assert(nvals == likes_count);
-
-            GrB_Index n;
-            ok(GrB_Vector_size(&n, components_vector.get()));
-            assert(n == likes_count);
-#endif
-
-            std::vector<uint64_t> components(likes_count),
-                    component_sizes(likes_count);
-
-            // nullptr: SuiteSparse extension
-            nvals = likes_count;
-            ok(GrB_Vector_extractTuples_UINT64(nullptr, components.data(), &nvals, components_vector.get()));
-            assert(nvals == likes_count);
-
-            // count size of each component
-            for (auto component_id:components)
-                ++component_sizes[component_id];
-
-            std::transform(component_sizes.begin(), component_sizes.end(), component_sizes.begin(),
-                           [](uint64_t n) { return n * n; });
-
-            uint64_t score = std::accumulate(component_sizes.begin(), component_sizes.end(), uint64_t());
-
-            add_score_to_toplist(top_scores,
-                                 std::make_tuple(score, input.comments[comment_col].timestamp, comment_col));
-        }
-    }
-
-public:
-    using Query::Query;
-
-    virtual void compute_score_for_all_comments(const GrB_Index *likes_comment_array_begin,
-                                                const GrB_Index *likes_comment_array_end,
-                                                const GrB_Index *likes_user_array_begin,
-                                                std::vector<score_type> &top_scores) const {
-        int nthreads = LAGraph_get_nthreads();
-#pragma omp parallel num_threads(nthreads)
-        {
-            std::vector<score_type> top_scores_local;
-
-#pragma omp for schedule(dynamic)
-            for (GrB_Index comment_col = 0; comment_col < input.comments_size(); ++comment_col) {
-                compute_score_for_comment(input, comment_col, likes_comment_array_begin, likes_comment_array_end,
-                                          likes_user_array_begin, top_scores_local);
-            }
-
-#pragma omp critical(Q2_add_score_to_toplist)
-            for (auto score : top_scores_local) {
-                add_score_to_toplist(top_scores, score);
-            }
-        }
-    }
-
-    std::vector<score_type> calculate_score() {
-        std::vector<score_type> top_scores;
-
-        std::unique_ptr<GrB_Index[]> likes_trg_comment_columns{new GrB_Index[input.likes_num]},
-                likes_src_user_columns{new GrB_Index[input.likes_num]};
-        GrB_Index *likes_comment_array_begin = likes_trg_comment_columns.get(),
-                *likes_comment_array_end = likes_trg_comment_columns.get() + input.likes_num,
-                *likes_user_array_begin = likes_src_user_columns.get();
-
-        // nullptr to avoid extracting matrix values (SuiteSparse extension)
-        GrB_Index nvals = input.likes_num;
-        // extract likes edges row-wise, users liking a comment are stored consecutively
-        ok(GrB_Matrix_extractTuples_BOOL(likes_trg_comment_columns.get(), likes_src_user_columns.get(), nullptr, &nvals,
-                                         input.likes_matrix_tran.get()));
-        assert(nvals == input.likes_num);
-
-        compute_score_for_all_comments(likes_comment_array_begin, likes_comment_array_end, likes_user_array_begin,
-                                       top_scores);
-
-        // if comments with likes are not enough collect comments without like
-        if (top_scores.size() < top_count) {
-            for (GrB_Index comment_col = 0; comment_col < input.comments_size(); ++comment_col) {
-                if (std::none_of(top_scores.begin(), top_scores.end(),
-                                 [comment_col](auto const &tuple) { return std::get<2>(tuple) == comment_col; })) {
-                    // try to add this comment if not present
-                    add_score_to_toplist(top_scores,
-                                         std::make_tuple(0, input.comments[comment_col].timestamp, comment_col));
-                }
-            }
-        }
-
-        sort_top_scores(top_scores);
-
-        return top_scores;
-    }
-
-    std::vector<uint64_t> initial_calculation() override {
-        return convert_score_type_to_comment_id(calculate_score(), input);
-    }*/
-
-public:
+struct Query2 : public Query<Q2Input> {
     using Query::Query;
 
     std::vector<uint64_t> initial_calculation() override {
+        int top_k_limit = 3;
+        char const *birtday_limit_str = "1986-06-14";
+
+        // make sure time_t is converted correctly
+        GrB_Type GB_TIME_T = GrB_INT64;
+        static_assert(std::is_same<time_t, int64_t>::value);
+
+        // store scalar parameter
+        GBxx_Object<GxB_Scalar> birthday_limit = GB(GxB_Scalar_new, GB_TIME_T);
+        ok(GxB_Scalar_setElement_INT64(birthday_limit.get(), parseTimestamp(birtday_limit_str, DateFormat)));
+
+        // mask of persons based on their birthdays
+        GBxx_Object<GrB_Vector> birthday_person_mask = GB(GrB_Vector_new, GB_TIME_T, input->persons.size());
+        std::vector<GrB_Index> all_indices;
+        std::vector<time_t> birthdays;
+        birthdays.resize(input->persons.size());
+        all_indices.resize(input->persons.size());
+        std::transform(input->persons.vertices.begin(), input->persons.vertices.end(), birthdays.begin(),
+                       [](auto &p) { return p.birthday; });
+        std::iota(all_indices.begin(), all_indices.end(), 0);
+        ok(GrB_Vector_build_INT64(birthday_person_mask.get(), all_indices.data(), birthdays.data(), birthdays.size(),
+                                  GrB_PLUS_INT64));
+
+        ok(GxB_Vector_select(birthday_person_mask.get(), GrB_NULL, GrB_NULL,
+                             GxB_GE_THUNK, birthday_person_mask.get(),
+                             birthday_limit.get(), GrB_NULL));
+
+        std::vector<std::tuple<uint64_t, std::reference_wrapper<std::string>>> tag_scores;
+        tag_scores.reserve(input->tags.size());
+        GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input->persons.size());
+        for (int tag_index = 0; tag_index < input->tags.size(); ++tag_index) {
+            ok(GrB_Col_extract(interested_person_vec.get(), birthday_person_mask.get(), GrB_NULL,
+                               input->hasInterestTran.matrix.get(), GrB_ALL, 0, tag_index,
+                               GrB_DESC_RST0));
+
+            GrB_Index interested_person_nvals;
+            ok(GrB_Vector_nvals(&interested_person_nvals, interested_person_vec.get()));
+
+            uint64_t score = 0;
+            if (interested_person_nvals != 0) {
+                std::vector<GrB_Index> interested_person_indices(interested_person_nvals);
+                GrB_Index nvals_out = interested_person_nvals;
+                ok(GrB_Vector_extractTuples_BOOL(interested_person_indices.data(), nullptr, &nvals_out,
+                                                 interested_person_vec.get()));
+                assert(interested_person_nvals == nvals_out);
+
+                GBxx_Object<GrB_Matrix> knows_subgraph = GB(GrB_Matrix_new, GrB_BOOL, interested_person_nvals,
+                                                            interested_person_nvals);
+
+                ok(GrB_Matrix_extract(knows_subgraph.get(), GrB_NULL, GrB_NULL, input->knows.matrix.get(),
+                                      interested_person_indices.data(), interested_person_nvals,
+                                      interested_person_indices.data(), interested_person_nvals,
+                                      GrB_NULL));
+
+                // assuming that all component_ids will be in [0, n)
+                GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv, knows_subgraph.get(), false);
+
+                std::vector<uint64_t> components(interested_person_nvals),
+                        component_sizes(interested_person_nvals);
+
+                // GrB_NULL to avoid extracting matrix values (SuiteSparse extension)
+                nvals_out = interested_person_nvals;
+                ok(GrB_Vector_extractTuples_UINT64(GrB_NULL, components.data(), &nvals_out, components_vector.get()));
+                assert(interested_person_nvals == nvals_out);
+
+                // count size of each component
+                for (auto component_id:components)
+                    ++component_sizes[component_id];
+
+                score = *std::max_element(component_sizes.begin(), component_sizes.end());
+            }
+            tag_scores.emplace_back(score, input->tags.vertices[tag_index].name);
+        }
+
+        std::sort(tag_scores.begin(), tag_scores.end(), transformComparator([](const auto &val) {
+            return std::make_tuple(
+                    std::numeric_limits<uint64_t>::max() - std::get<0>(val),
+                    std::get<1>(val));
+        }));
+        tag_scores.erase(tag_scores.begin() + top_k_limit, tag_scores.end());
+
+        for (const auto &pair :tag_scores) {
+            std::cout << std::get<0>(pair) << ": " << std::get<1>(pair).get() << std::endl;
+        }
+
+        // expected result:
+        // Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5
+
         return std::vector<uint64_t>();
     }
 };

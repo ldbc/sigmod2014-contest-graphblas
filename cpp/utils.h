@@ -42,6 +42,13 @@ constexpr auto array_of(T &&... t)
 }
 
 inline const char *TimestampFormat = "%Y-%m-%d %H:%M:%S";
-inline const char *DateFormat= "%Y-%m-%d";
+inline const char *DateFormat = "%Y-%m-%d";
 
 time_t parseTimestamp(const char *timestamp_str, const char *timestamp_format);
+
+template<typename UnaryOp>
+auto transformComparator(const UnaryOp &op) {
+    return [&](const auto &lhs, const auto &rhs) {
+        return op(lhs) < op(rhs);
+    };
+}

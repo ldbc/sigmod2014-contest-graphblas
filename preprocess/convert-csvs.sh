@@ -20,13 +20,11 @@ while read line; do
     iconv -f ${SOURCE_ENCODING} -t utf-8 "${CSV_IN_DIR}/${FILENAME}.csv" > "${CSV_OUT_DIR}/${FILENAME}.csv"
   fi
 
-  sed -i "1s/.*/$header/" "${CSV_OUT_DIR}/${FILENAME}.csv"
-1c
-${HEADER}
-.
-w
-q
-EOF
+  if [ "$(uname)" == "Darwin" ]; then
+    sed -i '' "1s/.*/$header/" "${CSV_OUT_DIR}/${FILENAME}.csv"
+  else
+    sed -i "1s/.*/$header/" "${CSV_OUT_DIR}/${FILENAME}.csv"
+  fi
 
 done < headers.txt
 

@@ -20,8 +20,7 @@ while read line; do
     iconv -f ${SOURCE_ENCODING} -t utf-8 "${CSV_IN_DIR}/${FILENAME}.csv" > "${CSV_OUT_DIR}/${FILENAME}.csv"
   fi
 
-  # using ed (instead of sed) for true in-place edits: https://stackoverflow.com/a/36608249/3580502
-  ed -s ${CSV_OUT_DIR}/${FILENAME}.csv << EOF
+  sed -i "1s/.*/$header/" "${CSV_OUT_DIR}/${FILENAME}.csv"
 1c
 ${HEADER}
 .

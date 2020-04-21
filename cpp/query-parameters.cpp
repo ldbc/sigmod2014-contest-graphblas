@@ -48,14 +48,14 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, Q2Input const
     std::vector<std::function<std::string()>> vector{
 // formatter markers: https://stackoverflow.com/a/19492318
 // @formatter:off
-            query2(3, "1980-02-01", "Chiang_Kai-shek Augustine_of_Hippo Napoleon % component sizes 22 16 16"),
-            query2(4, "1981-03-10", "Chiang_Kai-shek Napoleon Mohandas_Karamchand_Gandhi Sukarno % component sizes 17 13 11 11"),
-            query2(3, "1982-03-29", "Chiang_Kai-shek Mohandas_Karamchand_Gandhi Napoleon % component sizes 13 11 10"),
-            query2(3, "1983-05-09", "Chiang_Kai-shek Mohandas_Karamchand_Gandhi Augustine_of_Hippo % component sizes 12 10 8"),
-            query2(5, "1984-07-02", "Chiang_Kai-shek Aristotle Mohandas_Karamchand_Gandhi Augustine_of_Hippo Fidel_Castro % component sizes 10 7 6 5 5"),
-            query2(3, "1985-05-31", "Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5"),
-            query2(3, "1986-06-14", "Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5"),
-            query2(7, "1987-06-24", "Chiang_Kai-shek Augustine_of_Hippo Genghis_Khan Haile_Selassie_I Karl_Marx Lyndon_B._Johnson Robert_John_\"Mutt\"_Lange % component sizes 4 3 3 3 3 3 3"),
+            query2(3, "1980-02-01", R"(Chiang_Kai-shek Augustine_of_Hippo Napoleon % component sizes 22 16 16)"),
+            query2(4, "1981-03-10", R"(Chiang_Kai-shek Napoleon Mohandas_Karamchand_Gandhi Sukarno % component sizes 17 13 11 11)"),
+            query2(3, "1982-03-29", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Napoleon % component sizes 13 11 10)"),
+            query2(3, "1983-05-09", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Augustine_of_Hippo % component sizes 12 10 8)"),
+            query2(5, "1984-07-02", R"(Chiang_Kai-shek Aristotle Mohandas_Karamchand_Gandhi Augustine_of_Hippo Fidel_Castro % component sizes 10 7 6 5 5)"),
+            query2(3, "1985-05-31", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5)"),
+            query2(3, "1986-06-14", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5)"),
+            query2(7, "1987-06-24", R"(Chiang_Kai-shek Augustine_of_Hippo Genghis_Khan Haile_Selassie_I Karl_Marx Lyndon_B._Johnson Robert_John_\"Mutt\"_Lange % component sizes 4 3 3 3 3 3 3)"),
 // @formatter:on
     };
 

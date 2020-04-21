@@ -5,7 +5,5 @@
 #include "load.h"
 
 struct BaseQuery {
-    virtual void load() = 0;
-
     virtual void initial() = 0;
 };

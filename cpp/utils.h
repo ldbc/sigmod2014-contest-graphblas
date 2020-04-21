@@ -32,7 +32,7 @@ struct BenchmarkPhase {
 
 void report(const BenchmarkParameters &parameters, int iteration, const std::string &phase,
             std::chrono::nanoseconds runtime,
-            std::optional<std::vector<uint64_t>> result_reversed_opt = std::nullopt);
+            std::optional<std::string> result_reversed_opt = std::nullopt);
 
 // https://stackoverflow.com/a/26351760
 template<typename V, typename... T>

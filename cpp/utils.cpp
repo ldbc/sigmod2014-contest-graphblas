@@ -7,10 +7,12 @@
 #include "utils.h"
 
 
-std::string getenv_string(const char *name) {
+    std::string getenv_string(const char *name, const std::optional<std::string> &default_ = std::nullopt) {
     const char *value = std::getenv(name);
     if (value)
         return value;
+    else if (default_)
+        return default_.value();
     else
         throw std::runtime_error{std::string{"Missing environmental variable: "} + name};
 }
@@ -18,14 +20,14 @@ std::string getenv_string(const char *name) {
 BenchmarkParameters parse_benchmark_params() {
     BenchmarkParameters params;
 
-    params.ChangePath = getenv_string("ChangePath");
+    params.ChangePath = getenv_string("ChangePath", "../sf1k-converted/");
     if (*params.ChangePath.rbegin() != '/')
         params.ChangePath += '/';
 
-    params.RunIndex = getenv_string("RunIndex");
-    params.Tool = "CPP";
-    params.ChangeSet = getenv_string("ChangeSet");
-    params.Query = getenv_string("Query");
+    params.RunIndex = getenv_string("RunIndex", "0");
+    params.Tool = getenv_string("Tool", "CPP");
+    params.ChangeSet = getenv_string("ChangeSet", "1");
+    params.Query = getenv_string("Query", "QAll");
 
     const char *ThreadsNum_str = std::getenv("ThreadsNum");
     if (ThreadsNum_str)
@@ -53,26 +55,16 @@ void report_info(const BenchmarkParameters &parameters, int iteration, const std
 
 void
 report(const BenchmarkParameters &parameters, int iteration, const std::string &phase, std::chrono::nanoseconds runtime,
-       std::optional<std::vector<uint64_t>> result_reversed_opt) {
+       std::optional<std::string> result_opt) {
     report_info(parameters, iteration, phase);
     std::cout << "Time" << ';' << runtime.count() << std::endl;
 
-    if (result_reversed_opt) {
-        const auto &result_reversed = result_reversed_opt.value();
+    if (result_opt) {
+        const auto &result = result_opt.value();
 
         report_info(parameters, iteration, phase);
-        std::cout << "Elements" << ';';
-
-        for (auto iter = result_reversed.rbegin(); iter != result_reversed.rend(); ++iter) {
-            auto comment_id = *iter;
-
-            if (iter != result_reversed.rbegin())
-                std::cout << '|';
-            std::cout << comment_id;
-        }
-        std::cout << std::endl;
+        std::cout << "Elements" << ';' << result << std::endl;
     }
-
 }
 
 time_t parseTimestamp(const char *timestamp_str, const char *timestamp_format) {

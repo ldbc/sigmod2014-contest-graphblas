@@ -15,20 +15,8 @@ link_libraries(graphblas lagraph)
 add_executable(sigmod2014pc_cpp
         main.cpp
         load.cpp
-        utils.cpp)
+        utils.cpp
+        query-parameters.cpp)
 
 add_executable(grb-example
         grb-example.cpp)
-
-add_executable(q1
-        q1.cpp
-        load.cpp
-        utils.cpp)
-add_executable(q3
-        q3.cpp
-        load.cpp
-        utils.cpp)
-add_executable(q4
-        q4.cpp
-        load.cpp
-        utils.cpp)

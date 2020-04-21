@@ -20,7 +20,7 @@ struct Query2 : public Query<int, std::string> {
             : Query(std::move(parameters), std::move(query_params), input),
               top_k_limit(std::get<0>(queryParams)), birthday_limit_str(std::get<1>(queryParams)) {}
 
-    std::string initial_calculation() override {
+    std::tuple<std::string, std::string> initial_calculation() override {
         // make sure time_t is converted correctly
         GrB_Type GB_TIME_T = GrB_INT64;
         static_assert(std::is_same<time_t, int64_t>::value);
@@ -99,20 +99,21 @@ struct Query2 : public Query<int, std::string> {
         }));
         tag_scores.erase(tag_scores.begin() + top_k_limit, tag_scores.end());
 
-        std::string result;
+        std::string result, comment;
+        for (int i = 0; i < tag_scores.size(); ++i) {
+            auto const &pair = tag_scores[i];
 
-        for (const auto &pair :tag_scores) {
+            if (i != 0) {
+                result += ' ';
+                comment += ' ';
+            }
+
             result += std::get<1>(pair).get();
-            result += ' ';
-        }
-        result += "% component sizes";
-        for (const auto &pair :tag_scores) {
-            result += ' ';
-            result += std::to_string(std::get<0>(pair));
+            comment += std::to_string(std::get<0>(pair));
         }
 
-        std::cout << result << std::endl;
+        std::cout << result << " % component sizes " << comment << std::endl;
 
-        return result;
+        return {result, comment};
     }
 };

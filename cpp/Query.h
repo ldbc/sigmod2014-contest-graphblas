@@ -41,11 +41,11 @@ public:
         using namespace std::chrono;
         auto initial_start = high_resolution_clock::now();
 
-        std::string result = initial_calculation();
+        auto[result, comment] = initial_calculation();
 
         report(parameters, 0, BenchmarkPhase::Initial, round<nanoseconds>(high_resolution_clock::now() - initial_start),
                result);
     }
 
-    virtual std::string initial_calculation() = 0;
+    virtual std::tuple<std::string, std::string> initial_calculation() = 0;
 };

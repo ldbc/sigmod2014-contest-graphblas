@@ -35,12 +35,6 @@ auto getQueryWrapper(BenchmarkParameters benchmark_parameters, Q2Input const &in
     };
 }
 
-//std::function<std::string()> query2(int top_k_limit, std::string birtday_limit_str) {
-//    return [top_k_limit, &birtday_limit_str](BenchmarkParameters const &benchmark_parameters) {
-//        return Query2(benchmarkParameters, std::make_tuple(top_k_limit, birtday_limit_str)).initial_calculation();
-//    };
-//}
-
 std::vector<std::function<std::string()>>
 getQueriesWithParameters(BenchmarkParameters benchmark_parameters, Q2Input const &input) {
     auto query2 = getQueryWrapper<Query2, int, std::string>(benchmark_parameters, input);

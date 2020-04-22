@@ -1,8 +1,7 @@
 #pragma once
 
-#include <chrono>
-#include <utility>
-#include "load.h"
+#include <string>
+#include <tuple>
 
 struct BaseQuery {
     virtual std::tuple<std::string, std::string> initial() = 0;

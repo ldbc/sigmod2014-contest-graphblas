@@ -3,7 +3,7 @@
 #include <chrono>
 #include <utility>
 #include <memory>
-#include "load.h"
+#include "input.h"
 #include "BaseQuery.h"
 #include "gb_utils.h"
 

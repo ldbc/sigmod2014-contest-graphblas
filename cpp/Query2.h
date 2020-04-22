@@ -9,7 +9,6 @@
 #include <cstdio>
 #include <utility>
 #include "utils.h"
-#include "load.h"
 #include "Query.h"
 
 class Query2 : public Query<int, std::string> {

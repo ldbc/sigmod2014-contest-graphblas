@@ -33,19 +33,21 @@ protected:
 //        std::sort_heap(top_scores.begin(), top_scores.end(), std::greater<>{});
 //    }
 
+    virtual std::tuple<std::string, std::string> initial_calculation() = 0;
+
 public:
     Query(BenchmarkParameters parameters, ParameterType queryParams, Q2Input const &input)
             : parameters{std::move(parameters)}, queryParams{std::move(queryParams)}, input(input) {}
 
-    void initial() override {
+    std::tuple<std::string, std::string> initial() override {
         using namespace std::chrono;
         auto initial_start = high_resolution_clock::now();
 
-        auto[result, comment] = initial_calculation();
+        auto resultTuple = initial_calculation();
 
         report(parameters, 0, BenchmarkPhase::Initial, round<nanoseconds>(high_resolution_clock::now() - initial_start),
-               result);
-    }
+               std::get<0>(resultTuple));
 
-    virtual std::tuple<std::string, std::string> initial_calculation() = 0;
+        return resultTuple;
+    }
 };

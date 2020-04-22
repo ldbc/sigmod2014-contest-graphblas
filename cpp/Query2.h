@@ -12,13 +12,9 @@
 #include "load.h"
 #include "Query.h"
 
-struct Query2 : public Query<int, std::string> {
+class Query2 : public Query<int, std::string> {
     int top_k_limit;
     std::string const &birthday_limit_str;
-
-    Query2(BenchmarkParameters parameters, ParameterType query_params, Q2Input const &input)
-            : Query(std::move(parameters), std::move(query_params), input),
-              top_k_limit(std::get<0>(queryParams)), birthday_limit_str(std::get<1>(queryParams)) {}
 
     std::tuple<std::string, std::string> initial_calculation() override {
         // make sure time_t is converted correctly
@@ -112,8 +108,11 @@ struct Query2 : public Query<int, std::string> {
             comment += std::to_string(std::get<0>(pair));
         }
 
-        std::cout << result << " % component sizes " << comment << std::endl;
-
         return {result, comment};
     }
+
+public:
+    Query2(BenchmarkParameters parameters, ParameterType query_params, Q2Input const &input)
+            : Query(std::move(parameters), std::move(query_params), input),
+              top_k_limit(std::get<0>(queryParams)), birthday_limit_str(std::get<1>(queryParams)) {}
 };

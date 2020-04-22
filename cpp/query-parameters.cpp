@@ -8,7 +8,7 @@ auto getQueryWrapper(BenchmarkParameters benchmark_parameters, Q2Input const &in
             -> std::function<std::string()> {
         return [=, &input]() -> std::string {
             auto[result, comment] = QueryType(benchmark_parameters, std::make_tuple(query_parameters...), input)
-                    .initial_calculation();
+                    .initial();
             if (expected_result) {
                 std::string expected_result_value = expected_result.value();
 

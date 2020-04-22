@@ -5,5 +5,5 @@
 #include "load.h"
 
 struct BaseQuery {
-    virtual void initial() = 0;
+    virtual std::tuple<std::string, std::string> initial() = 0;
 };

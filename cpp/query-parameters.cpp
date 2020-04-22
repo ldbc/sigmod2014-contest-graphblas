@@ -1,4 +1,5 @@
 #include "query-parameters.h"
+#include "Query1.h"
 #include "Query2.h"
 #include <stdexcept>
 
@@ -37,11 +38,14 @@ auto getQueryWrapper(BenchmarkParameters benchmark_parameters, QueryInput const 
 
 std::vector<std::function<std::string()>>
 getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput const &input) {
+    auto query1 = getQueryWrapper<Query1, uint64_t, uint64_t, int>(benchmark_parameters, input);
     auto query2 = getQueryWrapper<Query2, int, std::string>(benchmark_parameters, input);
 
     std::vector<std::function<std::string()>> vector{
 // formatter markers: https://stackoverflow.com/a/19492318
 // @formatter:off
+            query1(58, 402, 0),
+
             query2(3, "1980-02-01", R"(Chiang_Kai-shek Augustine_of_Hippo Napoleon % component sizes 22 16 16)"),
             query2(4, "1981-03-10", R"(Chiang_Kai-shek Napoleon Mohandas_Karamchand_Gandhi Sukarno % component sizes 17 13 11 11)"),
             query2(3, "1982-03-29", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Napoleon % component sizes 13 11 10)"),

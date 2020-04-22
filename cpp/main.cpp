@@ -4,11 +4,11 @@
 #include "Query2.h"
 #include "query-parameters.h"
 
-std::unique_ptr<Q2Input> load(BenchmarkParameters const & parameters){
+std::unique_ptr<QueryInput> load(BenchmarkParameters const & parameters){
     using namespace std::chrono;
     auto load_start = high_resolution_clock::now();
 
-    std::unique_ptr<Q2Input> input = std::make_unique<Q2Input>(parameters);
+    std::unique_ptr<QueryInput> input = std::make_unique<QueryInput>(parameters);
 
     report(parameters, 0, BenchmarkPhase::Load, round<nanoseconds>(high_resolution_clock::now() - load_start));
 
@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     BenchmarkParameters parameters = parse_benchmark_params();
     ok(LAGraph_init());
 
-    std::unique_ptr<Q2Input> input = load(parameters);
+    std::unique_ptr<QueryInput> input = load(parameters);
     
     std::vector<std::function<std::string(void)>> queriesToRun = getQueriesWithParameters(parameters, *input);
 

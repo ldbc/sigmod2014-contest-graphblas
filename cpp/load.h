@@ -185,22 +185,22 @@ struct EdgeCollection {
     }
 };
 
-struct QueryInput {
+struct BaseQueryInput {
     std::vector<std::reference_wrapper<BaseVertexCollection>> vertexCollections;
 
-    explicit QueryInput(std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections)
+    explicit BaseQueryInput(std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections)
             : vertexCollections(std::move(vertex_collections)) {}
 };
 
-struct Q2Input : public QueryInput {
+struct QueryInput : public BaseQueryInput {
     VertexCollection<Tag> tags;
     VertexCollection<Person> persons;
 
     EdgeCollection knows;
     EdgeCollection hasInterestTran;
 
-    explicit Q2Input(const BenchmarkParameters &parameters) :
-            QueryInput{{tags, persons}},
+    explicit QueryInput(const BenchmarkParameters &parameters) :
+            BaseQueryInput{{tags, persons}},
             tags{parameters.ChangePath + "tag.csv"},
             persons{parameters.ChangePath + "person.csv"},
             knows{parameters.ChangePath + "person_knows_person.csv", vertexCollections},

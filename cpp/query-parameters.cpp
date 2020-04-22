@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 template<typename QueryType, typename... ParameterT>
-auto getQueryWrapper(BenchmarkParameters benchmark_parameters, Q2Input const &input) {
+auto getQueryWrapper(BenchmarkParameters benchmark_parameters, QueryInput const &input) {
     return [=, &input](ParameterT &&...query_parameters, std::optional<std::string> expected_result = std::nullopt)
             -> std::function<std::string()> {
         return [=, &input]() -> std::string {
@@ -36,7 +36,7 @@ auto getQueryWrapper(BenchmarkParameters benchmark_parameters, Q2Input const &in
 }
 
 std::vector<std::function<std::string()>>
-getQueriesWithParameters(BenchmarkParameters benchmark_parameters, Q2Input const &input) {
+getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput const &input) {
     auto query2 = getQueryWrapper<Query2, int, std::string>(benchmark_parameters, input);
 
     std::vector<std::function<std::string()>> vector{

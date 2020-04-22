@@ -112,7 +112,7 @@ class Query2 : public Query<int, std::string> {
     }
 
 public:
-    Query2(BenchmarkParameters parameters, ParameterType query_params, Q2Input const &input)
+    Query2(BenchmarkParameters parameters, ParameterType query_params, QueryInput const &input)
             : Query(std::move(parameters), std::move(query_params), input),
               top_k_limit(std::get<0>(queryParams)), birthday_limit_str(std::get<1>(queryParams)) {}
 };

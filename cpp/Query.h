@@ -15,7 +15,7 @@ public:
 protected:
     BenchmarkParameters parameters;
     ParameterType queryParams;
-    Q2Input const &input;
+    QueryInput const &input;
 
 //    static void add_score_to_toplist(std::vector<score_type> &top_scores, score_type score) {
 //        if (top_scores.size() < top_count || score > top_scores.front()) {
@@ -36,7 +36,7 @@ protected:
     virtual std::tuple<std::string, std::string> initial_calculation() = 0;
 
 public:
-    Query(BenchmarkParameters parameters, ParameterType queryParams, Q2Input const &input)
+    Query(BenchmarkParameters parameters, ParameterType queryParams, QueryInput const &input)
             : parameters{std::move(parameters)}, queryParams{std::move(queryParams)}, input(input) {}
 
     std::tuple<std::string, std::string> initial() override {

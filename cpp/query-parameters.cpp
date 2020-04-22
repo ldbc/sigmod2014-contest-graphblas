@@ -1,6 +1,8 @@
 #include "query-parameters.h"
 #include "Query1.h"
 #include "Query2.h"
+#include "Query3.h"
+#include "Query4.h"
 #include <stdexcept>
 
 template<typename QueryType, typename... ParameterT>
@@ -40,6 +42,8 @@ std::vector<std::function<std::string()>>
 getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput const &input) {
     auto query1 = getQueryWrapper<Query1, uint64_t, uint64_t, int>(benchmark_parameters, input);
     auto query2 = getQueryWrapper<Query2, int, std::string>(benchmark_parameters, input);
+    auto query3 = getQueryWrapper<Query3, int, int, std::string>(benchmark_parameters, input);
+    auto query4 = getQueryWrapper<Query4, int, std::string>(benchmark_parameters, input);
 
     std::vector<std::function<std::string()>> vector{
 // formatter markers: https://stackoverflow.com/a/19492318
@@ -54,6 +58,10 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
             query2(3, "1985-05-31", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5)"),
             query2(3, "1986-06-14", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5)"),
             query2(7, "1987-06-24", R"(Chiang_Kai-shek Augustine_of_Hippo Genghis_Khan Haile_Selassie_I Karl_Marx Lyndon_B._Johnson Robert_John_\"Mutt\"_Lange % component sizes 4 3 3 3 3 3 3)"),
+
+            query3(3, 2, "India"),
+
+            query4(3, "Bill_Clinton"),
 // @formatter:on
     };
 

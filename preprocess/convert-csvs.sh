@@ -16,16 +16,14 @@ while read line; do
   FILENAME=${array[0]}
   HEADER=${array[1]}
 
+  echo $FILENAME
+
   if [ ${SOURCE_ENCODING} != "utf-8" ]; then
     iconv -f ${SOURCE_ENCODING} -t utf-8 "${CSV_IN_DIR}/${FILENAME}.csv" > "${CSV_OUT_DIR}/${FILENAME}.csv"
   fi
 
-  if [ "$(uname)" == "Darwin" ]; then
-    sed -i '' "1s/.*/$header/" "${CSV_OUT_DIR}/${FILENAME}.csv"
-  else
-    sed -i "1s/.*/$header/" "${CSV_OUT_DIR}/${FILENAME}.csv"
-  fi
-
+  # use the simple combination of echo and cat for changing the header
+  echo ${HEADER} | cat - <(tail -n +2 ${CSV_OUT_DIR}/${FILENAME}.csv) > tmpfile.csv && mv tmpfile.csv ${CSV_OUT_DIR}/${FILENAME}.csv
 done < headers.txt
 
 # replace labels with one starting with an uppercase letter

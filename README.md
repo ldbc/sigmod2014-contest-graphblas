@@ -1,6 +1,6 @@
 # SIGMOD 2014 Programming Contest
 
-See our website at <https://ftsrg.mit.bme.hu/paper-lsgda2020/>.
+See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
 
 ## Use [pygraphblas](https://github.com/michelp/pygraphblas) in notebooks
 

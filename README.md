@@ -42,7 +42,7 @@ Generated datasets:
 * 1k persons: <https://www.dropbox.com/s/d68r4hddl28cli3/p1k.tar.zst?dl=0>
 * 10k persons: <https://www.dropbox.com/s/2xwhz1o7ioajy6x/p10k.tar.zst?dl=0>
 * 100k persons: <https://www.dropbox.com/s/ex4byfcs0af72gc/p100k.tar.zst?dl=0>
-* 1000k persons: TBA
+* 1000k persons: <https://www.dropbox.com/s/4viydt858yzl3cy/p1000k.tar.zst?dl=0>
 
 ## Experiments with Neo4j
 

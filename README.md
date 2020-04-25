@@ -28,8 +28,8 @@ cd preprocess/
 
 :bulb: It is possible to skip this step – data sets that **have already been converted** with this script are available in Gabor's Dropbox as zip archives:
 
-* 1k persons: <https://www.dropbox.com/s/sgrwihjji551teq/sf1k.zip?dl=1>
-* 10k persons: <https://www.dropbox.com/s/goabh7c3q5k4ex4/sf10k.zip?dl=1>
+* 1k persons:  <https://www.dropbox.com/s/sgrwihjji551teq/p1k-contest-data-set.zip?dl=1>
+* 10k persons: <https://www.dropbox.com/s/goabh7c3q5k4ex4/p10k-contest-data-set.zip?dl=1>
 
 ### Generating your own data sets
 
@@ -39,9 +39,9 @@ The generated data set will be in the `outputDir/` directory. The conversion scr
 
 Generated datasets:
 
-* 1k persons: <https://www.dropbox.com/s/d68r4hddl28cli3/p1k.tar.zst?dl=0>
-* 10k persons: <https://www.dropbox.com/s/2xwhz1o7ioajy6x/p10k.tar.zst?dl=0>
-* 100k persons: <https://www.dropbox.com/s/ex4byfcs0af72gc/p100k.tar.zst?dl=0>
+* 1k persons:    <https://www.dropbox.com/s/d68r4hddl28cli3/p1k.tar.zst?dl=0>
+* 10k persons:   <https://www.dropbox.com/s/2xwhz1o7ioajy6x/p10k.tar.zst?dl=0>
+* 100k persons:  <https://www.dropbox.com/s/ex4byfcs0af72gc/p100k.tar.zst?dl=0>
 * 1000k persons: <https://www.dropbox.com/s/4viydt858yzl3cy/p1000k.tar.zst?dl=0>
 
 ## Experiments with Neo4j

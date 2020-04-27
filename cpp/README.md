@@ -8,6 +8,12 @@ Install CMake (the package in Ubuntu 18.04 satisfies the minimum version require
 sudo apt install cmake
 ```
 
+Make sure you do not have GraphBLAS installed from APT:
+
+```bash
+sudo apt purge -y libgraphblas1
+```
+
 ## Grab and compile dependencies
 
 Install [SuiteSparse:GraphBLAS](https://github.com/DrTimothyAldenDavis/SuiteSparse) and [LAGraph](https://github.com/GraphBLAS/LAGraph/).

@@ -15,7 +15,7 @@ Install [SuiteSparse:GraphBLAS](https://github.com/DrTimothyAldenDavis/SuiteSpar
 ```bash
 export JOBS=$(nproc)
 
-git clone --depth 1 --branch v3.2.0 --single-branch https://github.com/DrTimothyAldenDavis/GraphBLAS
+git clone --depth 1 --branch v3.2.0 https://github.com/DrTimothyAldenDavis/GraphBLAS
 cd GraphBLAS
 make && sudo make install && sudo ldconfig
 cd ..

@@ -30,6 +30,8 @@ cd preprocess/
 ./convert-csvs.sh /path/to/outputDir-10k /path/to/outputDir-10k-converted
 ```
 
+### Preprocessed data sets
+
 :bulb: It is possible to skip this step – data sets that **have already been converted** with this script are available in Gabor's Dropbox as zip archives:
 
 * 1k persons:  <https://www.dropbox.com/s/sgrwihjji551teq/p1k-contest-data-set.zip?dl=1>

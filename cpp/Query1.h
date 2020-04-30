@@ -17,30 +17,30 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
     int comment_lower_limit;
 
     std::tuple<std::string, std::string> initial_calculation() override {
-        ok(GxB_Matrix_fprint(input.knows.matrix.get(), "knows", GxB_SUMMARY, stdout));
+        
+        
+        GBxx_Object<GrB_Matrix> personAToComment2 = GB(GrB_Matrix_new, GrB_UINT64, input.person_size(), input.comment_size());
+        ok(GrB_mxm(personAToComment2.get(), GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, input.hasCreatorTran.matrix.get(), input.replyOf.matrix.get(), GrB_NULL));
+        ok(GxB_Matrix_fprint(personAToComment2.get(), "personAToComment2", GxB_SUMMARY, stdout));
 
-        GBxx_Object<GrB_Matrix> mx = GB(GrB_Matrix_new, GrB_BOOL, 4, 3);
+        GBxx_Object<GrB_Matrix> personToPerson = GB(GrB_Matrix_new, GrB_UINT64, input.person_size(), input.person_size());
 
-        std::vector<GrB_Index> src_indices{0, 1, 3};
-        std::vector<GrB_Index> trg_indices{1, 0, 2};
+        ok(GrB_mxm(personToPerson.get(), input.knows.matrix.get(), GrB_NULL, GxB_PLUS_TIMES_INT64, personAToComment2.get(), input.hasCreator.matrix.get(), GrB_NULL));
+        ok(GxB_Matrix_fprint(personToPerson.get(), "personToPerson", GxB_SUMMARY, stdout));
 
-        ok(GrB_Matrix_build_BOOL(mx.get(),
-                                 src_indices.data(), trg_indices.data(),
-                                 array_of_true(src_indices.size()).get(),
-                                 src_indices.size(), GrB_LOR));
-        WriteOutDebugMatrix(mx.get(), "matrix");
+        auto limit = GB(GxB_Scalar_new, GrB_INT8);
+        ok(GxB_Scalar_setElement_INT8(limit.get(), comment_lower_limit));
 
-        GBxx_Object<GrB_Vector> vec = GB(GrB_Vector_new, GrB_BOOL, 4);
-        ok(GrB_Vector_build_BOOL(vec.get(),
-                                 src_indices.data(),
-                                 array_of_true(src_indices.size()).get(),
-                                 src_indices.size(), GrB_LOR));
-        WriteOutDebugVector(vec.get(), "vector");
 
-        GBxx_Object<GrB_Vector> result = GB(GrB_Vector_new, GrB_BOOL, 3);
-        ok(GrB_vxm(result.get(), GrB_NULL, GrB_NULL,
-                   GxB_LOR_LAND_BOOL, vec.get(), mx.get(), GrB_NULL));
-        WriteOutDebugVector(result.get(), "result");
+
+        ok(GxB_Matrix_select(personToPerson.get(), GrB_NULL, GrB_NULL, GxB_GT_THUNK, personToPerson.get(), limit.get(), GrB_NULL));
+        ok(GxB_Matrix_fprint(personToPerson.get(), "personToPersonFiltered", GxB_SUMMARY, stdout));
+
+        //Person to person is symmtetric, so no need to transpose
+        GBxx_Object<GrB_Vector> v_output = GB(LAGraph_bfs_pushpull, nullptr, personToPerson.get(), personToPerson.get(), p1, GrB_NULL, false);
+        //ok(GrB_Matrix_apply(personToPerson.get(), GrB_NULL, unaryop, personToPerson.get(), GrB_NULL));
+
+        ok(GxB_Vector_fprint(v_output.get(), "output_vec", GxB_SUMMARY, stdout));
 
         std::string result_str, comment_str;
         return {result_str, comment_str};

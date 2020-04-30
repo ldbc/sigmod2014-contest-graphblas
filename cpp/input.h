@@ -50,19 +50,39 @@ struct Person : public Vertex {
     }
 };
 
+struct Comment : public Vertex {};
+
 #pragma clang diagnostic pop
 
 struct QueryInput : public BaseQueryInput {
     VertexCollection<Tag> tags;
     VertexCollection<Person> persons;
+    VertexCollection<Comment> comments;
 
     EdgeCollection knows;
     EdgeCollection hasInterestTran;
+    EdgeCollection hasCreatorTran;
+    EdgeCollection hasCreator;
+    EdgeCollection replyOf;
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
-            BaseQueryInput{{tags, persons}},
+            BaseQueryInput{{tags, persons, comments}},
             tags{parameters.ChangePath + "tag.csv"},
             persons{parameters.ChangePath + "person.csv"},
+            comments{parameters.ChangePath + "comment.csv"},
+
             knows{parameters.ChangePath + "person_knows_person.csv", vertexCollections},
-            hasInterestTran{parameters.ChangePath + "person_hasInterest_tag.csv", vertexCollections, true} {}
+            hasInterestTran{parameters.ChangePath + "person_hasInterest_tag.csv", vertexCollections, true},
+
+            hasCreatorTran{parameters.ChangePath + "comment_hasCreator_person.csv", vertexCollections, true},
+            hasCreator{parameters.ChangePath + "comment_hasCreator_person.csv", vertexCollections},
+            replyOf{parameters.ChangePath + "comment_replyOf_comment.csv", vertexCollections}{}
+
+    auto comment_size() const {
+        return comments.size();
+    }
+
+    auto person_size() const {
+        return persons.size();
+    }
 };

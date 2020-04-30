@@ -48,7 +48,16 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
     std::vector<std::function<std::string()>> vector{
 // formatter markers: https://stackoverflow.com/a/19492318
 // @formatter:off
-            query1(58, 402, 0),
+            query1(576, 400, -1, R"(3 % path 576-618-951-400 (other shortest paths may exist))"),
+            query1(58, 402, 0, R"(3 % path 58-935-808-402 (other shortest paths may exist))"),
+            query1(266, 106, -1, R"(3 % path 266-23-592-106 (other shortest paths may exist))"),
+            query1(313, 523, -1, R"(-1 % path none)"),
+            query1(858, 587, 1, R"(4 % path 858-46-31-162-587 (other shortest paths may exist))"),
+            query1(155, 355, -1, R"(3 % path 155-21-0-355 (other shortest paths may exist))"),
+            query1(947, 771, -1, R"(2 % path 947-625-771 (other shortest paths may exist))"),
+            query1(105, 608, 3, R"(-1 % path none)"),
+            query1(128, 751, -1, R"(3 % path 128-459-76-751 (other shortest paths may exist))"),
+            query1(814, 641, 0, R"(3 % path 814-109-557-641 (other shortest paths may exist))"),
 
             query2(3, "1980-02-01", R"(Chiang_Kai-shek Augustine_of_Hippo Napoleon % component sizes 22 16 16)"),
             query2(4, "1981-03-10", R"(Chiang_Kai-shek Napoleon Mohandas_Karamchand_Gandhi Sukarno % component sizes 17 13 11 11)"),

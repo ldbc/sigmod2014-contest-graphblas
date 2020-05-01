@@ -13,6 +13,7 @@ extern "C" {
 
 struct BenchmarkParameters {
     std::string ChangePath;
+    std::string ParamsPath;
     std::string RunIndex;
     std::string Tool;
     std::string ChangeSet;
@@ -45,6 +46,8 @@ inline const char *TimestampFormat = "%Y-%m-%d %H:%M:%S";
 inline const char *DateFormat = "%Y-%m-%d";
 
 time_t parseTimestamp(const char *timestamp_str, const char *timestamp_format);
+
+std::string timestampToString(std::time_t timestamp, const char *timestamp_format);
 
 template<typename UnaryOp>
 auto transformComparator(const UnaryOp &op) {

@@ -17,3 +17,8 @@ add_executable(sigmod2014pc_cpp
         load.cpp
         utils.cpp
         query-parameters.cpp)
+
+add_executable(paramgen
+        paramgen-main.cpp
+        load.cpp
+        utils.cpp)

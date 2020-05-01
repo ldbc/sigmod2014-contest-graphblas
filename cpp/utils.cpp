@@ -6,8 +6,7 @@
 
 #include "utils.h"
 
-
-    std::string getenv_string(const char *name, const std::optional<std::string> &default_ = std::nullopt) {
+std::string getenv_string(const char *name, const std::optional<std::string> &default_ = std::nullopt) {
     const char *value = std::getenv(name);
     if (value)
         return value;
@@ -23,6 +22,10 @@ BenchmarkParameters parse_benchmark_params() {
     params.ChangePath = getenv_string("ChangePath", "../sf1k-converted/");
     if (*params.ChangePath.rbegin() != '/')
         params.ChangePath += '/';
+
+    params.ParamsPath = getenv_string("ParamsPath", "../params/sf1k-converted/");
+    if (*params.ParamsPath.rbegin() != '/')
+        params.ParamsPath += '/';
 
     params.RunIndex = getenv_string("RunIndex", "0");
     params.Tool = getenv_string("Tool", "CPP");
@@ -77,4 +80,12 @@ time_t parseTimestamp(const char *timestamp_str, const char *timestamp_format) {
     // depending on current time zone
     // it's acceptable since we only use these for comparison
     return std::mktime(&t);
+}
+
+std::string timestampToString(std::time_t timestamp, const char *timestamp_format) {
+    std::stringstream stream;
+    std::tm tm = *std::localtime(&timestamp);
+    stream << std::put_time(&tm, timestamp_format);
+
+    return stream.str();
 }

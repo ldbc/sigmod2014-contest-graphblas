@@ -13,8 +13,8 @@
 #include <cstdio>
 
 class Query4 : public Query<int, std::string> {
-    int k;
-    std::string t;
+    int topKLimit;
+    std::string tagName;
 
     std::tuple<std::string, std::string> initial_calculation() override {
         ok(GxB_Matrix_fprint(input.knows.matrix.get(), "knows", GxB_SUMMARY, stdout));
@@ -49,6 +49,6 @@ class Query4 : public Query<int, std::string> {
 public:
     Query4(BenchmarkParameters parameters, ParameterType query_params, QueryInput const &input)
             : Query(std::move(parameters), std::move(query_params), input) {
-        std::tie(k, t) = queryParams;
+        std::tie(topKLimit, tagName) = queryParams;
     }
 };

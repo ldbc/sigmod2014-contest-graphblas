@@ -96,6 +96,29 @@ public:
     }
 };
 
+class Query4ParamGen : public QueryParamGen {
+    std::uniform_int_distribution<int> topKDist;
+    std::uniform_int_distribution<size_t> tagDist;
+
+public:
+    Query4ParamGen(QueryInput const &input, std::mt19937_64 &random_engine)
+            : QueryParamGen(input, random_engine),
+              topKDist(3, 7), tagDist(0, input.tags.size() - 1) {}
+
+    std::tuple<int, std::string> operator()() {
+        int top_k_limit = topKDist(randomEngine);
+        std::string tag_name = input.tags.vertices[tagDist(randomEngine)].name;
+
+        return {top_k_limit, tag_name};
+    }
+
+    std::ostream &printTo(std::ostream &out) override {
+        auto[top_k_limit, tag_name] = (*this)();
+        out << top_k_limit << SEPARATOR << tag_name << std::endl;
+        return out;
+    }
+};
+
 int main(int argc, char **argv) {
     BenchmarkParameters parameters = parse_benchmark_params();
     ok(LAGraph_init());
@@ -112,6 +135,7 @@ int main(int argc, char **argv) {
     param_generators.emplace_back(std::move(std::make_unique<Query1ParamGen>(*input, random_engine)));
     param_generators.emplace_back(std::move(std::make_unique<Query2ParamGen>(*input, random_engine)));
     param_generators.emplace_back(std::move(std::make_unique<Query3ParamGen>(*input, random_engine)));
+    param_generators.emplace_back(std::move(std::make_unique<Query4ParamGen>(*input, random_engine)));
 
     for (int generator_idx = 0; generator_idx < param_generators.size(); ++generator_idx) {
         random_engine.seed(seed);

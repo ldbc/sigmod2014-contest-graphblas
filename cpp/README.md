@@ -46,3 +46,13 @@ make
 cd ..
 ./sigmod2014pc_cpp
 ```
+
+## Generate new query parameters
+
+Set `$ChangePath` environmental variable to the data set (default: `../sf1k-converted/`).
+
+To generate query parameters to `$ParamsPath` (default: `../params/sf1k-converted/`) run:
+
+```bash
+./paramgen
+```

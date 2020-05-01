@@ -50,6 +50,10 @@ Generated datasets:
 * 100k persons:  <https://www.dropbox.com/s/ex4byfcs0af72gc/p100k.tar.zst?dl=0>
 * 1000k persons: <https://www.dropbox.com/s/4viydt858yzl3cy/p1000k.tar.zst?dl=0>
 
+## Generate query parameters
+
+See [here](cpp/README.md#generate-new-query-parameters).
+
 ## Experiments with Neo4j
 
 See [instructions on how to experiment with Neo4j](neo4j.md).

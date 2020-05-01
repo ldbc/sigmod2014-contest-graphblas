@@ -18,6 +18,19 @@ struct Vertex {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "HidingNonVirtualFunction"
 
+struct Place : public Vertex {
+    std::string name;
+
+    static auto extraColumns() {
+        return array_of<char const *>("name");
+    }
+
+    template<typename Reader>
+    bool parseLine(Reader &csv_reader) {
+        return csv_reader.read_row(id, name);
+    }
+};
+
 struct Tag : public Vertex {
     std::string name;
 
@@ -55,6 +68,7 @@ struct Comment : public Vertex {};
 #pragma clang diagnostic pop
 
 struct QueryInput : public BaseQueryInput {
+    VertexCollection<Place> places;
     VertexCollection<Tag> tags;
     VertexCollection<Person> persons;
     VertexCollection<Comment> comments;
@@ -67,6 +81,7 @@ struct QueryInput : public BaseQueryInput {
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
             BaseQueryInput{{tags, persons, comments}},
+            places{parameters.ChangePath + "place.csv"},
             tags{parameters.ChangePath + "tag.csv"},
             persons{parameters.ChangePath + "person.csv"},
             comments{parameters.ChangePath + "comment.csv"},

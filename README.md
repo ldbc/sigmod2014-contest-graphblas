@@ -11,7 +11,7 @@ See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
 - Clone [fixes branch](https://github.com/szarnyasg/pygraphblas/tree/fixes) of https://github.com/szarnyasg/pygraphblas/
 - Run `./build-custom.sh` to build the Docker image with slight modifications
 - To run pygrpahblas in Docker:
-    - Mount this repo to the container by adding `-v «PATH»/sigmod2014-pc:/home/jovyan/sigmod2014-pc` to [notebook.sh](https://github.com/szarnyasg/pygraphblas/blob/fixes/notebook.sh), where `«PATH` is the absolute path to this repository.
+    - Mount this repo to the container by adding `-v «PATH»/sigmod2014-pc:/home/jovyan/sigmod2014-pc` to [notebook.sh](https://github.com/szarnyasg/pygraphblas/blob/fixes/notebook.sh), where `«PATH»` is the absolute path to this repository.
     - Start `./notebook.sh`
     - Open Jupyter Notebook at: http://127.0.0.1:8888/?token=«TOKEN»
 - To install pygraphblas on your host machine, navigate to the `pygraphblas` directory:

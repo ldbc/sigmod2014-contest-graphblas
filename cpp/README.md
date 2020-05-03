@@ -51,7 +51,7 @@ cd ..
 
 Set `$ChangePath` environmental variable to the data set (default: `../sf1k-converted/`).
 
-To generate query parameters, set `$ParamsPath` to an exiting folder (default: `../params/sf1k-converted/`), then run:
+To generate query parameters, set `$ParamsPath` to an existing folder (default: `../params/sf1k-converted/`), then run:
 
 ```bash
 ./paramgen

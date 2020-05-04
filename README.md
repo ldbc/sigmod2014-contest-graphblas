@@ -34,6 +34,7 @@ Installing GraphBLAS on CentOS 7:
     sudo yum install devtoolset-9-toolchain
     scl enable devtoolset-9 bash
     ```
+- Extend shared object search path: `echo /usr/local/lib64 | sudo tee /etc/ld.so.conf.d/usrlocal.conf` ([details](https://serverfault.com/a/372998))
 - Compile GraphBLAS as given in the Ubuntu install script: <https://github.com/michelp/pygraphblas/blob/master/install-ubuntu.sh>
 
 ## Data

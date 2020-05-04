@@ -18,6 +18,15 @@ See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
     - Install its dependencies: `sudo pip3 install -r notebook-requirements.txt`
     - Make sure it's uninstalled and install it: `pip3 uninstall pygraphblas; python3 setup.py install --user`
 
+## Installing GraphBLAS
+
+Installing GraphBLAS on CentOS 7:
+
+- Update GCC:
+  - `sudo yum install -y cmake bzip2`
+  - Follow the steps in: <https://gist.github.com/nchaigne/ad06bc867f911a3c0d32939f1e930a11>
+- Compile GraphBLAS as given in the Ubuntu install script: <https://github.com/michelp/pygraphblas/blob/master/install-ubuntu.sh>
+
 ## Data
 
 ### Preprocessing the provided data sets

@@ -4,6 +4,34 @@
 #include "gb_utils.h"
 #include "query-parameters.h"
 
+class Printer {
+    std::ofstream m_output;
+    const std::string m_prefix;
+    const std::string m_postfix;
+    const std::string m_separator;
+public:
+    Printer(const std::string& filePath,
+        std::string prefix,
+        std::string postfix,
+        std::string separator)
+            : m_output()
+            , m_prefix(std::move(prefix))
+            , m_postfix(std::move(postfix))
+            , m_separator(std::move(separator))
+    {
+        m_output.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        m_output.open(filePath);
+    }
+    
+    template <typename Arg, typename... Args>
+    void print(Arg&& arg, Args&&... args) {
+        m_output << m_prefix << std::forward<Arg>(arg);
+        ((m_output << m_separator << std::forward<Args>(args)), ...);
+        m_output << m_postfix << std::endl;
+    }
+
+};
+
 class QueryParamGen {
 protected:
     QueryInput const &input;
@@ -12,7 +40,7 @@ public:
     QueryParamGen(QueryInput const &input, std::mt19937_64 &random_engine)
             : input(input), randomEngine(random_engine) {}
 
-    virtual std::ostream &printTo(std::ostream &out) = 0;
+    virtual void printTo(std::vector<std::unique_ptr<Printer>>& printers) = 0;
 
     virtual ~QueryParamGen() = default;
 };
@@ -41,10 +69,11 @@ public:
         return {p1_id, p2_id, comment_lower_limit};
     }
 
-    std::ostream &printTo(std::ostream &out) override {
+    void printTo(std::vector<std::unique_ptr<Printer>>& printers) override {
         auto[p1_id, p2_id, comment_lower_limit] = (*this)();
-        out << p1_id << SEPARATOR << p2_id << SEPARATOR << comment_lower_limit << std::endl;
-        return out;
+        for(auto& printer: printers) {
+            printer->print(p1_id, p2_id, comment_lower_limit);
+        }
     }
 };
 
@@ -64,10 +93,11 @@ public:
         return {top_k, timestampToString(birthday_limit, DateFormat)};
     }
 
-    std::ostream &printTo(std::ostream &out) override {
+    void printTo(std::vector<std::unique_ptr<Printer>>& printers) override {
         auto[top_k, birthday_limit] = (*this)();
-        out << top_k << SEPARATOR << birthday_limit << std::endl;
-        return out;
+        for(auto& printer: printers) {
+            printer->print(top_k, birthday_limit);
+        }
     }
 };
 
@@ -89,10 +119,11 @@ public:
         return {top_k_limit, maximum_hop_count, place_name};
     }
 
-    std::ostream &printTo(std::ostream &out) override {
+    void printTo(std::vector<std::unique_ptr<Printer>>& printers) override {
         auto[top_k_limit, maximum_hop_count, place_name] = (*this)();
-        out << top_k_limit << SEPARATOR << maximum_hop_count << SEPARATOR << place_name << std::endl;
-        return out;
+        for(auto& printer: printers) {
+            printer->print(top_k_limit, maximum_hop_count, place_name);
+        }
     }
 };
 
@@ -112,10 +143,11 @@ public:
         return {top_k_limit, tag_name};
     }
 
-    std::ostream &printTo(std::ostream &out) override {
+    void printTo(std::vector<std::unique_ptr<Printer>>& printers) override {
         auto[top_k_limit, tag_name] = (*this)();
-        out << top_k_limit << SEPARATOR << tag_name << std::endl;
-        return out;
+        for(auto& printer: printers) {
+            printer->print(top_k_limit, tag_name);
+        }
     }
 };
 
@@ -128,8 +160,11 @@ int main(int argc, char **argv) {
     uint64_t seed = 698788706;
     std::mt19937_64 random_engine{seed};
 
-    const char *file_prefix = "query";
-    const char *file_extenstion = ".csv";
+    const std::string file_prefix = "query";
+    const std::string csv_extension = ".csv";
+    const std::string txt_extension = ".txt";
+    const std::string csv_separator = ",";
+    const std::string txt_separator = ", ";
 
     std::vector<std::unique_ptr<QueryParamGen>> param_generators;
     param_generators.emplace_back(std::move(std::make_unique<Query1ParamGen>(*input, random_engine)));
@@ -140,14 +175,17 @@ int main(int argc, char **argv) {
     for (int generator_idx = 0; generator_idx < param_generators.size(); ++generator_idx) {
         random_engine.seed(seed);
 
-        std::ofstream file;
-        file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        std::string path{parameters.ParamsPath
-                         + file_prefix + std::to_string(generator_idx + 1) + file_extenstion};
-        file.open(path);
+        const std::string query_number = std::to_string(generator_idx + 1);
+        const std::string common_path{parameters.ParamsPath + file_prefix + query_number};
+    
+
+        std::vector<std::unique_ptr<Printer>> printers;
+        printers.reserve(2);
+        printers.emplace_back(std::make_unique<Printer>(common_path + csv_extension, "", "", csv_separator));
+        printers.emplace_back(std::make_unique<Printer>(common_path + txt_extension, "query" + query_number + "(", ")", txt_separator));        
 
         for (int i = 0; i < 100; ++i) {
-            param_generators[generator_idx]->printTo(file);
+            param_generators[generator_idx]->printTo(printers);
         }
     }
 

@@ -42,8 +42,6 @@ constexpr auto array_of(T &&... t)
     return {{std::forward<T>(t)...}};
 }
 
-inline char const SEPARATOR = ',';
-
 inline const char *TimestampFormat = "%Y-%m-%d %H:%M:%S";
 inline const char *DateFormat = "%Y-%m-%d";
 

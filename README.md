@@ -73,6 +73,18 @@ Generated datasets:
 
 See [here](cpp/README.md#generate-new-query-parameters).
 
+## Measurements
+
+After downloading data and generating query parameters, build the tool to be measured (e.g. [C++ implementation](cpp/README.md)).
+
+Run measurements using `scripts/run-tool.sh`. Running it without parameters is the same as the following. (More details [here](scripts/run-tool.sh).)
+
+```bash
+QUERIES=1,2,3,4 scripts/run-tool.sh cpp/cmake-build-release/sigmod2014pc_cpp sf1k csvs
+```
+
+Log file and measurement results in CSV are saved to `results/$SIZE/$TOOL_NAME`. Look for the latest timestamp.
+
 ## Experiments with Neo4j
 
 See [instructions on how to experiment with Neo4j](neo4j.md).

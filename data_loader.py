@@ -14,15 +14,19 @@ log = logging.getLogger(__name__)
 log.addHandler(handler)
 log.setLevel(logging.INFO)
 
+Vertex = namedtuple('Vertex', ['name', 'id2index', 'index2id'])
+
 class DataLoader:
     
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, data_format):
         if os.path.isdir(data_dir):
             self.data_dir = data_dir
+            self.data_format = '.' + data_format
         else:
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), data_dir)
         
-    def load_node(self, filename):
+    def load_vertex(self, vertex):
+        filename = self.data_dir + vertex + self.data_format
         with open(filename, newline='') as csvfile:
             reader = csv.DictReader(csvfile, delimiter='|', quotechar='"')
             headers = reader.fieldnames
@@ -32,10 +36,35 @@ class DataLoader:
             id_mapping = {}
             for index in range(len(original_ids)):
                 id_mapping[original_ids[index]] = index
-            
-        return original_ids, id_mapping
 
-    def load_edge(self, filename, start_mapping, end_mapping, typ=INT64, drop_dangling_edges=False):
+        return Vertex(vertex, original_ids, id_mapping)
+
+    
+    def load_extra_columns(self, vertex, column_names):
+        filename = self.data_dir + vertex + self.data_format
+        with open(filename, newline='') as csv_file:
+            reader = csv.DictReader(csv_file, delimiter='|', quotechar='"')
+
+            full_column_names = []
+            for columnName in column_names:
+                # find full column name with type info after ':'
+                full_column_name, = [fullName for fullName in reader.fieldnames
+                                   if fullName.split(':')[0]==columnName]
+                full_column_names.append(full_column_name)
+
+            if len(full_column_names) == 1:
+                full_column_name = full_column_names[0]
+                result = [row[full_column_name] for row in reader]
+            else:
+                result = [[row[fullColumnName] for fullColumnName in full_column_names] for row in reader]
+
+            return result
+        
+    def load_edge(self, edge_name, from_vertex, to_vertex, typ=INT64, drop_dangling_edges=False):
+        start_mapping = from_vertex.index2id
+        end_mapping = to_vertex.index2id
+        
+        filename = self.data_dir + from_vertex.name + '_' + edge_name + '_' + to_vertex.name + self.data_format
         with open(filename, newline='') as csvfile:
             reader = csv.DictReader(csvfile, delimiter='|', quotechar='"')
             row_ids = []
@@ -88,7 +117,7 @@ class DataLoader:
         log.info('Loading nodes...')
         for node_file in node_files:
             name = node_file.replace(self.data_dir, '').replace('.csv', '')
-            vertices[name], mappings[name] = self.load_node(node_file)
+            vertices[name], mappings[name] = self.load_vertex(node_file)
         # Load edges
         log.info('Loading edges...')
         for edge_file in edge_files:

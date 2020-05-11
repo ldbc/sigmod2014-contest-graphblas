@@ -5,6 +5,7 @@ from pygraphblas import *
 import glob
 import errno
 import os
+from collections import namedtuple
 
 
 # Setup logger

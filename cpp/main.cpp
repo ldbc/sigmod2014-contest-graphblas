@@ -15,8 +15,8 @@ std::unique_ptr<QueryInput> load(BenchmarkParameters const & parameters){
     return input;
 }
 
-int main(int argc, char **argv) {
-    BenchmarkParameters parameters = parse_benchmark_params();
+int main(int argc, char *argv[]) {
+    BenchmarkParameters parameters = parse_benchmark_params(argc, argv);
     ok(LAGraph_init());
 
     std::unique_ptr<QueryInput> input = load(parameters);

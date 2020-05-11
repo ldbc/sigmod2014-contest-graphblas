@@ -34,7 +34,7 @@ cd ..
 
 ## Getting started
 
-Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../sf1k-converted/` or set `$ChangePath` environmental variable.
+Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../csvs/sf1k/` or set `$ChangePath` environmental variable.
 
 To build and run the code, run:
 
@@ -43,15 +43,14 @@ mkdir -p cmake-build-release
 cd cmake-build-release
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
-cd ..
 ./sigmod2014pc_cpp
 ```
 
 ## Generate new query parameters
 
-Set `$ChangePath` environmental variable to the data set (default: `../sf1k-converted/`).
+Set `$ChangePath` environmental variable to the data set (default: `../../csvs/sf1k/`).
 
-To generate query parameters, set `$ParamsPath` to an existing folder (default: `../params/sf1k-converted/`), then run:
+To generate query parameters, set `$ParamsPath` (default: `../../params/sf1k/`), then run:
 
 ```bash
 ./paramgen

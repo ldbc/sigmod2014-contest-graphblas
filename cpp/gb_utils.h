@@ -16,10 +16,12 @@ extern "C" {
 
 inline __attribute__((always_inline))
 GrB_Info ok(GrB_Info info, bool no_value_is_error = true) {
+    using namespace std::string_literals;
+
     if (info == GrB_SUCCESS || (!no_value_is_error && info == GrB_NO_VALUE))
         return info;
     else
-        throw std::runtime_error{std::string{"GraphBLAS error: "} + GrB_error()};
+        throw std::runtime_error{"GraphBLAS error: "s + GrB_error()};
 }
 
 inline __attribute__((always_inline))

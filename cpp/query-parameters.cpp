@@ -45,7 +45,28 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
     auto query3 = getQueryWrapper<Query3, int, int, std::string>(benchmark_parameters, input);
     auto query4 = getQueryWrapper<Query4, int, std::string>(benchmark_parameters, input);
 
-    std::vector<std::function<std::string()>> vector{
+    if (benchmark_parameters.QueryParams) {
+        switch (benchmark_parameters.Query) {
+            case 1:
+                return {query1(std::stoull(benchmark_parameters.QueryParams[0]),
+                               std::stoull(benchmark_parameters.QueryParams[1]),
+                               std::stoi(benchmark_parameters.QueryParams[2]))};
+            case 2:
+                return {query2(std::stoi(benchmark_parameters.QueryParams[0]),
+                               benchmark_parameters.QueryParams[1])};
+            case 3:
+                return {query3(std::stoi(benchmark_parameters.QueryParams[0]),
+                               std::stoi(benchmark_parameters.QueryParams[1]),
+                               benchmark_parameters.QueryParams[2])};
+            case 4:
+                return {query4(std::stoi(benchmark_parameters.QueryParams[0]),
+                               benchmark_parameters.QueryParams[1])};
+
+            default:
+                throw std::runtime_error("Unknown query: " + std::to_string(benchmark_parameters.Query));
+        }
+    } else {
+        std::vector<std::function<std::string()>> vector{
 // formatter markers: https://stackoverflow.com/a/19492318
 // @formatter:off
             query1(576, 400, -1, R"(3 % path 576-618-951-400 (other shortest paths may exist))"),
@@ -72,7 +93,8 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
 
             query4(3, "Bill_Clinton"),
 // @formatter:on
-    };
+        };
 
-    return vector;
+        return vector;
+    }
 }

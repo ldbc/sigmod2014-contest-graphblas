@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <random>
+#include <filesystem>
 #include "gb_utils.h"
 #include "query-parameters.h"
 
@@ -152,8 +153,10 @@ public:
 };
 
 int main(int argc, char **argv) {
-    BenchmarkParameters parameters = parse_benchmark_params();
+    BenchmarkParameters parameters = parse_benchmark_params(0, nullptr);
     ok(LAGraph_init());
+
+    std::filesystem::create_directories(parameters.ParamsPath);
 
     std::unique_ptr<QueryInput> input = std::make_unique<QueryInput>(parameters);
 

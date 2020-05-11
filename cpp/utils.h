@@ -17,11 +17,13 @@ struct BenchmarkParameters {
     std::string RunIndex;
     std::string Tool;
     std::string ChangeSet;
-    std::string Query;
+    int Query;
+    char const * const *QueryParams = nullptr;
+    int QueryParamsNum = 0;
     int ThreadsNum = 0;
 };
 
-BenchmarkParameters parse_benchmark_params();
+BenchmarkParameters parse_benchmark_params(int argc, char *argv[]);
 
 using score_type = std::tuple<uint64_t, time_t, GrB_Index>;
 

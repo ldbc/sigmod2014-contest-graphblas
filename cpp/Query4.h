@@ -17,7 +17,9 @@ class Query4 : public Query<int, std::string> {
     std::string tagName;
 
     std::tuple<std::string, std::string> initial_calculation() override {
+#ifndef NDEBUG
         ok(GxB_Matrix_fprint(input.knows.matrix.get(), "knows", GxB_SUMMARY, stdout));
+#endif
 
         GBxx_Object<GrB_Matrix> mx = GB(GrB_Matrix_new, GrB_BOOL, 4, 3);
 
@@ -28,19 +30,25 @@ class Query4 : public Query<int, std::string> {
                                  src_indices.data(), trg_indices.data(),
                                  array_of_true(src_indices.size()).get(),
                                  src_indices.size(), GrB_LOR));
+#ifndef NDEBUG
         WriteOutDebugMatrix(mx.get(), "matrix");
+#endif
 
         GBxx_Object<GrB_Vector> vec = GB(GrB_Vector_new, GrB_BOOL, 4);
         ok(GrB_Vector_build_BOOL(vec.get(),
                                  src_indices.data(),
                                  array_of_true(src_indices.size()).get(),
                                  src_indices.size(), GrB_LOR));
+#ifndef NDEBUG
         WriteOutDebugVector(vec.get(), "vector");
+#endif
 
         GBxx_Object<GrB_Vector> result = GB(GrB_Vector_new, GrB_BOOL, 3);
         ok(GrB_vxm(result.get(), GrB_NULL, GrB_NULL,
                    GxB_LOR_LAND_BOOL, vec.get(), mx.get(), GrB_NULL));
+#ifndef NDEBUG
         WriteOutDebugVector(result.get(), "result");
+#endif
 
         std::string result_str, comment_str;
         return {result_str, comment_str};

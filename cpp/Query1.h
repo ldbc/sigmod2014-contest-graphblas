@@ -42,13 +42,15 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             filtered_matrix_ptr = personToPerson.get();
         }
 
-
+#ifndef NDEBUG
         ok(GxB_Matrix_fprint(filtered_matrix_ptr, "personToPersonFiltered", GxB_SUMMARY, stdout));
+#endif
 
         //Person to person is symmtetric, so no need to transpose
         GBxx_Object<GrB_Vector> v_output = GB(LAGraph_bfs_pushpull, nullptr, filtered_matrix_ptr, filtered_matrix_ptr, p1, GrB_NULL, false);
-
+#ifndef NDEBUG
         ok(GxB_Vector_fprint(v_output.get(), "output_vec", GxB_SUMMARY, stdout));
+#endif
 
         int result;
         ok(GrB_Vector_extractElement_INT32(&result, v_output.get(), p2));

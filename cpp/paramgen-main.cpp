@@ -3,35 +3,8 @@
 #include <random>
 #include <filesystem>
 #include "gb_utils.h"
+#include "utils.h"
 #include "query-parameters.h"
-
-class Printer {
-    std::ofstream m_output;
-    const std::string m_prefix;
-    const std::string m_postfix;
-    const std::string m_separator;
-public:
-    Printer(const std::string& filePath,
-        std::string prefix,
-        std::string postfix,
-        std::string separator)
-            : m_output()
-            , m_prefix(std::move(prefix))
-            , m_postfix(std::move(postfix))
-            , m_separator(std::move(separator))
-    {
-        m_output.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        m_output.open(filePath);
-    }
-    
-    template <typename Arg, typename... Args>
-    void print(Arg&& arg, Args&&... args) {
-        m_output << m_prefix << std::forward<Arg>(arg);
-        ((m_output << m_separator << std::forward<Args>(args)), ...);
-        m_output << m_postfix << std::endl;
-    }
-
-};
 
 class QueryParamGen {
 protected:
@@ -166,7 +139,6 @@ int main(int argc, char **argv) {
     const std::string file_prefix = "query";
     const std::string csv_extension = ".csv";
     const std::string txt_extension = ".txt";
-    const std::string csv_separator = ",";
     const std::string txt_separator = ", ";
 
     std::vector<std::unique_ptr<QueryParamGen>> param_generators;
@@ -180,11 +152,10 @@ int main(int argc, char **argv) {
 
         const std::string query_number = std::to_string(generator_idx + 1);
         const std::string common_path{parameters.ParamsPath + file_prefix + query_number};
-    
 
         std::vector<std::unique_ptr<Printer>> printers;
         printers.reserve(2);
-        printers.emplace_back(std::make_unique<Printer>(common_path + csv_extension, "", "", csv_separator));
+        printers.emplace_back(std::make_unique<Printer>(common_path + csv_extension));
         printers.emplace_back(std::make_unique<Printer>(common_path + txt_extension, "query" + query_number + "(", ")", txt_separator));        
 
         for (int i = 0; i < 100; ++i) {

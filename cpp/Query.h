@@ -45,8 +45,7 @@ public:
 
         auto resultTuple = initial_calculation();
 
-        report(parameters, 0, BenchmarkPhase::Initial, round<nanoseconds>(high_resolution_clock::now() - initial_start),
-               std::get<0>(resultTuple));
+        report_result(parameters, round<nanoseconds>(high_resolution_clock::now() - initial_start), std::get<0>(resultTuple));
 
         return resultTuple;
     }

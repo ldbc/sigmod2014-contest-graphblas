@@ -54,32 +54,23 @@ BenchmarkParameters parse_benchmark_params(int argc, char *argv[]) {
     return params;
 }
 
-const std::string BenchmarkPhase::Initialization = "Initialization";
-const std::string BenchmarkPhase::Load = "Load";
-const std::string BenchmarkPhase::Initial = "Initial";
+void report_load(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime) {
+    using namespace std::chrono;
 
-void report_info(const BenchmarkParameters &parameters, int iteration, const std::string &phase) {
     std::cout
-            << parameters.Tool << SEPARATOR
-            << 'Q' << parameters.Query << SEPARATOR
-            << parameters.ChangeSet << SEPARATOR
-            << parameters.RunIndex << SEPARATOR
-            << iteration << SEPARATOR
-            << phase << SEPARATOR;
+            << 'q' << parameters.Query << CSV_SEPARATOR
+            << round<microseconds>(runtime).count() << CSV_SEPARATOR;
 }
 
-void
-report(const BenchmarkParameters &parameters, int iteration, const std::string &phase, std::chrono::nanoseconds runtime,
-       std::optional<std::string> result_opt) {
-    report_info(parameters, iteration, phase);
-    std::cout << "Time" << SEPARATOR << runtime.count() << std::endl;
+void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime, std::string const &result) {
+    using namespace std::chrono;
 
-    if (result_opt) {
-        const auto &result = result_opt.value();
-
-        report_info(parameters, iteration, phase);
-        std::cout << "Elements" << SEPARATOR << result << std::endl;
-    }
+    std::cout
+            << round<microseconds>(runtime).count()
+            #ifndef NDEBUG
+            << CSV_SEPARATOR << result
+            #endif
+            << std::endl;
 }
 
 time_t parseTimestamp(const char *timestamp_str, const char *timestamp_format) {

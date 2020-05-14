@@ -26,7 +26,7 @@ cd GraphBLAS
 make && sudo make install && sudo ldconfig
 cd ..
 
-git clone https://github.com/GraphBLAS/LAGraph
+git clone https://github.com/szarnyasg/LAGraph && git checkout fixes
 cd LAGraph
 make && sudo make install && sudo ldconfig
 cd ..

@@ -77,6 +77,7 @@ See [here](cpp/README.md#generate-new-query-parameters).
 
 After downloading data and generating query parameters, build the tool to be measured (e.g. [C++ implementation](cpp/README.md)).
 
+### Single tool
 Run measurements using `scripts/run-tool.sh`. Running it without parameters is the same as the following. (More details [here](scripts/run-tool.sh).)
 
 ```bash
@@ -84,6 +85,16 @@ QUERIES=1,2,3,4 scripts/run-tool.sh cpp/cmake-build-release/sigmod2014pc_cpp sf1
 ```
 
 Log file and measurement results in CSV are saved to `results/$SIZE/$TOOL_NAME`. Look for the latest timestamp.
+
+### Multiple tools
+
+Run the following:
+
+```bash
+ITERATION_COUNT=1 QUERIES=1,2,3,4 scripts/run.sh "«TOOL1_PATH» «TOOL2_PATH»..." 1,10,100,1000 csvs
+```
+
+Parameters: paths of tools, sizes, CSVs folder.
 
 ## Experiments with Neo4j
 

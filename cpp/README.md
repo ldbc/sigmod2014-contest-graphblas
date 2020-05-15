@@ -48,10 +48,11 @@ make
 
 ## Generate new query parameters
 
-Set `$CsvPath` environment variable to the data set (default: `../../csvs/o1k/`).
-
-To generate query parameters, set `$ParamsPath` (default: `../../params/o1k/`), then run:
+Set `$CsvPath` environment variable to the data set.
+To generate query parameters, set `$ParamsPath`, then run:
 
 ```bash
 ./paramgen
+# running it with default values is the same as:
+CsvPath=../../csvs/o1k/ ParamsPath=../../params/o1k/ ./paramgen
 ```

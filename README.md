@@ -16,26 +16,7 @@ See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
     - Open Jupyter Notebook at: http://127.0.0.1:8888/?token=«TOKEN»
 - To install pygraphblas on your host machine, navigate to the `pygraphblas` directory:
     - Install its dependencies: `sudo pip3 install -r notebook-requirements.txt`
-    - Make sure it's uninstalled and install it: `pip3 uninstall pygraphblas; python3 setup.py install --user`
-
-## Installing GraphBLAS
-
-Installing GraphBLAS on CentOS 7:
-
-- Update GCC:
-  - `sudo yum remove gcc`
-  - `sudo yum install -y cmake bzip2`
-  - Follow the steps in: <https://gist.github.com/nchaigne/ad06bc867f911a3c0d32939f1e930a11>
-- Update CMake:
-  - `sudo yum remove cmake`
-  - Follow the steps in <https://gist.github.com/1duo/38af1abd68a2c7fe5087532ab968574e>, including the suggestion in the comments:
-
-    ```bash
-    sudo yum install devtoolset-9-toolchain
-    scl enable devtoolset-9 bash
-    ```
-- Extend shared object search path: `echo /usr/local/lib64 | sudo tee /etc/ld.so.conf.d/usrlocal.conf` ([details](https://serverfault.com/a/372998))
-- Compile GraphBLAS as given in the Ubuntu install script: <https://github.com/michelp/pygraphblas/blob/master/install-ubuntu.sh>
+    - Make sure it's uninstalled, then (re)install it with: `pip3 uninstall pygraphblas; python3 setup.py install --user`
 
 ## Data
 

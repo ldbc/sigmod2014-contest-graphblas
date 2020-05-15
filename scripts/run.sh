@@ -11,6 +11,8 @@ ITERATION_COUNT=${ITERATION_COUNT:-1}
 
 SCRIPTS_FOLDER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# To limit the number of parameters, set the PARAMS_NUMBER environment variable
+
 for SIZE in $SIZES
 do
   for ((CURRENT_ITERATION=1; CURRENT_ITERATION<=ITERATION_COUNT; CURRENT_ITERATION++))
@@ -23,7 +25,7 @@ do
 
     for TOOL in $TOOLS
     do
-      "$SCRIPTS_FOLDER"/run-tool.sh "$TOOL" p${SIZE}k "$CSVS_BASE_FOLDER"
+      "$SCRIPTS_FOLDER"/run-tool.sh "$TOOL" p${SIZE}k "$CSVS_BASE_FOLDER" $PARAMS_NUMBER
     done
   done
 done

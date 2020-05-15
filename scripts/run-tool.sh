@@ -11,6 +11,7 @@ SIZE_ONLY_NUMBER=${SIZE//[^0-9]/}
 CSVS_BASE_FOLDER=${3:-csvs}
 PARAMS_BASE_FOLDER=${PARAMS_BASE_FOLDER:-params}
 RESULTS_BASE_FOLDER=${RESULTS_BASE_FOLDER:-results}
+PARAMS_NUMBER=${4:-100}
 
 QUERIES=${QUERIES:-"1,2,3,4"}
 QUERIES="${QUERIES//,/ }"
@@ -37,7 +38,7 @@ for i in $QUERIES
 do
   PARAMS_PATH="$PARAMS_BASE_FOLDER/$SIZE/query$i.csv"
 
-  while IFS= read -r line
+  head -n $PARAMS_NUMBER "$PARAMS_PATH" | while IFS= read -r line
   do
     PARAMS="${line//,/ }"
     COMMAND=("$TOOL" "$CSVS_BASE_FOLDER/$SIZE/" PARAM $i $PARAMS)
@@ -51,5 +52,5 @@ do
       > >(tee -a "$LOG_PATH" "$RESULTS_PATH") \
       2> >(tee -a "$LOG_PATH" 1>&2)
 
-  done < "$PARAMS_PATH"
+  done
 done

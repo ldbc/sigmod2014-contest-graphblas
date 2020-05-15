@@ -34,9 +34,9 @@ cd ..
 
 ## Getting started
 
-Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../csvs/sf1k/` or set `$ChangePath` environmental variable.
+Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../csvs/o1k/` or set `$ChangePath` environmental variable.
 
-To build and run the code, run:
+To build and test the query implementation, run:
 
 ```bash
 mkdir -p cmake-build-release
@@ -48,9 +48,9 @@ make
 
 ## Generate new query parameters
 
-Set `$ChangePath` environmental variable to the data set (default: `../../csvs/sf1k/`).
+Set `$ChangePath` environmental variable to the data set (default: `../../csvs/o1k/`).
 
-To generate query parameters, set `$ParamsPath` (default: `../../params/sf1k/`), then run:
+To generate query parameters, set `$ParamsPath` (default: `../../params/o1k/`), then run:
 
 ```bash
 ./paramgen

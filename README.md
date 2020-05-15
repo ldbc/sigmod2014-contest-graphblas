@@ -40,7 +40,7 @@ This data is used with the original sample queries and answers as test suite.
 
 ### Generating your own data sets (`p{1,10,...}k`)
 
-Use the [LDBC Datagen's `grb-exps` branch](https://github.com/ldbc/ldbc_snb_datagen/tree/grb-exps) to generate data sets. Navigate to the `ldbc_socialnet_dbgen` directory, edit the `numtotalUser` value and use the `./run.sh` script.
+Use the [LDBC Datagen's `early2014` release](https://github.com/ldbc/ldbc_snb_datagen/releases/tag/early2014) to generate data sets. Navigate to the `ldbc_socialnet_dbgen` directory, edit the `numtotalUser` value and use the `./run.sh` script.
 
 The generated data set will be in the `outputDir/` directory. The conversion script works on these files as well.
 

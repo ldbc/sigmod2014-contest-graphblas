@@ -32,8 +32,8 @@ BenchmarkParameters parse_benchmark_params(int argc, char *argv[]) {
         params.QueryParams = argv + 4;
         params.QueryParamsNum = argc - 4;
     } else {
-        params.ChangePath = getenv_string("ChangePath", "../../csvs/sf1k/");
-        params.ParamsPath = getenv_string("ParamsPath", "../../params/sf1k/");
+        params.ChangePath = getenv_string("ChangePath", "../../csvs/o1k/");
+        params.ParamsPath = getenv_string("ParamsPath", "../../params/o1k/");
         params.Query = std::stoi(getenv_string("Query", "0"));
 
         if (*params.ParamsPath.rbegin() != '/')

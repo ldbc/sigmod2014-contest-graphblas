@@ -49,14 +49,15 @@ cd preprocess/
 ./convert-csvs.sh /path/to/outputDir-10k /path/to/outputDir-10k-converted
 ```
 
-### Preprocessed data sets
+### Preprocessed data sets (`o{1,10}k`)
 
-:bulb: It is possible to skip this step – data sets that **have already been converted** with this script are available in Gabor's Dropbox as zip archives:
+:bulb: It is possible to skip this step – data sets that **have already been converted** with this script are available in Gabor's Dropbox as ZIP archives.
+This data is used with the original sample queries and answers as test suite.
 
-* 1k persons:  <https://www.dropbox.com/s/sgrwihjji551teq/p1k-contest-data-set.zip?dl=1>
-* 10k persons: <https://www.dropbox.com/s/goabh7c3q5k4ex4/p10k-contest-data-set.zip?dl=1>
+* 1k persons:  <https://www.dropbox.com/s/sgrwihjji551teq/o1k.zip?dl=1>
+* 10k persons: <https://www.dropbox.com/s/goabh7c3q5k4ex4/o10k.zip?dl=1>
 
-### Generating your own data sets
+### Generating your own data sets (`p{1,10,...}k`)
 
 Use the [LDBC Datagen's `grb-exps` branch](https://github.com/ldbc/ldbc_snb_datagen/tree/grb-exps) to generate data sets. Navigate to the `ldbc_socialnet_dbgen` directory, edit the `numtotalUser` value and use the `./run.sh` script.
 
@@ -81,7 +82,7 @@ After downloading data and generating query parameters, build the tool to be mea
 Run measurements using `scripts/run-tool.sh`. Running it without parameters is the same as the following. (More details [here](scripts/run-tool.sh).)
 
 ```bash
-QUERIES=1,2,3,4 scripts/run-tool.sh cpp/cmake-build-release/sigmod2014pc_cpp sf1k csvs
+QUERIES=1,2,3,4 scripts/run-tool.sh cpp/cmake-build-release/sigmod2014pc_cpp o1k csvs
 ```
 
 Log file and measurement results in CSV are saved to `results/$SIZE/$TOOL_NAME`. Look for the latest timestamp.

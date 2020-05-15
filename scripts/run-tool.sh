@@ -5,7 +5,7 @@ set -e
 TOOL=${1:-cpp/cmake-build-release/sigmod2014pc_cpp}
 TOOL_NAME=${TOOL_NAME:-$(basename "$(dirname "$(dirname $TOOL)")")}
 
-SIZE=${2:-sf1k}
+SIZE=${2:-o1k}
 SIZE_ONLY_NUMBER=${SIZE//[^0-9]/}
 
 CSVS_BASE_FOLDER=${3:-csvs}

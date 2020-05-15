@@ -13,7 +13,7 @@ extern "C" {
 }
 
 struct BenchmarkParameters {
-    std::string ChangePath;
+    std::string CsvPath;
     std::string ParamsPath;
     std::string RunIndex;
     std::string Tool;

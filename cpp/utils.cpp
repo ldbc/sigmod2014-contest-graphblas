@@ -27,12 +27,12 @@ BenchmarkParameters parse_benchmark_params(int argc, char *argv[]) {
             throw std::runtime_error(
                     "Command line arguments should be: <CSV_FOLDER> PARAM <QUERY_ID> <QUERY_PARAMS>...");
 
-        params.ChangePath = argv[1];
+        params.CsvPath = argv[1];
         params.Query = std::stoi(argv[3]);
         params.QueryParams = argv + 4;
         params.QueryParamsNum = argc - 4;
     } else {
-        params.ChangePath = getenv_string("ChangePath", "../../csvs/o1k/");
+        params.CsvPath = getenv_string("CsvPath", "../../csvs/o1k/");
         params.ParamsPath = getenv_string("ParamsPath", "../../params/o1k/");
         params.Query = std::stoi(getenv_string("Query", "0"));
 
@@ -40,8 +40,8 @@ BenchmarkParameters parse_benchmark_params(int argc, char *argv[]) {
             params.ParamsPath += '/';
     }
 
-    if (*params.ChangePath.rbegin() != '/')
-        params.ChangePath += '/';
+    if (*params.CsvPath.rbegin() != '/')
+        params.CsvPath += '/';
 
     params.RunIndex = getenv_string("RunIndex", "0");
     params.Tool = getenv_string("Tool", "cpp");

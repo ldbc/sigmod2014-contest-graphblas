@@ -81,17 +81,17 @@ struct QueryInput : public BaseQueryInput {
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
             BaseQueryInput{{tags, persons, comments}},
-            places{parameters.ChangePath + "place.csv"},
-            tags{parameters.ChangePath + "tag.csv"},
-            persons{parameters.ChangePath + "person.csv"},
-            comments{parameters.ChangePath + "comment.csv"},
+            places{parameters.CsvPath + "place.csv"},
+            tags{parameters.CsvPath + "tag.csv"},
+            persons{parameters.CsvPath + "person.csv"},
+            comments{parameters.CsvPath + "comment.csv"},
 
-            knows{parameters.ChangePath + "person_knows_person.csv", vertexCollections},
-            hasInterestTran{parameters.ChangePath + "person_hasInterest_tag.csv", vertexCollections, true},
+            knows{parameters.CsvPath + "person_knows_person.csv", vertexCollections},
+            hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", vertexCollections, true},
 
-            hasCreatorTran{parameters.ChangePath + "comment_hasCreator_person.csv", vertexCollections, true},
-            hasCreator{parameters.ChangePath + "comment_hasCreator_person.csv", vertexCollections},
-            replyOf{parameters.ChangePath + "comment_replyOf_comment.csv", vertexCollections}{}
+            hasCreatorTran{parameters.CsvPath + "comment_hasCreator_person.csv", vertexCollections, true},
+            hasCreator{parameters.CsvPath + "comment_hasCreator_person.csv", vertexCollections},
+            replyOf{parameters.CsvPath + "comment_replyOf_comment.csv", vertexCollections}{}
 
     auto comment_size() const {
         return comments.size();

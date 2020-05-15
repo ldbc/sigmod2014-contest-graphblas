@@ -34,7 +34,7 @@ cd ..
 
 ## Getting started
 
-Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../csvs/o1k/` or set `$ChangePath` environmental variable.
+Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../csvs/o1k/` or set `$CsvPath` environmental variable.
 
 To build and test the query implementation, run:
 
@@ -48,7 +48,7 @@ make
 
 ## Generate new query parameters
 
-Set `$ChangePath` environmental variable to the data set (default: `../../csvs/o1k/`).
+Set `$CsvPath` environment variable to the data set (default: `../../csvs/o1k/`).
 
 To generate query parameters, set `$ParamsPath` (default: `../../params/o1k/`), then run:
 

@@ -42,70 +42,85 @@ class Query2 : public Query<int, std::string> {
                              GxB_GE_THUNK, birthday_person_mask.get(),
                              birthday_limit.get(), GrB_NULL));
 
-        auto tag_scores = makeSmallestElementsContainer<std::tuple<uint64_t, std::reference_wrapper<std::string const>>>(
-                top_k_limit, transformComparator([](const auto &val) {
-                    return std::make_tuple(
-                            std::numeric_limits<uint64_t>::max() - std::get<0>(val),
-                            std::get<1>(val));
-                }));
+        using tag_score_type = std::tuple<uint64_t, std::reference_wrapper<std::string const>>;
+        auto comparator = transformComparator([](const auto &val) {
+            return std::make_tuple(
+                    std::numeric_limits<uint64_t>::max() - std::get<0>(val),
+                    std::get<1>(val));
+        });
 
-        GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
-        for (int tag_index = 0; tag_index < input.tags.size(); ++tag_index) {
-            ok(GrB_Col_extract(interested_person_vec.get(), birthday_person_mask.get(), GrB_NULL,
-                               input.hasInterestTran.matrix.get(), GrB_ALL, 0, tag_index,
-                               GrB_DESC_RST0));
+        auto tag_scores = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
 
-            GrB_Index interested_person_nvals;
-            ok(GrB_Vector_nvals(&interested_person_nvals, interested_person_vec.get()));
+        int nthreads = LAGraph_get_nthreads();
+#pragma omp parallel num_threads(nthreads)
+        {
+            auto tag_scores_local = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
+            GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
 
-            uint64_t score = 0;
-            if (interested_person_nvals != 0) {
-                std::vector<GrB_Index> interested_person_indices(interested_person_nvals);
-                GrB_Index nvals_out = interested_person_nvals;
-                ok(GrB_Vector_extractTuples_BOOL(interested_person_indices.data(), nullptr, &nvals_out,
-                                                 interested_person_vec.get()));
-                assert(interested_person_nvals == nvals_out);
+#pragma omp for schedule(dynamic)
+            for (int tag_index = 0; tag_index < input.tags.size(); ++tag_index) {
+                ok(GrB_Col_extract(interested_person_vec.get(), birthday_person_mask.get(), GrB_NULL,
+                                   input.hasInterestTran.matrix.get(), GrB_ALL, 0, tag_index,
+                                   GrB_DESC_RST0));
 
-                GBxx_Object<GrB_Matrix> knows_subgraph = GB(GrB_Matrix_new, GrB_BOOL, interested_person_nvals,
-                                                            interested_person_nvals);
+                GrB_Index interested_person_nvals;
+                ok(GrB_Vector_nvals(&interested_person_nvals, interested_person_vec.get()));
 
-                ok(GrB_Matrix_extract(knows_subgraph.get(), GrB_NULL, GrB_NULL, input.knows.matrix.get(),
-                                      interested_person_indices.data(), interested_person_nvals,
-                                      interested_person_indices.data(), interested_person_nvals,
-                                      GrB_NULL));
+                uint64_t score = 0;
+                if (interested_person_nvals != 0) {
+                    std::vector<GrB_Index> interested_person_indices(interested_person_nvals);
+                    GrB_Index nvals_out = interested_person_nvals;
+                    ok(GrB_Vector_extractTuples_BOOL(interested_person_indices.data(), nullptr, &nvals_out,
+                                                     interested_person_vec.get()));
+                    assert(interested_person_nvals == nvals_out);
 
-                // assuming that all component_ids will be in [0, n)
-                GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv, knows_subgraph.get(), false);
+                    GBxx_Object<GrB_Matrix> knows_subgraph = GB(GrB_Matrix_new, GrB_BOOL, interested_person_nvals,
+                                                                interested_person_nvals);
 
-                std::vector<uint64_t> components(interested_person_nvals),
-                        component_sizes(interested_person_nvals);
+                    ok(GrB_Matrix_extract(knows_subgraph.get(), GrB_NULL, GrB_NULL, input.knows.matrix.get(),
+                                          interested_person_indices.data(), interested_person_nvals,
+                                          interested_person_indices.data(), interested_person_nvals,
+                                          GrB_NULL));
 
-                // GrB_NULL to avoid extracting matrix values (SuiteSparse extension)
-                nvals_out = interested_person_nvals;
-                ok(GrB_Vector_extractTuples_UINT64(GrB_NULL, components.data(), &nvals_out, components_vector.get()));
-                assert(interested_person_nvals == nvals_out);
+                    // assuming that all component_ids will be in [0, n)
+                    GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv, knows_subgraph.get(), false);
 
-                // count size of each component
-                for (auto component_id:components)
-                    ++component_sizes[component_id];
+                    std::vector<uint64_t> components(interested_person_nvals),
+                            component_sizes(interested_person_nvals);
 
-                score = *std::max_element(component_sizes.begin(), component_sizes.end());
+                    // GrB_NULL to avoid extracting matrix values (SuiteSparse extension)
+                    nvals_out = interested_person_nvals;
+                    ok(GrB_Vector_extractTuples_UINT64(GrB_NULL, components.data(), &nvals_out,
+                                                       components_vector.get()));
+                    assert(interested_person_nvals == nvals_out);
+
+                    // count size of each component
+                    for (auto component_id:components)
+                        ++component_sizes[component_id];
+
+                    score = *std::max_element(component_sizes.begin(), component_sizes.end());
+                }
+                tag_scores_local.add({score, input.tags.vertices[tag_index].name});
             }
-            tag_scores.add({score, input.tags.vertices[tag_index].name});
+
+#pragma omp critical(Q2_merge_thread_local_toplists)
+            for (auto score : tag_scores_local.removeElements()) {
+                tag_scores.add(score);
+            }
         }
 
-        auto tag_scores_vector = tag_scores.removeElements();
         std::string result, comment;
-        for (int i = 0; i < tag_scores_vector.size(); ++i) {
-            auto const &pair = tag_scores_vector[i];
-
-            if (i != 0) {
+        bool firstIter = true;
+        for (auto const &[score, tag_name]: tag_scores.removeElements()) {
+            if (firstIter)
+                firstIter = false;
+            else {
                 result += ' ';
                 comment += ' ';
             }
 
-            result += std::get<1>(pair).get();
-            comment += std::to_string(std::get<0>(pair));
+            result += tag_name;
+            comment += std::to_string(score);
         }
 
         return {result, comment};

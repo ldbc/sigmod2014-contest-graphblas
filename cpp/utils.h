@@ -7,11 +7,6 @@
 #include <fstream>
 #include <iomanip>
 
-extern "C" {
-#include <GraphBLAS.h>
-#include <LAGraph.h>
-}
-
 struct BenchmarkParameters {
     std::string CsvPath;
     std::string ParamsPath;
@@ -26,11 +21,10 @@ struct BenchmarkParameters {
 
 BenchmarkParameters parse_benchmark_params(int argc, char *argv[]);
 
-using score_type = std::tuple<uint64_t, time_t, GrB_Index>;
-
 void report_load(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime);
 
-void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime, std::string const &result);
+void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime,
+                   std::tuple<std::string, std::string> const &result_tuple);
 
 // https://stackoverflow.com/a/26351760
 template<typename V, typename... T>

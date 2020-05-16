@@ -62,13 +62,17 @@ void report_load(const BenchmarkParameters &parameters, std::chrono::nanoseconds
             << round<microseconds>(runtime).count() << CSV_SEPARATOR;
 }
 
-void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime, std::string const &result) {
+void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime,
+                   std::tuple<std::string, std::string> const &result_tuple) {
     using namespace std::chrono;
+
+    auto const&[result, comment] = result_tuple;
 
     std::cout
             << round<microseconds>(runtime).count()
             #ifndef NDEBUG
             << CSV_SEPARATOR << result
+            << CSV_SEPARATOR << comment
             #endif
             << std::endl;
 }

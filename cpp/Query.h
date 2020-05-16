@@ -27,10 +27,10 @@ public:
         using namespace std::chrono;
         auto initial_start = high_resolution_clock::now();
 
-        auto resultTuple = initial_calculation();
+        auto result_tuple = initial_calculation();
 
-        report_result(parameters, round<nanoseconds>(high_resolution_clock::now() - initial_start), std::get<0>(resultTuple));
+        report_result(parameters, round<nanoseconds>(high_resolution_clock::now() - initial_start), result_tuple);
 
-        return resultTuple;
+        return result_tuple;
     }
 };

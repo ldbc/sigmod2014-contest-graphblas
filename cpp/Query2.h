@@ -1,5 +1,9 @@
 #pragma once
 
+#include "utils.h"
+#include "Query.h"
+#include "SmallestElementsContainer.h"
+
 #include <queue>
 #include <algorithm>
 #include <cassert>
@@ -8,8 +12,6 @@
 #include <set>
 #include <cstdio>
 #include <utility>
-#include "utils.h"
-#include "Query.h"
 
 class Query2 : public Query<int, std::string> {
     int top_k_limit;
@@ -40,8 +42,13 @@ class Query2 : public Query<int, std::string> {
                              GxB_GE_THUNK, birthday_person_mask.get(),
                              birthday_limit.get(), GrB_NULL));
 
-        std::vector<std::tuple<uint64_t, std::reference_wrapper<std::string const>>> tag_scores;
-        tag_scores.reserve(input.tags.size());
+        auto tag_scores = makeSmallestElementsContainer<std::tuple<uint64_t, std::reference_wrapper<std::string const>>>(
+                top_k_limit, transformComparator([](const auto &val) {
+                    return std::make_tuple(
+                            std::numeric_limits<uint64_t>::max() - std::get<0>(val),
+                            std::get<1>(val));
+                }));
+
         GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
         for (int tag_index = 0; tag_index < input.tags.size(); ++tag_index) {
             ok(GrB_Col_extract(interested_person_vec.get(), birthday_person_mask.get(), GrB_NULL,
@@ -84,19 +91,13 @@ class Query2 : public Query<int, std::string> {
 
                 score = *std::max_element(component_sizes.begin(), component_sizes.end());
             }
-            tag_scores.emplace_back(score, input.tags.vertices[tag_index].name);
+            tag_scores.add({score, input.tags.vertices[tag_index].name});
         }
 
-        std::sort(tag_scores.begin(), tag_scores.end(), transformComparator([](const auto &val) {
-            return std::make_tuple(
-                    std::numeric_limits<uint64_t>::max() - std::get<0>(val),
-                    std::get<1>(val));
-        }));
-        tag_scores.erase(tag_scores.begin() + top_k_limit, tag_scores.end());
-
+        auto tag_scores_vector = tag_scores.removeElements();
         std::string result, comment;
-        for (int i = 0; i < tag_scores.size(); ++i) {
-            auto const &pair = tag_scores[i];
+        for (int i = 0; i < tag_scores_vector.size(); ++i) {
+            auto const &pair = tag_scores_vector[i];
 
             if (i != 0) {
                 result += ' ';

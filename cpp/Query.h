@@ -17,22 +17,6 @@ protected:
     ParameterType queryParams;
     QueryInput const &input;
 
-//    static void add_score_to_toplist(std::vector<score_type> &top_scores, score_type score) {
-//        if (top_scores.size() < top_count || score > top_scores.front()) {
-//            top_scores.push_back(score);
-//            std::push_heap(top_scores.begin(), top_scores.end(), std::greater<>{});
-//
-//            if (top_scores.size() > top_count) {
-//                std::pop_heap(top_scores.begin(), top_scores.end(), std::greater<>{});
-//                top_scores.pop_back();
-//            }
-//        }
-//    }
-//
-//    static void sort_top_scores(std::vector<score_type> &top_scores) {
-//        std::sort_heap(top_scores.begin(), top_scores.end(), std::greater<>{});
-//    }
-
     virtual std::tuple<std::string, std::string> initial_calculation() = 0;
 
 public:

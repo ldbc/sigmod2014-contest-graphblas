@@ -49,10 +49,22 @@ time_t parseTimestamp(const char *timestamp_str, const char *timestamp_format);
 
 std::string timestampToString(std::time_t timestamp, const char *timestamp_format);
 
-template<typename UnaryOp>
-auto transformComparator(const UnaryOp &op) {
-    return [&](const auto &lhs, const auto &rhs) {
-        return op(lhs) < op(rhs);
+/// Returns a comparator which compares T instances (using comparator comp) after applying operator op.
+///
+/// Default comparator: op(lhs) &lt; op(rhs).
+///
+/// Recommendation: if more values should be compared, transform them into a std::tuple.
+/// Change comp to std::greater&lt;&gt;{} for decreasing order, or negate corresponding elements in the tuple.
+///
+/// \tparam UnaryOp type of op
+/// \tparam ComparatorForTransformed type of comp
+/// \param op an operator which transforms T instances to TransformedT instances
+/// \param comp comparator used for TransformedT (default: std::less&lt;&gt;)
+/// \return a comparator for T instances
+template<typename UnaryOp, typename ComparatorForTransformed = std::less<>>
+auto transformComparator(const UnaryOp &op, ComparatorForTransformed comp = ComparatorForTransformed{}) {
+    return [&, comp = std::move(comp)](const auto &lhs, const auto &rhs) {
+        return comp(op(lhs), op(rhs));
     };
 }
 

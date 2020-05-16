@@ -42,11 +42,14 @@ class Query2 : public Query<int, std::string> {
                              GxB_GE_THUNK, birthday_person_mask.get(),
                              birthday_limit.get(), GrB_NULL));
 
+        // store the score and a reference to the tag name
         using tag_score_type = std::tuple<uint64_t, std::reference_wrapper<std::string const>>;
+        // use a comparator which transforms the value for comparison
         auto comparator = transformComparator([](const auto &val) {
             return std::make_tuple(
-                    std::numeric_limits<uint64_t>::max() - std::get<0>(val),
-                    std::get<1>(val));
+                    // invert order of unsigned integer
+                    std::numeric_limits<uint64_t>::max() - std::get<0>(val), // score DESC
+                    std::get<1>(val));                                       // tag_name ASC
         });
 
         auto tag_scores = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);

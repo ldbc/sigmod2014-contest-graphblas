@@ -36,7 +36,7 @@ cd ..
 
 Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../csvs/o1k/` or set `$CsvPath` environmental variable.
 
-To build and test the query implementation, run:
+To build and test the query implementation on o1k (original contest data set with 1k persons) with [test queries](query-parameters.cpp), run:
 
 ```bash
 mkdir -p cmake-build-release

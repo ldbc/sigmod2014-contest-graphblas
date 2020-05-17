@@ -90,8 +90,29 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
             query2(7, "1987-06-24", R"(Chiang_Kai-shek Augustine_of_Hippo Genghis_Khan Haile_Selassie_I Karl_Marx Lyndon_B._Johnson Robert_John_\"Mutt\"_Lange % component sizes 4 3 3 3 3 3 3)"),
 
             query3(3, 2, "India"),
+//            query3(3, 2, "Asia", R"(361|812 174|280 280|812 % common interest counts 4 3 3)"),
+//            query3(4, 3, "Indonesia", R"(396|398 363|367 363|368 363|372 % common interest counts 2 1 1 1)"),
+//            query3(3, 2, "Egypt", R"(110|116 106|110 106|112 % common interest counts 1 0 0)"),
+//            query3(3, 2, "Italy", R"(420|825 421|424 10|414 % common interest counts 1 1 0)"),
+//            query3(5, 4, "Chengdu", R"(590|650 590|658 590|614 590|629 590|638 % common interest counts 1 1 0 0 0)"),
+//            query3(3, 2, "Peru", R"(65|766 65|767 65|863 % common interest counts 0 0 0)"),
+//            query3(3, 2, "Democratic_Republic_of_the_Congo", R"(99|100 99|101 99|102 % common interest counts 0 0 0)"),
+//            query3(7, 6, "Ankara", R"(891|898 890|891 890|895 890|898 890|902 891|895 891|902 % common interest counts 1 0 0 0 0 0 0)"),
+//            query3(3, 2, "Luoyang", R"(565|625 653|726 565|653 % common interest counts 2 1 0)"),
+//            query3(4, 3, "Taiwan", R"(795|798 797|798 567|795 567|796 % common interest counts 1 1 0 0)"),
 
             query4(3, "Bill_Clinton"),
+//            query4(3, "Bill_Clinton", R"(385 492 819 % centrality values 0.5290135396518375 0.5259615384615384 0.5249520153550864)"),
+//            query4(4, "Napoleon", R"(722 530 366 316 % centrality values 0.5411255411255411 0.5405405405405406 0.5387931034482758 0.5382131324004306)"),
+//            query4(3, "Chiang_Kai-shek", R"(592 565 625 % centrality values 0.5453460620525059 0.5421115065243179 0.5408284023668639)"),
+//            query4(3, "Charles_Darwin", R"(458 305 913 % centrality values 0.5415676959619953 0.5371024734982333 0.5345838218053928)"),
+//            query4(5, "Ronald_Reagan", R"(953 294 23 100 405 % centrality values 0.5446859903381642 0.5394736842105263 0.5388291517323776 0.5375446960667462 0.5343601895734598)"),
+//            query4(3, "Aristotle", R"(426 819 429 % centrality values 0.5451219512195121 0.5424757281553397 0.5366146458583433)"),
+//            query4(3, "George_W._Bush", R"(323 101 541 % centrality values 0.553596806524207 0.5433196380862576 0.5413098243818695)"),
+//            query4(7, "Tony_Blair", R"(465 647 366 722 194 135 336 % centrality values 0.535629340423861 0.5317101013475888 0.5310624641961301 0.530416402804164 0.5297719114277313 0.5259376153257211 0.5253039555482203)"),
+//            query4(3, "William_Shakespeare", R"(424 842 23 % centrality values 0.5316276893212858 0.5296265813313688 0.5256692220686188)"),
+//            query4(4, "Augustine_of_Hippo", R"(385 562 659 323 % centrality values 0.5506329113924051 0.54375 0.54375 0.5291970802919708)"),
+
 // @formatter:on
         };
 

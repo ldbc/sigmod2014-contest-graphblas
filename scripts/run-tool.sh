@@ -24,6 +24,24 @@ RESULTS_PATH="$RESULTS_FOLDER/$DATE.csv"
 
 mkdir -p "$RESULTS_FOLDER"
 
+{
+pushd "$(dirname "$TOOL")" >/dev/null
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>/dev/null; then
+  echo -n "Current HEAD commit: "
+  git rev-parse HEAD
+
+  if ! git diff-index --quiet HEAD --; then
+    echo WARNING! There are uncommitted changes:
+    git diff --stat HEAD
+    echo
+  fi
+else
+  echo WARNING!!! The tool is not in a git repo. I won\'t log the current version used for this measurement.
+fi
+
+popd >/dev/null
+
 echo -e \
 "Time: $DATE\n"\
 "Starting $TOOL_NAME at $TOOL\n"\
@@ -31,8 +49,9 @@ echo -e \
 "CSVs from: $CSVS_BASE_FOLDER\n"\
 "Params from: $PARAMS_BASE_FOLDER\n"\
 "Results go to $RESULTS_FOLDER\n"\
-"Queries to run: $QUERIES\n"\
-  | tee -a "$LOG_PATH"
+"Queries to run: $QUERIES\n"
+
+} |& tee -a "$LOG_PATH"
 
 for i in $QUERIES
 do

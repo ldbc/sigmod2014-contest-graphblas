@@ -16,7 +16,7 @@ See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
     - Open Jupyter Notebook at: http://127.0.0.1:8888/?token=«TOKEN»
 - To install pygraphblas on your host machine, navigate to the `pygraphblas` directory:
     - Install its dependencies: `sudo pip3 install -r notebook-requirements.txt`
-    - Make sure it's uninstalled, then (re)install it with: `pip3 uninstall pygraphblas; python3 setup.py install --user`
+    - Make sure it's uninstalled, then (re)install it with: `pip3 uninstall -y pygraphblas; python3 setup.py install --user`
 
 ## Data
 

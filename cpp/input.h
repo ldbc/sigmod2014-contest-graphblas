@@ -3,14 +3,12 @@
 #include "load.h"
 
 struct Vertex {
-    uint64_t id;
-
     static auto extraColumns() {
         return array_of<char const *>();
     }
 
     template<typename Reader>
-    bool parseLine(Reader &csv_reader) {
+    bool parseLine(Reader &csv_reader, GrB_Index &id) {
         return csv_reader.read_row(id);
     }
 };
@@ -26,7 +24,7 @@ struct Place : public Vertex {
     }
 
     template<typename Reader>
-    bool parseLine(Reader &csv_reader) {
+    bool parseLine(Reader &csv_reader, GrB_Index &id) {
         return csv_reader.read_row(id, name);
     }
 };
@@ -39,7 +37,7 @@ struct Tag : public Vertex {
     }
 
     template<typename Reader>
-    bool parseLine(Reader &csv_reader) {
+    bool parseLine(Reader &csv_reader, GrB_Index &id) {
         return csv_reader.read_row(id, name);
     }
 };
@@ -52,7 +50,7 @@ struct Person : public Vertex {
     }
 
     template<typename Reader>
-    bool parseLine(Reader &csv_reader) {
+    bool parseLine(Reader &csv_reader, GrB_Index &id) {
         const char *birthday_str = nullptr;
         if (!csv_reader.read_row(id, birthday_str))
             return false;

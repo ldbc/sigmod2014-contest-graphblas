@@ -18,17 +18,18 @@ std::tuple<std::ifstream, std::vector<std::string>, std::string> openFileWithHea
 std::string parseHeaderField(std::string const &field, char const *prefix, char const *postfix);
 
 struct BaseVertexCollection {
-    std::string vertex_name;
-    std::map<uint64_t, GrB_Index> id_to_index;
+    std::string vertexName;
+    std::vector<GrB_Index> vertexIds;
+    GBxx_Object<GrB_Vector> idToIndex;
 
     GrB_Index size() const {
-        return id_to_index.size();
+        return vertexIds.size();
     }
 };
 
 template<typename T>
 struct VertexCollection : public BaseVertexCollection {
-    std::vector<T> vertices;
+    std::vector<T> vertexExtraValues;
 
     VertexCollection(const std::string &file_path) {
         importFile(file_path);
@@ -60,7 +61,7 @@ struct VertexCollection : public BaseVertexCollection {
         }
 
         std::string id_column = selected_column_names[0];
-        vertex_name = parseHeaderField(id_column, "id:ID(", ")");
+        vertexName = parseHeaderField(id_column, "id:ID(", ")");
 
         io::CSVReader<selected_columns_count, io::trim_chars<>, io::no_quote_escape<'|'>> csv_reader(file_path,
                                                                                                      csv_file);
@@ -68,20 +69,22 @@ struct VertexCollection : public BaseVertexCollection {
         std::apply([&](auto... col) { csv_reader.read_header(io::ignore_extra_column, col...); },
                    selected_column_names);
 
-        T vertex;
-        while (vertex.parseLine(csv_reader)) {
-            GrB_Index current_index = vertices.size();
-
-            vertices.emplace_back(std::move(vertex));
-            bool newly_inserted = id_to_index.insert({vertex.id, current_index}).second;
-            assert(newly_inserted);
+        T vertex_extra;
+        GrB_Index id;
+        while (vertex_extra.parseLine(csv_reader, id)) {
+            vertexIds.push_back(id);
+            vertexExtraValues.emplace_back(std::move(vertex_extra));
         }
+
+        GrB_Vector id_to_index_ptr = nullptr;
+        ok(LAGraph_dense_relabel(GrB_NULL, GrB_NULL, &id_to_index_ptr, vertexIds.data(), size(), GrB_NULL));
+        idToIndex.reset(id_to_index_ptr);
     }
 };
 
 struct EdgeCollection {
     const BaseVertexCollection *src, *trg;
-    GrB_Index edge_number;
+    GrB_Index edgeNumber;
     GBxx_Object<GrB_Matrix> matrix;
 
     EdgeCollection(const std::string &file_path,
@@ -118,19 +121,20 @@ struct EdgeCollection {
         std::vector<GrB_Index> src_indices, trg_indices;
         uint64_t src_id, trg_id;
         while (csv_reader.read_row(src_id, trg_id)) {
-            GrB_Index src_index = src->id_to_index.find(src_id)->second;
-            GrB_Index trg_index = trg->id_to_index.find(trg_id)->second;
+            GrB_Index src_index, trg_index;
+            ok(GrB_Vector_extractElement_UINT64(&src_index, src->idToIndex.get(), src_id));
+            ok(GrB_Vector_extractElement_UINT64(&trg_index, trg->idToIndex.get(), trg_id));
 
             src_indices.push_back(src_index);
             trg_indices.push_back(trg_index);
         }
-        edge_number = src_indices.size();
+        edgeNumber = src_indices.size();
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
         ok(GrB_Matrix_build_BOOL(matrix.get(),
                                  src_indices.data(), trg_indices.data(),
-                                 array_of_true(edge_number).get(),
-                                 edge_number, GrB_LOR));
+                                 array_of_true(edgeNumber).get(),
+                                 edgeNumber, GrB_LOR));
     }
 };
 

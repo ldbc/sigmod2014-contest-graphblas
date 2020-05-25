@@ -43,7 +43,7 @@ const BaseVertexCollection &EdgeCollection::findVertexCollection(const std::stri
                                                                  const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) {
     auto iterator = std::find_if(vertex_collection.begin(), vertex_collection.end(),
                                  [&](const BaseVertexCollection &vertex) {
-                                     return vertex.vertex_name == vertex_name;
+                                     return vertex.vertexName == vertex_name;
                                  });
 
     if (iterator == vertex_collection.end())

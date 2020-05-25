@@ -32,7 +32,7 @@ class Query2 : public Query<int, std::string> {
         std::vector<time_t> birthdays;
         birthdays.resize(input.persons.size());
         all_indices.resize(input.persons.size());
-        std::transform(input.persons.vertices.begin(), input.persons.vertices.end(), birthdays.begin(),
+        std::transform(input.persons.vertexExtraValues.begin(), input.persons.vertexExtraValues.end(), birthdays.begin(),
                        [](auto &p) { return p.birthday; });
         std::iota(all_indices.begin(), all_indices.end(), 0);
         ok(GrB_Vector_build_INT64(birthday_person_mask.get(), all_indices.data(), birthdays.data(), birthdays.size(),
@@ -103,7 +103,7 @@ class Query2 : public Query<int, std::string> {
 
                     score = *std::max_element(component_sizes.begin(), component_sizes.end());
                 }
-                tag_scores_local.add({score, input.tags.vertices[tag_index].name});
+                tag_scores_local.add({score, input.tags.vertexExtraValues[tag_index].name});
             }
 
 #pragma omp critical(Q2_merge_thread_local_toplists)

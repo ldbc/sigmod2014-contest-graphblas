@@ -25,25 +25,37 @@ struct BaseVertexCollection {
     GrB_Index size() const {
         return vertexIds.size();
     }
+
+    virtual void importFile() = 0;
+
+protected:
+    ~BaseVertexCollection() = default;
 };
 
-template<typename T>
-struct VertexCollection : public BaseVertexCollection {
-    std::vector<T> vertexExtraValues;
+template<unsigned ExtraColumnCount>
+class VertexCollection : public BaseVertexCollection {
+    std::string filePath;
+
+protected:
+    using CsvReaderT = io::CSVReader<1 + ExtraColumnCount, io::trim_chars<>, io::no_quote_escape<'|'>>;
+
+public:
 
     VertexCollection(const std::string &file_path) {
-        importFile(file_path);
+        filePath = file_path;
     }
 
-    void importFile(const std::string &file_path) {
-        auto[csv_file, full_column_names, header_line] = openFileWithHeader(file_path);
+    virtual std::vector<std::string> extraColumns() {
+        return {};
+    }
 
-        auto extra_columns_array = T::extraColumns();
-        constexpr auto selected_columns_count = extra_columns_array.size() + 1;
+    virtual bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) = 0;
 
-        std::array<std::string, selected_columns_count> selected_column_names;
-        selected_column_names[0] = "id";
-        std::copy(extra_columns_array.begin(), extra_columns_array.end(), selected_column_names.begin() + 1);
+    void importFile() override {
+        auto[csv_file, full_column_names, header_line] = openFileWithHeader(filePath);
+
+        std::vector<std::string> selected_column_names = extraColumns();
+        selected_column_names.insert(selected_column_names.begin(), "id");
 
         for (auto &col_name : selected_column_names) {
             auto iterator = std::find_if(full_column_names.begin(), full_column_names.end(),
@@ -63,17 +75,17 @@ struct VertexCollection : public BaseVertexCollection {
         std::string id_column = selected_column_names[0];
         vertexName = parseHeaderField(id_column, "id:ID(", ")");
 
-        io::CSVReader<selected_columns_count, io::trim_chars<>, io::no_quote_escape<'|'>> csv_reader(file_path,
-                                                                                                     csv_file);
+        CsvReaderT csv_reader(filePath, csv_file);
+
+        std::array<std::string, 1 + ExtraColumnCount> selected_column_names_array;
+        std::copy(selected_column_names.begin(), selected_column_names.end(), selected_column_names_array.begin());
 
         std::apply([&](auto... col) { csv_reader.read_header(io::ignore_extra_column, col...); },
-                   selected_column_names);
+                   selected_column_names_array);
 
-        T vertex_extra;
         GrB_Index id;
-        while (vertex_extra.parseLine(csv_reader, id)) {
+        while (parseLine(csv_reader, id)) {
             vertexIds.push_back(id);
-            vertexExtraValues.emplace_back(std::move(vertex_extra));
         }
 
         GrB_Vector id_to_index_ptr = nullptr;
@@ -83,28 +95,25 @@ struct VertexCollection : public BaseVertexCollection {
 };
 
 struct EdgeCollection {
+    std::string filePath;
+    bool transposed;
     const BaseVertexCollection *src, *trg;
     GrB_Index edgeNumber;
     GBxx_Object<GrB_Matrix> matrix;
 
-    EdgeCollection(const std::string &file_path,
-                   const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection,
-                   bool transpose = false) {
-        importFile(file_path, vertex_collection, transpose);
-    }
+    EdgeCollection(const std::string &file_path, bool transposed = false)
+            : filePath(file_path), transposed(transposed) {}
 
     static const BaseVertexCollection &findVertexCollection(const std::string &vertex_name,
                                                             const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection);
 
-    void importFile(std::string const &file_path,
-                    std::vector<std::reference_wrapper<BaseVertexCollection>> const &vertex_collection,
-                    bool transpose) {
-        auto[csv_file, full_column_names, header_line] = openFileWithHeader(file_path);
+    void importFile(std::vector<std::reference_wrapper<BaseVertexCollection>> const &vertex_collection) {
+        auto[csv_file, full_column_names, header_line] = openFileWithHeader(filePath);
 
         char const *src_prefix = ":START_ID(", *trg_prefix = ":END_ID(", *postfix = ")";
         std::string src_column_name = full_column_names[0];
         std::string trg_column_name = full_column_names[1];
-        if (transpose) {
+        if (transposed) {
             std::swap(src_column_name, trg_column_name);
             std::swap(src_prefix, trg_prefix);
         }
@@ -114,7 +123,7 @@ struct EdgeCollection {
         src = &findVertexCollection(src_vertex_name, vertex_collection);
         trg = &findVertexCollection(trg_vertex_name, vertex_collection);
 
-        io::CSVReader<2, io::trim_chars<>, io::no_quote_escape<'|'>> csv_reader(file_path, csv_file);
+        io::CSVReader<2, io::trim_chars<>, io::no_quote_escape<'|'>> csv_reader(filePath, csv_file);
 
         csv_reader.read_header(io::ignore_extra_column, src_column_name, trg_column_name);
 
@@ -140,7 +149,10 @@ struct EdgeCollection {
 
 struct BaseQueryInput {
     std::vector<std::reference_wrapper<BaseVertexCollection>> vertexCollections;
+    std::vector<std::reference_wrapper<EdgeCollection>> edgeCollections;
 
-    explicit BaseQueryInput(std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections)
-            : vertexCollections(std::move(vertex_collections)) {}
+    BaseQueryInput(std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections,
+                   std::vector<std::reference_wrapper<EdgeCollection>> edge_collections)
+            : vertexCollections(std::move(vertex_collections)),
+              edgeCollections(std::move(edge_collections)) {}
 };

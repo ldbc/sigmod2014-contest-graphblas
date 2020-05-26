@@ -2,7 +2,6 @@
 #include <memory>
 #include <omp.h>
 #include "gb_utils.h"
-#include "Query2.h"
 #include "query-parameters.h"
 
 std::unique_ptr<QueryInput> load(BenchmarkParameters const &parameters) {

@@ -2,74 +2,77 @@
 
 #include "load.h"
 
-struct Vertex {
-    static auto extraColumns() {
-        return array_of<char const *>();
+struct Places : public VertexCollection<1> {
+    using VertexCollection::VertexCollection;
+
+    std::vector<std::string> names;
+
+    std::vector<std::string> extraColumns() override {
+        return {"name"};
     }
 
-    template<typename Reader>
-    bool parseLine(Reader &csv_reader, GrB_Index &id) {
-        return csv_reader.read_row(id);
-    }
-};
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "HidingNonVirtualFunction"
-
-struct Place : public Vertex {
-    std::string name;
-
-    static auto extraColumns() {
-        return array_of<char const *>("name");
-    }
-
-    template<typename Reader>
-    bool parseLine(Reader &csv_reader, GrB_Index &id) {
-        return csv_reader.read_row(id, name);
+    bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
+        std::string name;
+        if (csv_reader.read_row(id, name)) {
+            names.push_back(std::move(name));
+            return true;
+        } else
+            return false;
     }
 };
 
-struct Tag : public Vertex {
-    std::string name;
+struct Tags : public VertexCollection<1> {
+    using VertexCollection::VertexCollection;
 
-    static auto extraColumns() {
-        return array_of<char const *>("name");
+    std::vector<std::string> names;
+
+    std::vector<std::string> extraColumns() override {
+        return {"name"};
     }
 
-    template<typename Reader>
-    bool parseLine(Reader &csv_reader, GrB_Index &id) {
-        return csv_reader.read_row(id, name);
+    bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
+        std::string name;
+        if (csv_reader.read_row(id, name)) {
+            names.push_back(std::move(name));
+            return true;
+        } else
+            return false;
     }
 };
 
-struct Person : public Vertex {
-    time_t birthday;
+struct Persons : public VertexCollection<1> {
+    using VertexCollection::VertexCollection;
 
-    static auto extraColumns() {
-        return array_of<char const *>("birthday");
+    std::vector<time_t> birthdays;
+
+    std::vector<std::string> extraColumns() override {
+        return {"birthday"};
     }
 
-    template<typename Reader>
-    bool parseLine(Reader &csv_reader, GrB_Index &id) {
+    bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
         const char *birthday_str = nullptr;
         if (!csv_reader.read_row(id, birthday_str))
             return false;
 
-        birthday = parseTimestamp(birthday_str, DateFormat);
+        birthdays.push_back(parseTimestamp(birthday_str, DateFormat));
 
         return true;
     }
 };
 
-struct Comment : public Vertex {};
+struct Comments : public VertexCollection<0> {
+    using VertexCollection::VertexCollection;
 
-#pragma clang diagnostic pop
+    bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
+        return csv_reader.read_row(id);
+    }
+};
 
 struct QueryInput : public BaseQueryInput {
-    VertexCollection<Place> places;
-    VertexCollection<Tag> tags;
-    VertexCollection<Person> persons;
-    VertexCollection<Comment> comments;
+    Places places;
+    Tags tags;
+    Persons persons;
+    Comments comments;
 
     EdgeCollection knows;
     EdgeCollection hasInterestTran;
@@ -78,18 +81,26 @@ struct QueryInput : public BaseQueryInput {
     EdgeCollection replyOf;
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
-            BaseQueryInput{{tags, persons, comments}},
+            BaseQueryInput{{places, tags,            persons,        comments},
+                           {knows,  hasInterestTran, hasCreatorTran, hasCreator, replyOf}},
             places{parameters.CsvPath + "place.csv"},
             tags{parameters.CsvPath + "tag.csv"},
             persons{parameters.CsvPath + "person.csv"},
             comments{parameters.CsvPath + "comment.csv"},
 
-            knows{parameters.CsvPath + "person_knows_person.csv", vertexCollections},
-            hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", vertexCollections, true},
+            knows{parameters.CsvPath + "person_knows_person.csv"},
+            hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
 
-            hasCreatorTran{parameters.CsvPath + "comment_hasCreator_person.csv", vertexCollections, true},
-            hasCreator{parameters.CsvPath + "comment_hasCreator_person.csv", vertexCollections},
-            replyOf{parameters.CsvPath + "comment_replyOf_comment.csv", vertexCollections}{}
+            hasCreatorTran{parameters.CsvPath + "comment_hasCreator_person.csv", true},
+            hasCreator{parameters.CsvPath + "comment_hasCreator_person.csv"},
+            replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"} {
+        for (auto const &collection : vertexCollections) {
+            collection.get().importFile();
+        }
+        for (auto const &collection : edgeCollections) {
+            collection.get().importFile(vertexCollections);
+        }
+    }
 
     auto comment_size() const {
         return comments.size();

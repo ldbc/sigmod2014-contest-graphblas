@@ -37,8 +37,8 @@ public:
             p2_index = personDist(randomEngine);
         } while (p1_index == p2_index);
 
-        uint64_t p1_id = input.persons.vertices[p1_index].id;
-        uint64_t p2_id = input.persons.vertices[p2_index].id;
+        uint64_t p1_id = input.persons.vertexIds[p1_index];
+        uint64_t p2_id = input.persons.vertexIds[p2_index];
 
         return {p1_id, p2_id, comment_lower_limit};
     }
@@ -62,7 +62,7 @@ public:
 
     std::tuple<int, std::string> operator()() {
         int top_k = topKDist(randomEngine);
-        time_t birthday_limit = input.persons.vertices[personDist(randomEngine)].birthday;
+        time_t birthday_limit = input.persons.birthdays[personDist(randomEngine)];
 
         return {top_k, timestampToString(birthday_limit, DateFormat)};
     }
@@ -88,7 +88,7 @@ public:
     std::tuple<int, int, std::string> operator()() {
         int top_k_limit = topKDist(randomEngine);
         int maximum_hop_count = maxHopDist(randomEngine);
-        std::string place_name = input.places.vertices[placeDist(randomEngine)].name;
+        std::string place_name = input.places.names[placeDist(randomEngine)];
 
         return {top_k_limit, maximum_hop_count, place_name};
     }
@@ -112,7 +112,7 @@ public:
 
     std::tuple<int, std::string> operator()() {
         int top_k_limit = topKDist(randomEngine);
-        std::string tag_name = input.tags.vertices[tagDist(randomEngine)].name;
+        std::string tag_name = input.tags.names[tagDist(randomEngine)];
 
         return {top_k_limit, tag_name};
     }

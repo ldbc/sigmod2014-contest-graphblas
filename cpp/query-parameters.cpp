@@ -70,7 +70,7 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
         // test place name lookup
         for (size_t placeIndex = 0; placeIndex < input.places.size(); ++placeIndex) {
             auto const &place_name_ref = input.places.names[placeIndex];
-            GrB_Index result = input.places.findIdByName(place_name_ref);
+            GrB_Index result = input.places.findIndexByName(place_name_ref);
             if (placeIndex != result) {
                 std::string const &nameAtResultPosition =
                         result < input.places.size() ? input.places.names[result] : "invalid index";

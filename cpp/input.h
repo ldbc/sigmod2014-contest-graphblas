@@ -2,13 +2,32 @@
 
 #include "load.h"
 
-struct Places : public VertexCollection<1> {
+#include <vector>
+#include <algorithm>
+#include <numeric>
+
+class Places : public VertexCollection<1> {
+    std::vector<GrB_Index> indicesSortedByNames;
+
+public:
     using VertexCollection::VertexCollection;
 
     std::vector<std::string> names;
 
     std::vector<std::string> extraColumns() const override {
         return {"name"};
+    }
+
+    void importFile() override {
+        VertexCollection::importFile();
+
+        indicesSortedByNames.resize(size());
+        std::iota(indicesSortedByNames.begin(), indicesSortedByNames.end(), 0);
+        // stable sort to keep the lowest indices of duplicates first
+        std::stable_sort(indicesSortedByNames.begin(), indicesSortedByNames.end(),
+                         [this](GrB_Index lhs, GrB_Index rhs) {
+                             return names[lhs] < names[rhs];
+                         });
     }
 
     bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
@@ -21,13 +40,20 @@ struct Places : public VertexCollection<1> {
     }
 
     /// Find the minimum index of places having the given name
-    GrB_Index findIdByName(std::string const &name) const {
-        auto iter = std::find(names.begin(), names.end(), name);
+    GrB_Index findIndexByName(std::string const &name) const {
+        auto begin = indicesSortedByNames.begin();
+        auto end = indicesSortedByNames.end();
+        auto iter = std::lower_bound(begin, end, name, [this](GrB_Index lhs, std::string const &rhs) {
+            return names[lhs] < rhs;
+        });
 
-        if (iter == names.end())
+        // iter is an iterator pointing to the first element that is not less than name, or end if no such element is found.
+        // therefore names[*iter] can be greater than the name we are looking for
+        // see Possible implementation at https://en.cppreference.com/w/cpp/algorithm/binary_search
+        if (iter != end && name == names[*iter])
+            return *iter;
+        else
             throw std::out_of_range(name + " is not found.");
-
-        return std::distance(names.begin(), iter);
     }
 };
 

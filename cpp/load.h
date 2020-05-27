@@ -41,7 +41,7 @@ protected:
 
 public:
 
-    VertexCollection(const std::string &file_path) {
+    VertexCollection(std::string const &file_path) {
         filePath = file_path;
     }
 

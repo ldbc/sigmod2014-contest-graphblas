@@ -114,6 +114,10 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
 //            query4(4, "Augustine_of_Hippo", R"(385 562 659 323 % centrality values 0.5506329113924051 0.54375 0.54375 0.5291970802919708)"),
 
 // @formatter:on
+
+// Takes extremely long to compile!
+//#include "../o1k-queries-cpp.txt"
+
         };
 
         return vector;

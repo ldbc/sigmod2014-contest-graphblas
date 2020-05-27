@@ -212,7 +212,7 @@ WITH collect(persX) AS persXnodes
 UNWIND persXnodes AS p1
 MATCH
   (p1)-[:HAS_INTEREST]->(t:Tag)<-[:HAS_INTEREST]-(p2:Person),
-  (p1)-[:KNOWS*1..2]-(p2)
+  (p1)-[:KNOWS*1..X]-(p2)
 WHERE p1.id < p2.id
   AND p1 IN persXnodes
   AND p2 IN persXnodes

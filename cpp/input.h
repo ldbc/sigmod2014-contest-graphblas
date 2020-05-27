@@ -7,7 +7,7 @@ struct Places : public VertexCollection<1> {
 
     std::vector<std::string> names;
 
-    std::vector<std::string> extraColumns() override {
+    std::vector<std::string> extraColumns() const override {
         return {"name"};
     }
 
@@ -19,6 +19,16 @@ struct Places : public VertexCollection<1> {
         } else
             return false;
     }
+
+    /// Find the minimum index of places having the given name
+    GrB_Index findIdByName(std::string const &name) const {
+        auto iter = std::find(names.begin(), names.end(), name);
+
+        if (iter == names.end())
+            throw std::out_of_range(name + " is not found.");
+
+        return std::distance(names.begin(), iter);
+    }
 };
 
 struct Tags : public VertexCollection<1> {
@@ -26,7 +36,7 @@ struct Tags : public VertexCollection<1> {
 
     std::vector<std::string> names;
 
-    std::vector<std::string> extraColumns() override {
+    std::vector<std::string> extraColumns() const override {
         return {"name"};
     }
 
@@ -45,7 +55,7 @@ struct Persons : public VertexCollection<1> {
 
     std::vector<time_t> birthdays;
 
-    std::vector<std::string> extraColumns() override {
+    std::vector<std::string> extraColumns() const override {
         return {"birthday"};
     }
 

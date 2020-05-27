@@ -66,6 +66,24 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
                 throw std::runtime_error("Unknown query: " + std::to_string(benchmark_parameters.Query));
         }
     } else {
+        // TEST CASES
+        // test place name lookup
+        for (size_t placeIndex = 0; placeIndex < input.places.size(); ++placeIndex) {
+            auto const &place_name_ref = input.places.names[placeIndex];
+            GrB_Index result = input.places.findIdByName(place_name_ref);
+            if (placeIndex != result) {
+                std::string const &nameAtResultPosition =
+                        result < input.places.size() ? input.places.names[result] : "invalid index";
+
+                // for duplicate names minimum index should be returned
+                if (nameAtResultPosition != place_name_ref || result > placeIndex)
+                    throw std::runtime_error(
+                            "Place name lookup: indices mismatch:\nExpected: \"" + std::to_string(placeIndex)
+                            + "\" (" + place_name_ref + ")\nActual:   \"" + std::to_string(result) +
+                            "\" (" + nameAtResultPosition + ')');
+            }
+        }
+
         std::vector<std::function<std::string()>> vector{
 // formatter markers: https://stackoverflow.com/a/19492318
 // @formatter:off

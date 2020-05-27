@@ -45,7 +45,7 @@ public:
         filePath = file_path;
     }
 
-    virtual std::vector<std::string> extraColumns() {
+    virtual std::vector<std::string> extraColumns() const {
         return {};
     }
 

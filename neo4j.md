@@ -175,7 +175,7 @@ CALL apoc.periodic.commit("
 ```
 MATCH (t:Tag)
 OPTIONAL MATCH (t)-[:COMPONENT]->(comp:Component)
-return t.name, coalesce(max(comp.size), 0) AS score
+RETURN t.name, coalesce(max(comp.size), 0) AS score
 ORDER BY score DESC, t.name ASC
 LIMIT $topK
 ```

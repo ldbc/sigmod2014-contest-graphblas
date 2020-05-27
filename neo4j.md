@@ -185,13 +185,13 @@ LIMIT $topK
 Set the `$place` parameter, e.g.
 
 ```
-:param place => "South_America"
+:param [{topK, place}] => {RETURN 5 AS topK, "Australia" AS place}
 ```
 
 ```
 // set parameters k and h manually:
 // - k in the last `LIMIT` clause
-// - h in the `KNOWS*1...` bit of the last MATCH clause
+// - h in the `KNOWS*1...h` bit of the last MATCH clause (please change it manually)
 CYPHER runtime=interpreted
 CALL {
     MATCH (persX:Person)-[:IS_LOCATED_IN]->(:Place)-[:IS_PART_OF*0..2]->(:Place {name: $place})
@@ -210,16 +210,15 @@ CALL {
 // option 3: compute the scores using the following (inefficient) method:
 WITH collect(persX) AS persXnodes
 UNWIND persXnodes AS p1
-MATCH
-  (p1)-[:HAS_INTEREST]->(t:Tag)<-[:HAS_INTEREST]-(p2:Person),
-  (p1)-[:KNOWS*1..X]-(p2)
+MATCH (p1)-[:KNOWS*1..h]-(p2)
 WHERE p1.id < p2.id
-  AND p1 IN persXnodes
   AND p2 IN persXnodes
+OPTIONAL MATCH
+  (p1)-[:HAS_INTEREST]->(t:Tag)<-[:HAS_INTEREST]-(p2:Person)
 WITH p1, p2, count(DISTINCT t) AS numTags
 RETURN p1.id, p2.id, numTags
 ORDER BY numTags DESC, p1.id ASC, p2.id ASC
-LIMIT 3
+LIMIT $topK
 ```
 
 Note that in Neo4j Enterprise, you need to use `CYPHER runtime=interpreted` due to a [bug in the slotted runtime](https://github.com/neo4j/neo4j/issues/12441).

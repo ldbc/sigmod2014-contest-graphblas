@@ -1,5 +1,6 @@
 #include "relabel-common.h"
 
+#include <fstream>
 #include <unordered_set>
 
 constexpr uint64_t maxId = 1152921504606846976U;
@@ -36,4 +37,32 @@ std::vector<GrB_Index> getListOfIds(const std::vector<GrB_Index>& vertexIds, uin
     }
 
     return indices;
+}
+
+// these are not the best functions to save/read vectors from binary files, but definitely
+// the quickest solution
+void saveToFile(const std::vector<GrB_Index> &toSave, const std::string &filename) {
+    std::ofstream output;
+    output.open(filename, std::ios::binary | std::ios::out);
+    output.write(reinterpret_cast<const char*>(toSave.data()), toSave.size() * sizeof(GrB_Index));
+    output.close();
+}
+
+std::vector<GrB_Index> readFromFile(const std::string &filename) {
+    std::ifstream input(filename, std::ios::binary | std::ios::ate);
+
+    auto fileSize = input.tellg();
+    const auto numberOfIds = fileSize / sizeof(GrB_Index);
+    if (fileSize != numberOfIds * sizeof(GrB_Index)) {
+        throw std::runtime_error("File size doesn't match the size of GrB_Index");
+    }
+    input.seekg(0, std::ios::beg);
+
+
+    std::vector<GrB_Index> result;
+    result.resize(numberOfIds);
+    input.read(reinterpret_cast<char*>(result.data()), fileSize);
+    input.close();
+
+    return result;
 }

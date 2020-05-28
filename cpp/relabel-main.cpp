@@ -63,6 +63,8 @@ int main(int argc, char **argv) {
     printf("\n");
      */
 
+    // just to prevent compiler to optimize out
+    GrB_Index sum = 0u;
     // remap edges
     LAGraph_tic (tic);
 #pragma omp parallel for num_threads(nthreads) schedule(static)
@@ -70,10 +72,12 @@ int main(int argc, char **argv) {
         GrB_Index src_index, trg_index;
         GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
         GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
-        printf("%d -> %d ==> %d -> %d\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
+        sum += src_index + trg_index;
+        // printf("%d -> %d ==> %d -> %d\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
     }
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);
+    fprintf(stderr, " Totally not usable value: %d\n", sum);
 
     // Cleanup
     ok(LAGraph_finalize());

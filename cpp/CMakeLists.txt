@@ -32,4 +32,5 @@ add_executable(paramgen
 
 
 add_executable(relabel
-        relabel-main.cpp)
+        relabel-main.cpp
+        relabel-common.cpp)

@@ -5,6 +5,7 @@
 #include "gb_utils.h"
 #include "utils.h"
 #include "query-parameters.h"
+#include "relabel-common.h"
 
 int main(int argc, char **argv) {
     ok(LAGraph_init());
@@ -18,8 +19,10 @@ int main(int argc, char **argv) {
     // prepare array of IDs
     srand(0);
 
-    const GrB_Index nnodes =  5;                  const GrB_Index nedges = 15;
-//    const GrB_Index nnodes =  3.6 * 1000 * 1000;   const GrB_Index nedges = 447 * 1000 * 1000;
+//  const GrB_Index nnodes =  5;
+//  const GrB_Index nedges = 15;
+    const GrB_Index nnodes =  2 * 1000 * 1000;
+    const GrB_Index nedges = 100 * 1000 * 1000;
 
     GrB_Index* vertex_ids = (GrB_Index*) malloc(nnodes * sizeof(GrB_Index));
 #pragma omp parallel for num_threads(nthreads) schedule(static)
@@ -32,8 +35,10 @@ int main(int argc, char **argv) {
     GrB_Index* edge_trgs = (GrB_Index*) malloc(nedges * sizeof(GrB_Index));
 #pragma omp parallel for num_threads(nthreads) schedule(static)
     for (GrB_Index j = 0; j < nedges; j++) {
-        edge_srcs[j] = vertex_ids[rand() % nnodes];
-        edge_trgs[j] = vertex_ids[rand() % nnodes];
+        edge_srcs[j] = vertex_ids[fasthash(j * 131) % nnodes];
+        edge_trgs[j] = vertex_ids[fasthash(j * 199) % nnodes];
+        // edge_srcs[j] = vertex_ids[rand() % nnodes];
+        // edge_trgs[j] = vertex_ids[rand() % nnodes];
     }
 
     double tic[2];

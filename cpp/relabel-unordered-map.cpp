@@ -2,23 +2,21 @@
 #include <memory>
 #include <random>
 #include <filesystem>
+#include <unordered_map>
 #include "gb_utils.h"
 #include "utils.h"
 #include "query-parameters.h"
 #include "relabel-common.h"
+#include <omp.h>
 
 int main(int argc, char **argv) {
     ok(LAGraph_init());
 
-    GrB_Vector id2index = NULL;
-
     // TODO: set threads here
     constexpr uint64_t nthreads = 12;
-    LAGraph_set_nthreads (nthreads) ;
 
     // prepare array of IDs
     srand(0);
-    constexpr uint64_t idsSeed = 50U;
 
 //  const GrB_Index nnodes =  5;
 //  const GrB_Index nedges = 15;
@@ -35,11 +33,35 @@ int main(int argc, char **argv) {
 
     // build id <-> index mapping
     LAGraph_tic (tic);
-    LAGraph_dense_relabel(NULL, NULL, &id2index, vertex_ids.data(), nnodes, NULL);
-    GrB_Index* I = (GrB_Index*) LAGraph_malloc(nnodes, sizeof(GrB_Index));
-    GrB_Index* X = (GrB_Index*) LAGraph_malloc(nnodes, sizeof(GrB_Index));
-    GrB_Index nnodes2;
-    GrB_Vector_extractTuples_UINT64(I, X, &nnodes2, id2index);
+
+    using Id2IndexMap = std::unordered_map<GrB_Index, GrB_Index>;
+    std::vector<Id2IndexMap> id2IndexMaps;
+    id2IndexMaps.resize(nthreads);
+    if constexpr (nthreads > 1) {
+        id2IndexMaps[0].reserve(nnodes * 4);
+    } else {
+        for(uint64_t index = 0; index < nthreads; ++index) {
+            id2IndexMaps[index].reserve(nnodes / (nthreads - 1) * 2);            
+        }
+    }
+    #pragma omp parallel for num_threads(nthreads) schedule(static)
+    for(GrB_Index index = 0U; index < vertex_ids.size(); ++index) {
+        int threadId = omp_get_thread_num();
+        Id2IndexMap &threadMap = id2IndexMaps[threadId];
+        threadMap.emplace(vertex_ids[index], index);
+    }
+
+    Id2IndexMap id2Index;
+    id2Index.swap(id2IndexMaps[0]);
+
+    printf("Merging....\n");
+
+    if constexpr (nthreads > 1) {
+        id2Index.reserve(nnodes * 4);
+        for(uint64_t index = 1; index < nthreads; ++index) {
+            id2Index.merge(std::move(id2IndexMaps[index]));            
+        }
+    }
     double time1 = LAGraph_toc(tic);
     printf("Vertex relabel time: %.2f\n", time1);
 
@@ -57,11 +79,10 @@ int main(int argc, char **argv) {
     GrB_Index sum = 0u;
     // remap edges
     LAGraph_tic (tic);
-#pragma omp parallel for num_threads(nthreads) schedule(static)
+    #pragma omp parallel for num_threads(nthreads) schedule(static)
     for (GrB_Index j = 0; j < nedges; j++) {
-        GrB_Index src_index, trg_index;
-        GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
-        GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
+        GrB_Index src_index = id2Index.at(edge_srcs[j]);
+        GrB_Index trg_index = id2Index.at(edge_trgs[j]);
         sum += src_index + trg_index;
         // printf("%d -> %d ==> %d -> %d\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
     }

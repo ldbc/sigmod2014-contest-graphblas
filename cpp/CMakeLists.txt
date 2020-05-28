@@ -34,3 +34,7 @@ add_executable(paramgen
 add_executable(relabel
         relabel-main.cpp
         relabel-common.cpp)
+
+add_executable(relabel-unordered-map
+        relabel-unordered-map.cpp
+        relabel-common.cpp)

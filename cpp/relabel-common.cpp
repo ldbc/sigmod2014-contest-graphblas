@@ -28,7 +28,7 @@ std::vector<GrB_Index> getVertexIds(uint64_t numberOfVertices) {
 
 std::vector<GrB_Index> getListOfIds(const std::vector<GrB_Index>& vertexIds, uint64_t multiplier, uint64_t numberOfIndices, uint64_t numberOfThreads) {
     std::vector<GrB_Index> indices;
-    indices.reserve(numberOfIndices);
+    indices.resize(numberOfIndices);
 
     #pragma omp parallel for num_threads(numberOfThreads) schedule(static)
     for (GrB_Index j = 0; j < numberOfIndices; j++) {

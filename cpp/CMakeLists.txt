@@ -29,3 +29,7 @@ add_executable(paramgen
         paramgen-main.cpp
         load.cpp
         utils.cpp)
+
+
+add_executable(relabel
+        relabel-main.cpp)

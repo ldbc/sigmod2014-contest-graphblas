@@ -7,6 +7,32 @@
 #include "query-parameters.h"
 #include "relabel-common.h"
 
+// https://www.geeksforgeeks.org/binary-search/
+GrB_Index binarySearch(GrB_Index arr[], GrB_Index l, GrB_Index r, GrB_Index x)
+{
+    if (r >= l) {
+        GrB_Index mid = l + (r - l) / 2;
+
+        // If the element is present at the middle
+        // itself
+        if (arr[mid] == x)
+            return mid;
+
+        // If element is smaller than mid, then
+        // it can only be present in left subarray
+        if (arr[mid] > x)
+            return binarySearch(arr, l, mid - 1, x);
+
+        // Else the element can only be present
+        // in right subarray
+        return binarySearch(arr, mid + 1, r, x);
+    }
+
+    // We reach here when element is not
+    // present in array
+    return -1;
+}
+
 int main(int argc, char **argv) {
     ok(LAGraph_init());
 
@@ -68,8 +94,10 @@ int main(int argc, char **argv) {
 #pragma omp parallel for num_threads(nthreads) schedule(static)
     for (GrB_Index j = 0; j < nedges; j++) {
         GrB_Index src_index, trg_index;
-        GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
-        GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
+        // GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
+        // GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
+        src_index = X[binarySearch(I, 0, nnodes, edge_srcs[j])];
+        trg_index = X[binarySearch(I, 0, nnodes, edge_trgs[j])];
         sum += src_index + trg_index;
         // printf("%d -> %d ==> %d -> %d\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
     }

@@ -38,3 +38,20 @@ add_executable(relabel
 add_executable(relabel-unordered-map
         relabel-unordered-map.cpp
         relabel-common.cpp)
+
+option(BUILD_CONCURRENT "Build the concurrent hash map based relabeling test" OFF)
+
+# To build these use -DBUILD_CONCURRENT=ON -DTBB_DIR=<path-to-tbb>/cmake
+if (BUILD_CONCURRENT)
+        find_package(TBB REQUIRED)
+
+        add_executable(relabel-concurrent-hash-map
+                relabel-concurrent-hash-map.cpp
+                relabel-common.cpp)
+        target_link_libraries(relabel-concurrent-hash-map TBB::tbb)
+
+        add_executable(relabel-concurrent-unordered-map
+                relabel-concurrent-unordered-map.cpp
+                relabel-common.cpp)
+        target_link_libraries(relabel-concurrent-unordered-map TBB::tbb)
+endif()

@@ -12,6 +12,7 @@
 int main(int argc, char **argv) {
     constexpr uint64_t nThreads = 12;
 
+    std::cout << "Generating " << nnodes << " nodes and " << nedges << " edges.\n";
     std::vector<GrB_Index> vertex_ids = getVertexIds(nnodes);
     std::vector<GrB_Index> edge_srcs = getListOfIds(vertex_ids, 131, nedges, nThreads);
     std::vector<GrB_Index> edge_trgs = getListOfIds(vertex_ids, 199, nedges, nThreads);

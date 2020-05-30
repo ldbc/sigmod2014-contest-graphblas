@@ -4,8 +4,9 @@
 
 #include "GraphBLAS.h"
 
-constexpr uint64_t nnodes = 100 * 1000 * 1000;
-constexpr uint64_t nedges = 200 * 1000 * 1000;
+// the defines are coming from CMake
+constexpr uint64_t nnodes = NNODES_MILLION * 1000 * 1000;
+constexpr uint64_t nedges = NEDGES_MILLION * 1000 * 1000;
 
 uint64_t fasthash(uint64_t value);
 

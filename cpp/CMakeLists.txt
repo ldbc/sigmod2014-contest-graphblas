@@ -30,23 +30,36 @@ add_executable(paramgen
         load.cpp
         utils.cpp)
 
+set(NNODES_MILLION_VALUE 100)
+if (NNODES_MILLION)
+        set(NNODES_MILLION_VALUE ${NNODES_MILLION})
+endif()
+
+set(NEDGES_MILLION_VALUE 200)
+if (NEDGES_MILLION)
+        set(NEDGES_MILLION_VALUE ${NEDGES_MILLION})
+endif()
 
 add_executable(generate-relabel-data
         generate-relabel-data.cpp
         relabel-common.cpp)
+target_compile_definitions(generate-relabel-data PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 
 add_executable(relabel
         relabel-main.cpp
         relabel-common.cpp)
+target_compile_definitions(relabel PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 
 add_executable(relabel-unordered-map
         relabel-unordered-map.cpp
         relabel-common.cpp)
+target_compile_definitions(relabel-unordered-map PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 
 add_executable(relabel-unordered-map-single-thread
         relabel-unordered-map.cpp
         relabel-common.cpp)
 target_compile_definitions(relabel-unordered-map-single-thread PRIVATE NUMBER_OF_VERTEX_MAPPER_THREADS=1)
+target_compile_definitions(relabel-unordered-map-single-thread PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 
 option(BUILD_CONCURRENT "Build the concurrent hash map based relabeling test" OFF)
 
@@ -58,21 +71,25 @@ if (BUILD_CONCURRENT)
                 relabel-concurrent-hash-map.cpp
                 relabel-common.cpp)
         target_link_libraries(relabel-concurrent-hash-map TBB::tbb)
+        target_compile_definitions(relabel-concurrent-hash-map PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 
         add_executable(relabel-concurrent-hash-map-single-thread
                 relabel-concurrent-hash-map.cpp
                 relabel-common.cpp)
         target_link_libraries(relabel-concurrent-hash-map-single-thread TBB::tbb)
         target_compile_definitions(relabel-concurrent-hash-map-single-thread PRIVATE NUMBER_OF_VERTEX_MAPPER_THREADS=1)
+        target_compile_definitions(relabel-concurrent-hash-map-single-thread PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 
         add_executable(relabel-concurrent-unordered-map
                 relabel-concurrent-unordered-map.cpp
                 relabel-common.cpp)
         target_link_libraries(relabel-concurrent-unordered-map TBB::tbb)
+        target_compile_definitions(relabel-concurrent-unordered-map PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 
         add_executable(relabel-concurrent-unordered-map-single-thread
                 relabel-concurrent-unordered-map.cpp
                 relabel-common.cpp)
         target_link_libraries(relabel-concurrent-unordered-map-single-thread TBB::tbb)
         target_compile_definitions(relabel-concurrent-unordered-map-single-thread PRIVATE NUMBER_OF_VERTEX_MAPPER_THREADS=1)
+        target_compile_definitions(relabel-concurrent-unordered-map-single-thread PRIVATE NNODES_MILLION=${NNODES_MILLION_VALUE} NEDGES_MILLION=${NEDGES_MILLION_VALUE})
 endif()

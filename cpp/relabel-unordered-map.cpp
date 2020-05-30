@@ -11,9 +11,9 @@
 
 int main(int argc, char **argv) {
     // TODO: set threads here
-    constexpr uint64_t edgeMappperThreads = 12;
+    constexpr uint64_t edgeMapperThreads = 12;
 #ifndef NUMBER_OF_VERTEX_MAPPER_THREADS
-    #define NUMBER_OF_VERTEX_MAPPER_THREADS edgeMappperThreads
+    #define NUMBER_OF_VERTEX_MAPPER_THREADS edgeMapperThreads
 #endif
     constexpr uint64_t vertexMapperThreads = NUMBER_OF_VERTEX_MAPPER_THREADS;
     constexpr double mapReserveMultiplier = 1.5;
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     GrB_Index sum = 0u;
     // remap edges
     LAGraph_tic (tic);
-    #pragma omp parallel for num_threads(edgeMappperThreads) schedule(static)
+    #pragma omp parallel for num_threads(edgeMapperThreads) schedule(static)
     for (GrB_Index j = 0; j < nedges; j++) {
         GrB_Index src_index = id2Index.at(edge_srcs[j]);
         GrB_Index trg_index = id2Index.at(edge_trgs[j]);

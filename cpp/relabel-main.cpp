@@ -46,11 +46,6 @@ int main(int argc, char **argv) {
     srand(0);
     constexpr uint64_t idsSeed = 50U;
 
-//  const GrB_Index nnodes =  5;
-//  const GrB_Index nedges = 15;
-    const GrB_Index nnodes = 100 * 1000 * 1000;
-    const GrB_Index nedges = 200 * 1000 * 1000;
-
     // std::vector<GrB_Index> vertex_ids = getVertexIds(nnodes);
     // std::vector<GrB_Index> edge_srcs = getListOfIds(vertex_ids, 131, nedges, nthreads);
     // std::vector<GrB_Index> edge_trgs = getListOfIds(vertex_ids, 199, nedges, nthreads);
@@ -59,11 +54,11 @@ int main(int argc, char **argv) {
     // saveToFile(edge_srcs, "5_15_edge_srcs.data");
     // saveToFile(edge_trgs, "5_15_edge_trgs.data");
     
-    std::vector<GrB_Index> vertex_ids = readFromFile("100m_200m_vertex.data");
-    std::vector<GrB_Index> edge_srcs = readFromFile("100m_200m_edge_srcs.data");
-    std::vector<GrB_Index> edge_trgs = readFromFile("100m_200m_edge_trgs.data");
+    std::vector<GrB_Index> vertex_ids = readFromFile("vertex.data");
+    std::vector<GrB_Index> edge_srcs = readFromFile("edge_srcs.data");
+    std::vector<GrB_Index> edge_trgs = readFromFile("edge_trgs.data");
 
-    printf("\n");
+    printf("Reading is done\n");
 
     double tic[2];
 

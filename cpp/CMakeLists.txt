@@ -31,6 +31,10 @@ add_executable(paramgen
         utils.cpp)
 
 
+add_executable(generate-relabel-data
+        generate-relabel-data.cpp
+        relabel-common.cpp)
+
 add_executable(relabel
         relabel-main.cpp
         relabel-common.cpp)
@@ -38,6 +42,11 @@ add_executable(relabel
 add_executable(relabel-unordered-map
         relabel-unordered-map.cpp
         relabel-common.cpp)
+
+add_executable(relabel-unordered-map-single-thread
+        relabel-unordered-map.cpp
+        relabel-common.cpp)
+target_compile_definitions(relabel-unordered-map-single-thread PRIVATE NUMBER_OF_VERTEX_MAPPER_THREADS=1)
 
 option(BUILD_CONCURRENT "Build the concurrent hash map based relabeling test" OFF)
 
@@ -50,8 +59,20 @@ if (BUILD_CONCURRENT)
                 relabel-common.cpp)
         target_link_libraries(relabel-concurrent-hash-map TBB::tbb)
 
+        add_executable(relabel-concurrent-hash-map-single-thread
+                relabel-concurrent-hash-map.cpp
+                relabel-common.cpp)
+        target_link_libraries(relabel-concurrent-hash-map-single-thread TBB::tbb)
+        target_compile_definitions(relabel-concurrent-hash-map-single-thread PRIVATE NUMBER_OF_VERTEX_MAPPER_THREADS=1)
+
         add_executable(relabel-concurrent-unordered-map
                 relabel-concurrent-unordered-map.cpp
                 relabel-common.cpp)
         target_link_libraries(relabel-concurrent-unordered-map TBB::tbb)
+
+        add_executable(relabel-concurrent-unordered-map-single-thread
+                relabel-concurrent-unordered-map.cpp
+                relabel-common.cpp)
+        target_link_libraries(relabel-concurrent-unordered-map-single-thread TBB::tbb)
+        target_compile_definitions(relabel-concurrent-unordered-map-single-thread PRIVATE NUMBER_OF_VERTEX_MAPPER_THREADS=1)
 endif()

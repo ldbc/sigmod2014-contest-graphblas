@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
     }
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);
-    fprintf(stderr, " Totally not usable value: %d\n", sum);
-    printf("%d\t%d\t%.2f\t%.2f\n", vertexMapperThreads, edgeMapperThreads, time1, time2);
+    fprintf(stderr, " Totally not usable value: %ld\n", sum);
+    printf("STL unordered map,%ld,%ld,%.2f,%.2f\n", vertexMapperThreads, edgeMapperThreads, time1, time2);
     return 0;
 }

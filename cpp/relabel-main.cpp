@@ -98,8 +98,8 @@ int main(int argc, char **argv) {
     }
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);
-    fprintf(stderr, " Totally not usable value: %d\n", sum);
-    printf("%d\t%d\t%.2f\t%.2f\n", nthreads, nthreads, time1, time2);
+    fprintf(stderr, " Totally not usable value: %ld\n", sum);
+    printf("LAGraph with custom binsearch,%ld,%ld,%.2f,%.2f\n", nthreads, nthreads, time1, time2);
 
     // Cleanup
     ok(LAGraph_finalize());

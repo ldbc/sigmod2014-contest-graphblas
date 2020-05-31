@@ -35,13 +35,14 @@ int main(int argc, char **argv) {
     double time1 = LAGraph_toc(tic);
     printf("Vertex relabel time: %.2f\n", time1);
 
-
-    printf("stl: %ld  \n", std::lower_bound(I, I + nnodes, edge_srcs[0]) - I   );
+    auto a = std::lower_bound(I, I + nnodes, edge_srcs[0]);
+    printf("stl: %ld %ld  \n", a - I ,*a);
     printf("stl: %ld  \n", std::lower_bound(I, I + nnodes, edge_srcs[1]) - I   );
     printf("stl: %ld  \n", std::lower_bound(I, I + nnodes, edge_srcs[2]) - I   );
 
-    for (int idx = 0; idx < 3; idx++) {
-        printf("stl: %ld  \n", std::lower_bound(I, I + nnodes, edge_srcs2[idx]) - I );
+    for (int idx = 0; idx < 10; idx++) {
+        std::cout <<  I[nnodes - 1 -idx] << '\n';
+        printf("stl: %ld  \n", std::lower_bound(I, I + nnodes, edge_srcs[idx]) - I   );
     }
 
     ok(LAGraph_finalize());

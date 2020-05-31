@@ -67,8 +67,8 @@ int main(int argc, char **argv) {
     LAGraph_dense_relabel(NULL, NULL, &id2index, vertex_ids.data(), nnodes, NULL);
     GrB_Index* I = (GrB_Index*) LAGraph_malloc(nnodes, sizeof(GrB_Index));
     GrB_Index* X = (GrB_Index*) LAGraph_malloc(nnodes, sizeof(GrB_Index));
-    GrB_Index nnodes2;
-    GrB_Vector_extractTuples_UINT64(I, X, &nnodes2, id2index);
+    GrB_Index nnodes2 = nnodes;
+    ok(GrB_Vector_extractTuples_UINT64(I, X, &nnodes2, id2index));
     double time1 = LAGraph_toc(tic);
     printf("Vertex relabel time: %.2f\n", time1);
 
@@ -89,17 +89,18 @@ int main(int argc, char **argv) {
 #pragma omp parallel for num_threads(nthreads) schedule(static)
     for (GrB_Index j = 0; j < nedges; j++) {
         GrB_Index src_index, trg_index;
-        // GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
-        // GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
-        src_index = X[binarySearch(I, 0, nnodes, edge_srcs[j])];
-        trg_index = X[binarySearch(I, 0, nnodes, edge_trgs[j])];
+//         GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
+//         GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
+
+        src_index = X[std::lower_bound(I, I + nnodes, edge_srcs[j]) - I];
+        trg_index = X[std::lower_bound(I, I + nnodes, edge_trgs[j]) - I];
         sum += src_index + trg_index;
-        // printf("%d -> %d ==> %d -> %d\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
+//        printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
     }
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);
     fprintf(stderr, " Totally not usable value: %ld\n", sum);
-    printf("LAGraph with custom binsearch,%ld,%ld,%.2f,%.2f\n", nthreads, nthreads, time1, time2);
+    printf("LAGraph with STL binsearch,%ld,%ld,%.2f,%.2f\n", nthreads, nthreads, time1, time2);
 
     // Cleanup
     ok(LAGraph_finalize());

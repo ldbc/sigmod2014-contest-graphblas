@@ -7,32 +7,6 @@
 #include "query-parameters.h"
 #include "relabel-common.h"
 
-// https://www.geeksforgeeks.org/binary-search/
-GrB_Index binarySearch(GrB_Index arr[], GrB_Index l, GrB_Index r, GrB_Index x)
-{
-    if (r >= l) {
-        GrB_Index mid = l + (r - l) / 2;
-
-        // If the element is present at the middle
-        // itself
-        if (arr[mid] == x)
-            return mid;
-
-        // If element is smaller than mid, then
-        // it can only be present in left subarray
-        if (arr[mid] > x)
-            return binarySearch(arr, l, mid - 1, x);
-
-        // Else the element can only be present
-        // in right subarray
-        return binarySearch(arr, mid + 1, r, x);
-    }
-
-    // We reach here when element is not
-    // present in array
-    return -1;
-}
-
 int main(int argc, char **argv) {
     ok(LAGraph_init());
 

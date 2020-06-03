@@ -28,7 +28,6 @@ def naive_bfs_levels(matrix, source):
         known_nodes_vector = result_vector.vxm(matrix, mask=result_vector, desc=descriptor.ooco)
         not_done = known_nodes_vector.reduce_bool()
         level += 1
-        print(result_vector)
     return result_vector
 
 

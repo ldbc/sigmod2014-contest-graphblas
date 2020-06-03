@@ -1,10 +1,16 @@
 from abc import ABC, abstractmethod
 from collections import namedtuple
-
+import logging
 from loader.data_loader import DataLoader
 
 Test = namedtuple('Test', ['inputs', 'expected_result'])
 
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-5s %(message)s'))
+log = logging.getLogger(__name__)
+log.propagate = False
+log.addHandler(handler)
+log.setLevel(logging.INFO)
 
 class QueryBase(ABC):
     def __init__(self, data_dir, data_format, tests):
@@ -12,17 +18,19 @@ class QueryBase(ABC):
         self.tests = tests
 
     @abstractmethod
-    def execute_query(self):
+    def execute_query(self, params):
         pass
 
     @abstractmethod
-    def format_result_string(self):
+    def format_result_string(self, result):
         pass
 
     def run_tests(self):
         for test in self.tests:
             result = self.execute_query(test.inputs)
-            result_string = self.format_result_string(result)
-            result_correct = result_string == test.expected_result
+            test = test._replace(expected_result=self.format_result_string(test.expected_result))
+            result_correct = result == test.expected_result
 
             assert result_correct
+            log.info(f'Result: {result}')
+            log.info(f'Result correct: {result_correct}')

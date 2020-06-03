@@ -16,34 +16,49 @@ class Query1(QueryBase):
         self.person1_id = params[0]
         self.person2_id = params[1]
         self.num_of_interactions = params[2]
+        self.person = None
+        self.comment = None
+        self.replyOf = None
+        self.knows = None
+        self.hasCreator = None
 
-    def execute_query(self, search_method=naive_bfs_levels):
-        # Load vertices and edges
-        person = self.loader.load_vertex('person')
-        comment = self.loader.load_vertex('comment')
-        replyOf = self.loader.load_edge('replyOf', comment, comment)
-        knows = self.loader.load_edge('knows', person, person)
-        hasCreator = self.loader.load_edge('hasCreator', comment, person)
+    def execute_query(self, params=None, search_method=naive_bfs_levels):
+        if params is not None:
+            self.person1_id = params[0]
+            self.person2_id = params[1]
+            self.num_of_interactions = params[2]
+
+        if self.person is None:
+            # Load vertices and edges
+            self.person = self.loader.load_vertex('person')
+            self.comment = self.loader.load_vertex('comment')
+            self.replyOf = self.loader.load_edge('replyOf', self.comment, self.comment)
+            self.knows = self.loader.load_edge('knows', self.person, self.person)
+            self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
 
         # Run query
-        person1_id_remapped = person.index2id[self.person1_id]
-        person2_id_remapped = person.index2id[self.person2_id]
+        person1_id_remapped = self.person.index2id[self.person1_id]
+        person2_id_remapped = self.person.index2id[self.person2_id]
         if self.num_of_interactions == -1:
-            overlay_graph = knows
+            overlay_graph = self.knows
         else:
-            hasCreatorTransposed = hasCreator.transpose()
-            personA_to_comment2 = hasCreatorTransposed @ replyOf
-            person_to_person = personA_to_comment2.mxm(hasCreator, mask=knows)
+            hasCreatorTransposed =self.hasCreator.transpose()
+            personA_to_comment2 = hasCreatorTransposed @ self.replyOf
+            person_to_person = personA_to_comment2.mxm(self.hasCreator, mask=self.knows)
             person_to_person_filtered = person_to_person.select(lib.GxB_GT_THUNK, self.num_of_interactions)
             overlay_graph = person_to_person_filtered.pattern()
 
         levels = search_method(overlay_graph, person1_id_remapped)
-        result = levels[person2_id_remapped] - 1  # Get hop count
+        try:
+            result = levels[person2_id_remapped] - 1  # Get hop count
+        except:
+            # There is no path
+            result = -1
 
         return result
 
-    def format_result_string(self):
-        pass
+    def format_result_string(self, result):
+        return int(result.split('%')[0])
 
     def init_tests(self):
         tests = [

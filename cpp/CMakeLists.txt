@@ -16,6 +16,8 @@ link_libraries(Threads::Threads)
 
 link_libraries(graphblas lagraph)
 
+add_subdirectory(libcuckoo)
+
 find_package(OpenMP REQUIRED)
 link_libraries(OpenMP::OpenMP_CXX)
 
@@ -61,10 +63,12 @@ add_executable(relabel-libcuckoo
         relabel-common.cpp)
 target_link_libraries(relabel-libcuckoo PRIVATE compile-time-definitions link-flags)
 
+set (FLAGS "-g -msse4.2 -mcx16")
 add_executable(relabel-growt
         relabel-growt.cpp
         relabel-common.cpp)
 target_link_libraries(relabel-growt PRIVATE compile-time-definitions link-flags)
+target_include_directories(relabel-growt PRIVATE growt)
 
 add_executable(relabel-unordered-map
         relabel-unordered-map.cpp

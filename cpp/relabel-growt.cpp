@@ -2,24 +2,13 @@
 #include <memory>
 #include <random>
 #include <filesystem>
-#include <unordered_map>
 #include "gb_utils.h"
-#include "utils.h"
-#include "query-parameters.h"
 #include "relabel-common.h"
-#include <omp.h>
-#include "allocator/alignedallocator.h"
-#include "data-structures/seqcircular.h"
 
-#include "data-structures/simpleelement.h"
-#include "data-structures/markableelement.h"
-#include "data-structures/base_circular.h"
-#include "data-structures/strategy/wstrat_user.h"
-#include "data-structures/strategy/wstrat_pool.h"
-#include "data-structures/strategy/estrat_async.h"
-#include "data-structures/strategy/estrat_sync.h"
-#include "data-structures/strategy/estrat_sync_alt.h"
-#include "data-structures/grow_table.h"
+#include "growt/data-structures/definitions.h"
+#include "growt/utils/hash/murmur2_hash.h"
+using murmur2_hash = utils_tm::hash_tm::murmur2_hash;
+#include "growt/allocator/alignedallocator.h"
 
 int main(int argc, char **argv) {
 
@@ -45,8 +34,7 @@ int main(int argc, char **argv) {
     // build id <-> index mapping
     LAGraph_tic (tic);
 
-    using Id2IndexMap = growt::uaGrow<murmur2_hash, growt::AlignedAllocator<> >;
-    Id2IndexMap id2Index;
+    auto id2Index = growt::folklore<murmur2_hash, growt::AlignedAllocator<>>(vertex_ids.size());
 #pragma omp parallel for num_threads(vertexMapperThreads) schedule(static)
     for(GrB_Index index = 0U; index < vertex_ids.size(); ++index) {
         id2Index.insert(vertex_ids[index], index);
@@ -60,8 +48,8 @@ int main(int argc, char **argv) {
     LAGraph_tic (tic);
 #pragma omp parallel for num_threads(edgeMapperThreads) schedule(static)
     for (GrB_Index j = 0; j < nedges; j++) {
-        GrB_Index src_index = id2Index.find(edge_srcs[j]);
-        GrB_Index trg_index = id2Index.find(edge_trgs[j]);
+        GrB_Index src_index = id2Index[edge_srcs[j]];
+        GrB_Index trg_index = id2Index[edge_trgs[j]];
         sum += src_index + trg_index;
     //    printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
     }

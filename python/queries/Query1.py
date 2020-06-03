@@ -1,4 +1,6 @@
 from collections import namedtuple
+from timeit import default_timer as timer
+import logging
 
 from queries.QueryBase import QueryBase
 from algorithms.search import naive_bfs_levels
@@ -6,6 +8,13 @@ from pygraphblas import *
 #from _pygraphblas import lib
 
 Test = namedtuple('Test', ['inputs', 'expected_result'])
+
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)-5s %(message)s'))
+log = logging.getLogger(__name__)
+log.propagate = False
+log.addHandler(handler)
+log.setLevel(logging.INFO)
 
 
 class Query1(QueryBase):
@@ -30,13 +39,17 @@ class Query1(QueryBase):
 
         if self.person is None:
             # Load vertices and edges
+            load_start = timer()
             self.person = self.loader.load_vertex('person')
             self.comment = self.loader.load_vertex('comment')
             self.replyOf = self.loader.load_edge('replyOf', self.comment, self.comment)
             self.knows = self.loader.load_edge('knows', self.person, self.person)
             self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
+            load_end = timer()
+            self.load_time = load_end - load_start
 
         # Run query
+        query_start = timer()
         person1_id_remapped = self.person.index2id[self.person1_id]
         person2_id_remapped = self.person.index2id[self.person2_id]
         if self.num_of_interactions == -1:
@@ -55,6 +68,9 @@ class Query1(QueryBase):
             # There is no path
             result = -1
 
+        query_end = timer()
+        self.test_execution_times.append(query_end - query_start)
+        log.info(f'Loading took: {self.load_time} seconds, Query took: {query_end - query_start} second')
         return result
 
     def format_result_string(self, result):

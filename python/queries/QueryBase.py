@@ -12,10 +12,13 @@ log.propagate = False
 log.addHandler(handler)
 log.setLevel(logging.INFO)
 
+
 class QueryBase(ABC):
     def __init__(self, data_dir, data_format, tests):
         self.loader = DataLoader(data_dir, data_format)
         self.tests = tests
+        self.load_time = None
+        self.test_execution_times = []
 
     @abstractmethod
     def execute_query(self, params):

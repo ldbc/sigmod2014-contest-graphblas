@@ -13,11 +13,11 @@
 int main(int argc, char **argv) {
 
     // TODO: set threads here
-    constexpr uint64_t edgeMapperThreads = 8;
+    constexpr uint64_t edgeMapperThreads = 12;
 //#ifndef NUMBER_OF_VERTEX_MAPPER_THREADS
 //    #define NUMBER_OF_VERTEX_MAPPER_THREADS edgeMapperThreads
 //#endif
-    constexpr uint64_t vertexMapperThreads = 8;
+    constexpr uint64_t vertexMapperThreads = 12;
     constexpr double mapReserveMultiplier = 1.5;
 
     // prepare array of IDs

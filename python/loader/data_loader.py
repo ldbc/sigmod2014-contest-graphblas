@@ -1,5 +1,4 @@
 import csv
-import sys
 import logging
 from pygraphblas import *
 import glob

@@ -63,10 +63,10 @@ add_executable(relabel-libcuckoo
         relabel-common.cpp)
 target_link_libraries(relabel-libcuckoo PRIVATE compile-time-definitions link-flags)
 
-set (FLAGS "-g -msse4.2 -mcx16")
 add_executable(relabel-growt
         relabel-growt.cpp
         relabel-common.cpp)
+target_compile_options(relabel-growt PRIVATE -mcx16)
 target_link_libraries(relabel-growt PRIVATE compile-time-definitions link-flags)
 target_include_directories(relabel-growt PRIVATE growt)
 

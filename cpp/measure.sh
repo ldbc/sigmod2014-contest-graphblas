@@ -10,6 +10,10 @@ echo "libcuckoo map"
 ./relabel-libcuckoo
 echo
 
+echo "growt map"
+./relabel-growt
+echo
+
 echo "Unordered map"
 ./relabel-unordered-map
 echo

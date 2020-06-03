@@ -61,7 +61,8 @@ int main(int argc, char **argv) {
         GrB_Index src_index = id2Index.find(edge_srcs[j]);
         GrB_Index trg_index = id2Index.find(edge_trgs[j]);
         sum += src_index + trg_index;
-    //    printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
+//        printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
+//        if (j==10) break;
     }
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);

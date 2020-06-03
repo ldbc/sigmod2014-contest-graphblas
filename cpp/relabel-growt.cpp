@@ -13,11 +13,8 @@ using murmur2_hash = utils_tm::hash_tm::murmur2_hash;
 int main(int argc, char **argv) {
 
     // TODO: set threads here
-    constexpr uint64_t edgeMapperThreads = 8;
-//#ifndef NUMBER_OF_VERTEX_MAPPER_THREADS
-//    #define NUMBER_OF_VERTEX_MAPPER_THREADS edgeMapperThreads
-//#endif
-    constexpr uint64_t vertexMapperThreads = 8;
+    constexpr uint64_t edgeMapperThreads = 12;
+    constexpr uint64_t vertexMapperThreads = 12;
     constexpr double mapReserveMultiplier = 1.5;
 
     // prepare array of IDs
@@ -51,7 +48,8 @@ int main(int argc, char **argv) {
         GrB_Index src_index = id2Index[edge_srcs[j]];
         GrB_Index trg_index = id2Index[edge_trgs[j]];
         sum += src_index + trg_index;
-    //    printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
+//        printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
+//        if(j==10) break;
     }
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);

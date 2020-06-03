@@ -57,9 +57,9 @@ add_executable(relabel
 target_link_libraries(relabel PRIVATE compile-time-definitions link-flags)
 
 add_executable(relabel-libcuckoo
-        relabel-main.cpp
-        relabel-libcuckoo.cpp)
-target_link_libraries(relabel PRIVATE compile-time-definitions link-flags)
+        relabel-libcuckoo.cpp
+        relabel-common.cpp)
+target_link_libraries(relabel-libcuckoo PRIVATE compile-time-definitions link-flags)
 
 add_executable(relabel-unordered-map
         relabel-unordered-map.cpp

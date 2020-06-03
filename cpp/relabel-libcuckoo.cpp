@@ -12,14 +12,12 @@
 
 int main(int argc, char **argv) {
 
-    libcuckoo::cuckoohash_map<GrB_Index, GrB_Index> table;
-
     // TODO: set threads here
-    constexpr uint64_t edgeMapperThreads = 12;
-#ifndef NUMBER_OF_VERTEX_MAPPER_THREADS
-    #define NUMBER_OF_VERTEX_MAPPER_THREADS edgeMapperThreads
-#endif
-    constexpr uint64_t vertexMapperThreads = NUMBER_OF_VERTEX_MAPPER_THREADS;
+    constexpr uint64_t edgeMapperThreads = 8;
+//#ifndef NUMBER_OF_VERTEX_MAPPER_THREADS
+//    #define NUMBER_OF_VERTEX_MAPPER_THREADS edgeMapperThreads
+//#endif
+    constexpr uint64_t vertexMapperThreads = 8;
     constexpr double mapReserveMultiplier = 1.5;
 
     // prepare array of IDs
@@ -44,32 +42,12 @@ int main(int argc, char **argv) {
     // build id <-> index mapping
     LAGraph_tic (tic);
 
-    using Id2IndexMap = std::unordered_map<GrB_Index, GrB_Index>;
-    std::vector<Id2IndexMap> id2IndexMaps;
-    id2IndexMaps.resize(vertexMapperThreads);
-    if constexpr (vertexMapperThreads == 1) {
-        id2IndexMaps[0].reserve(nnodes * mapReserveMultiplier);
-    } else {
-        for(uint64_t index = 0; index < vertexMapperThreads; ++index) {
-            id2IndexMaps[index].reserve(nnodes / vertexMapperThreads * mapReserveMultiplier);            
-        }
-    }
-    #pragma omp parallel for num_threads(vertexMapperThreads) schedule(static)
-    for(GrB_Index index = 0U; index < vertex_ids.size(); ++index) {
-        int threadId = omp_get_thread_num();
-        Id2IndexMap &threadMap = id2IndexMaps[threadId];
-        threadMap.emplace(vertex_ids[index], index);
-    }
 
+    using Id2IndexMap = libcuckoo::cuckoohash_map<GrB_Index, GrB_Index>;
     Id2IndexMap id2Index;
-    id2Index.swap(id2IndexMaps[0]);
-
-    if constexpr (vertexMapperThreads > 1) {
-        printf("Merging....\n");
-        id2Index.reserve(nnodes * mapReserveMultiplier);
-        for(uint64_t index = 1; index < vertexMapperThreads; ++index) {
-            id2Index.merge(std::move(id2IndexMaps[index]));            
-        }
+#pragma omp parallel for num_threads(vertexMapperThreads) schedule(static)
+    for(GrB_Index index = 0U; index < vertex_ids.size(); ++index) {
+        id2Index.insert(vertex_ids[index], index);
     }
     double time1 = LAGraph_toc(tic);
     printf("Vertex relabel time: %.2f\n", time1);
@@ -78,16 +56,17 @@ int main(int argc, char **argv) {
     GrB_Index sum = 0u;
     // remap edges
     LAGraph_tic (tic);
-    #pragma omp parallel for num_threads(edgeMapperThreads) schedule(static)
+#pragma omp parallel for num_threads(edgeMapperThreads) schedule(static)
     for (GrB_Index j = 0; j < nedges; j++) {
-        GrB_Index src_index = id2Index.at(edge_srcs[j]);
-        GrB_Index trg_index = id2Index.at(edge_trgs[j]);
+        GrB_Index src_index = id2Index.find(edge_srcs[j]);
+        GrB_Index trg_index = id2Index.find(edge_trgs[j]);
         sum += src_index + trg_index;
-        // printf("%d -> %d ==> %d -> %d\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
+    //    printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
     }
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);
     fprintf(stderr, " Totally not usable value: %ld\n", sum);
-    printf("STL unordered map,%ld,%ld,%.2f,%.2f\n", vertexMapperThreads, edgeMapperThreads, time1, time2);
+    printf("libcuckoo map,%ld,%ld,%.2f,%.2f\n", vertexMapperThreads, edgeMapperThreads, time1, time2);
+
     return 0;
 }

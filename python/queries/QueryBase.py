@@ -37,3 +37,7 @@ class QueryBase(ABC):
             assert result_correct
             log.info(f'Result: {result}')
             log.info(f'Result correct: {result_correct}')
+
+    @abstractmethod
+    def init_tests(self):
+        pass

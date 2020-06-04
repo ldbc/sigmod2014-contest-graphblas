@@ -56,6 +56,11 @@ add_executable(relabel
         relabel-common.cpp)
 target_link_libraries(relabel PRIVATE compile-time-definitions link-flags)
 
+add_executable(relabel-stl
+        relabel-stl.cpp
+        relabel-common.cpp)
+target_link_libraries(relabel-stl PRIVATE compile-time-definitions link-flags)
+
 add_executable(relabel-unordered-map
         relabel-unordered-map.cpp
         relabel-common.cpp)

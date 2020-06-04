@@ -10,6 +10,10 @@ echo "LAGraph"
 ./relabel
 echo
 
+echo "LAGraph+STL"
+./relabel-stl
+echo
+
 echo "Unordered map"
 ./relabel-unordered-map
 echo

@@ -22,11 +22,11 @@ log.setLevel(logging.INFO)
 
 class Query2(QueryBase):
 
-    def __init__(self, data_dir, data_format, params):
+    def __init__(self, data_dir, data_format):
         self.tests = self.init_tests()
         super().__init__(data_dir, data_format, self.tests)
-        self.top_k = params[0]
-        self.birthday_limit = params[1]
+        self.top_k = None
+        self.birthday_limit = None
         self.person = None
         self.tag = None
         self.hasInterest = None
@@ -35,10 +35,9 @@ class Query2(QueryBase):
         self.personBirthdays = None
         self.tagNames = None
 
-    def execute_query(self, params=None):
-        if params is not None:
-            self.top_k = params[0]
-            self.birthday_limit = params[1]
+    def execute_query(self, params):
+        self.top_k = params[0]
+        self.birthday_limit = params[1]
 
         if self.person is not None:
             load_start = timer()

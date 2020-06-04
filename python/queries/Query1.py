@@ -19,23 +19,23 @@ log.setLevel(logging.INFO)
 
 class Query1(QueryBase):
 
-    def __init__(self, data_dir, data_format, params):
+    def __init__(self, data_dir, data_format):
         self.tests = self.init_tests()
         super().__init__(data_dir, data_format, self.tests)
-        self.person1_id = params[0]
-        self.person2_id = params[1]
-        self.num_of_interactions = params[2]
+        self.person1_id = None
+        self.person2_id = None
+        self.num_of_interactions = None
         self.person = None
         self.comment = None
         self.replyOf = None
         self.knows = None
         self.hasCreator = None
 
-    def execute_query(self, params=None, search_method=naive_bfs_levels):
-        if params is not None:
-            self.person1_id = params[0]
-            self.person2_id = params[1]
-            self.num_of_interactions = params[2]
+    def execute_query(self, params, search_method=naive_bfs_levels):
+
+        self.person1_id = params[0]
+        self.person2_id = params[1]
+        self.num_of_interactions = params[2]
 
         if self.person is None:
             # Load vertices and edges

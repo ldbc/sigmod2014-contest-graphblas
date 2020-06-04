@@ -63,11 +63,9 @@ int main(int argc, char **argv) {
 #pragma omp parallel for num_threads(nthreads) schedule(static)
     for (uint64_t j = 0; j < nedges; j++) {
         uint64_t src_index, trg_index;
-//         GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
-//         GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
+        GrB_Vector_extractElement_UINT64(&src_index, id2index, edge_srcs[j]);
+        GrB_Vector_extractElement_UINT64(&trg_index, id2index, edge_trgs[j]);
 
-        src_index = X[std::lower_bound(I, I + nnodes, edge_srcs[j]) - I];
-        trg_index = X[std::lower_bound(I, I + nnodes, edge_trgs[j]) - I];
         sum += src_index + trg_index;
 //        printf("%ld -> %ld ==> %ld -> %ld\n", edge_srcs[j], edge_trgs[j], src_index, trg_index);
     }

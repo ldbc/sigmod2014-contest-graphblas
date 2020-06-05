@@ -39,7 +39,8 @@ class Query2(QueryBase):
         self.top_k = params[0]
         self.birthday_limit = params[1]
 
-        if self.person is not None:
+        if self.person is None:
+            # Load vertices and edges
             load_start = timer()
             self.person = self.loader.load_vertex('person')
             self.tag = self.loader.load_vertex('tag')

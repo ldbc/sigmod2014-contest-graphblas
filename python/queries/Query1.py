@@ -47,6 +47,7 @@ class Query1(QueryBase):
             self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
             load_end = timer()
             self.load_time = load_end - load_start
+            log.info('Loading took: {self.load_time} seconds')
 
         # Run query
         query_start = timer()
@@ -70,7 +71,7 @@ class Query1(QueryBase):
 
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)
-        log.info(f'Loading took: {self.load_time} seconds, Query took: {query_end - query_start} second')
+        log.info(f'Query took: {query_end - query_start} second')
         return result
 
     def format_result_string(self, result):

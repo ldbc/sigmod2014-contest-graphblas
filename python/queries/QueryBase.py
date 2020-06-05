@@ -33,10 +33,13 @@ class QueryBase(ABC):
             result = self.execute_query(test.inputs)
             test = test._replace(expected_result=self.format_result_string(test.expected_result))
             result_correct = result == test.expected_result
-
-            assert result_correct
-            log.info(f'Result: {result}')
-            log.info(f'Result correct: {result_correct}')
+            try:
+                assert result_correct
+                log.info(f'Result: {result}')
+                log.info(f'TEST PASSED')
+                log.info('----------------------')
+            except:
+                log.info(f'TEST FAILED: result: {result}  expected result: {test.expected_result}')
 
     @abstractmethod
     def init_tests(self):

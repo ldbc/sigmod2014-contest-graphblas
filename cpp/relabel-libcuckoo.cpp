@@ -8,7 +8,7 @@
 #include "query-parameters.h"
 #include "relabel-common.h"
 #include <omp.h>
-#include <libcuckoo/cuckoohash_map.hh>
+#include "cuckoohash_map.hh"
 
 int main(int argc, char **argv) {
 

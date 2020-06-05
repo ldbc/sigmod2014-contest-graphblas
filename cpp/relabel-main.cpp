@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     double time2 = LAGraph_toc(tic);
     printf("Edge relabel time: %.2f\n", time2);
     fprintf(stderr, " Totally not usable value: %ld\n", sum);
-    printf("LAGraph with STL binsearch,%ld,%ld,%.2f,%.2f\n", nthreads, nthreads, time1, time2);
+    printf("LAGraph with GrB extract,%ld,%ld,%.2f,%.2f\n", nthreads, nthreads, time1, time2);
 
     // Cleanup
     ok(LAGraph_finalize());

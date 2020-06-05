@@ -31,7 +31,7 @@ class Query1(QueryBase):
         self.knows = None
         self.hasCreator = None
 
-    def execute_query(self, params, search_method=naive_bfs_levels):
+    def execute_query(self, params, search_method=push_pull_bfs_levels):
 
         self.person1_id = params[0]
         self.person2_id = params[1]
@@ -47,7 +47,7 @@ class Query1(QueryBase):
             self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
             load_end = timer()
             self.load_time = load_end - load_start
-            log.info('Loading took: {self.load_time} seconds')
+            log.info(f'Loading took: {self.load_time} seconds')
 
         # Run query
         query_start = timer()

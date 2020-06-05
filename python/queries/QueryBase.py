@@ -29,6 +29,8 @@ class QueryBase(ABC):
         pass
 
     def run_tests(self):
+        # To run the tests of Q1 and Q4 with different search methods,
+        # change the default parameter in their execute_query function
         for test in self.tests:
             result = self.execute_query(test.inputs)
             test = test._replace(expected_result=self.format_result_string(test.expected_result))

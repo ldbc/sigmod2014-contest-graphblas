@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 import logging
 
 from queries.QueryBase import QueryBase
-from algorithms.search import naive_bfs_levels
+from algorithms.search import naive_bfs_levels, push_pull_bfs_levels, msbfs_levels, push_pull_msbfs_levels
 from pygraphblas import *
 #from _pygraphblas import lib
 

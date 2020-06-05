@@ -8,7 +8,8 @@
 #include "growt/data-structures/definitions.h"
 #include "growt/utils/hash/murmur2_hash.h"
 using murmur2_hash = utils_tm::hash_tm::murmur2_hash;
-#include "growt/allocator/alignedallocator.h"
+#include "allocator/alignedallocator.h"
+#include "allocator/numapoolallocator.h"
 
 int main(int argc, char **argv) {
 
@@ -31,6 +32,8 @@ int main(int argc, char **argv) {
     // build id <-> index mapping
     LAGraph_tic (tic);
 
+    // auto id2Index = growt::folklore<murmur2_hash, growt::NUMAPoolAllocator<>>(vertex_ids.size());
+    // auto id2Index = growt::folklore<murmur2_hash, growt::PoolAllocator<>>(vertex_ids.size());
     auto id2Index = growt::folklore<murmur2_hash, growt::AlignedAllocator<>>(vertex_ids.size());
 #pragma omp parallel for num_threads(vertexMapperThreads) schedule(static)
     for(GrB_Index index = 0U; index < vertex_ids.size(); ++index) {

@@ -109,11 +109,13 @@ if (BUILD_CONCURRENT)
         target_compile_definitions(relabel-concurrent-unordered-map-single-thread PRIVATE NUMBER_OF_VERTEX_MAPPER_THREADS=1)
         target_link_libraries(relabel-concurrent-unordered-map-single-thread PRIVATE compile-time-definitions link-flags)
 
+        find_package(NUMA)
         add_executable(relabel-growt
                 relabel-growt.cpp
                 relabel-common.cpp)
         target_compile_options(relabel-growt PRIVATE -mcx16)
-        target_link_libraries(relabel-growt PRIVATE TBB::tbb)
+        target_link_libraries(relabel-growt PRIVATE TBB::tbb TBB::tbbmalloc ${NUMA_LIBRARIES})
         target_link_libraries(relabel-growt PRIVATE compile-time-definitions link-flags)
+        target_link_directories(relabel-growt PRIVATE ${NUMA_LIBRARY_DIRS})
         target_include_directories(relabel-growt PRIVATE growt)
 endif()

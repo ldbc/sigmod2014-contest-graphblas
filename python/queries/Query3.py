@@ -5,7 +5,6 @@ from timeit import default_timer as timer
 import logging
 import heapq
 from pygraphblas import *
-import operator
 
 
 Test = namedtuple('Test', ['inputs', 'expected_result'])
@@ -71,7 +70,8 @@ class Query3(QueryBase):
 
         diagMtx = self.RelevantPeopleInPlaceMatrix(self.p)
         maskMtx = self.knows
-        for i in range(self.h, self.h + 1): maskMtx = maskMtx.eadd(self.powerMatrix(i, maskMtx))
+        for i in range(self.h, self.h + 1):
+            maskMtx = maskMtx.eadd(self.powerMatrix(i, maskMtx))
         # Selecting the relevant rows and columns by multiplying the mask matrix from the right then from the left with the diagonal matrix
         maskMtx = diagMtx.mxm(maskMtx).mxm(diagMtx).pattern()
         resultMatrix = self.hasInterest.mxm(self.hasInterest.transpose(), mask=maskMtx)
@@ -101,35 +101,6 @@ class Query3(QueryBase):
         self.test_execution_times.append(query_end - query_start)
         log.info(f'Query took: {query_end - query_start} second')
         return result_string
-
-    def RelevantPeopleInPlace(self, placeName):
-        placeID = self.placeNames.index(placeName)
-        # Relevant places
-        isPartOfTransposed = self.isPartOf.transpose()
-        placeVector = Vector.from_type(BOOL, isPartOfTransposed.nrows)
-        placeVector[placeID] = True
-        relevantPlacesVector = placeVector + placeVector.vxm(isPartOfTransposed) + placeVector.vxm(
-            isPartOfTransposed).vxm(isPartOfTransposed)
-        # People located in the given place
-        peopleInThePlaceVector = self.personIsLocatedIn.mxv(relevantPlacesVector)
-        # People working at a Company or studying at a University located in the given place
-        organisationsVector = self.organisationIsLocatedIn.mxv(relevantPlacesVector)
-        with semiring.LOR_LAND_BOOL:
-            peopleWorkAtVector = self.workAt.mxv(organisationsVector)
-            peopleStudyAtVector = self.studyAt.mxv(organisationsVector)
-            # All the relevant people in the given place
-        with binaryop.PLUS_BOOL:
-            relevantPeopleVector = peopleWorkAtVector + peopleStudyAtVector + peopleInThePlaceVector
-        return relevantPeopleVector
-
-    def HHopKnows(self, h, vec):
-        if h < 2:
-            return vec.vxm(self.knows)
-        mtx = self.knows
-        while h - 1 > 0:
-            mtx = mtx.mxm(self.knows)
-            h -= 1
-        return vec.vxm(mtx) + self.HHopKnows(h - 1, vec)
 
     def format_result_string(self, result):
         return result.split('%')[0]

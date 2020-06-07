@@ -87,6 +87,8 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
         std::vector<std::function<std::string()>> vector{
 // formatter markers: https://stackoverflow.com/a/19492318
 // @formatter:off
+            query1(786, 799, 1,	R"(4 % path 786-63-31-60-799 (other shortest paths may exist))"),
+            query1(422, 736, 1,	R"(-1 % path none)"),
             query1(576, 400, -1, R"(3 % path 576-618-951-400 (other shortest paths may exist))"),
             query1(58, 402, 0, R"(3 % path 58-935-808-402 (other shortest paths may exist))"),
             query1(266, 106, -1, R"(3 % path 266-23-592-106 (other shortest paths may exist))"),

@@ -79,6 +79,8 @@ class Query1(QueryBase):
 
     def init_tests(self):
         tests = [
+            Test([786, 799, 1], '4 % path 786-63-31-60-799 (other shortest paths may exist)'),
+            Test([422, 736, 1], '-1 % path none'),
             Test([576, 400, -1], '3 % path 576-618-951-400 (other shortest paths may exist)'),
             Test([58, 402, 0], '3 % path 58-935-808-402 (other shortest paths may exist)'),
             Test([266, 106, -1], '3 % path 266-23-592-106 (other shortest paths may exist)'),

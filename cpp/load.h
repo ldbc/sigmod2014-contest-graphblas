@@ -1,5 +1,8 @@
 #pragma once
 
+#include "utils.h"
+#include "csv.h"
+#include "gb_utils.h"
 #include <fstream>
 #include <ctime>
 #include <memory>
@@ -9,9 +12,8 @@
 #include <map>
 #include <utility>
 #include <vector>
-#include "utils.h"
-#include "csv.h"
-#include "gb_utils.h"
+#include <numeric>
+#include <algorithm>
 
 std::tuple<std::ifstream, std::vector<std::string>, std::string> openFileWithHeader(const std::string &file_path);
 
@@ -38,6 +40,35 @@ class VertexCollection : public BaseVertexCollection {
 
 protected:
     using CsvReaderT = io::CSVReader<1 + ExtraColumnCount, io::trim_chars<>, io::no_quote_escape<'|'>>;
+
+    void sortIndicesByAttribute(std::vector<std::string> const &attributes,
+                                std::vector<GrB_Index> &indicesSortedByAttribute) {
+        indicesSortedByAttribute.resize(size());
+        std::iota(indicesSortedByAttribute.begin(), indicesSortedByAttribute.end(), 0);
+        // stable sort to keep the lowest indices of duplicates first
+        std::stable_sort(indicesSortedByAttribute.begin(), indicesSortedByAttribute.end(),
+                         [&attributes](GrB_Index lhs, GrB_Index rhs) {
+                             return attributes[lhs] < attributes[rhs];
+                         });
+    }
+
+    /// Find the minimum index of vertices having the given attribute
+    GrB_Index findIndexByAttributeValue(std::string const &attribute, std::vector<std::string> const &attributes,
+                                        std::vector<GrB_Index> const &indicesSortedByAttribute) const {
+        auto begin = indicesSortedByAttribute.begin();
+        auto end = indicesSortedByAttribute.end();
+        auto iter = std::lower_bound(begin, end, attribute, [&attributes](GrB_Index lhs, std::string const &rhs) {
+            return attributes[lhs] < rhs;
+        });
+
+        // iter is an iterator pointing to the first element that is not less than attribute, or end if no such element is found.
+        // therefore attributes[*iter] can be greater than the attribute we are looking for
+        // see Possible implementation at https://en.cppreference.com/w/cpp/algorithm/binary_search
+        if (iter != end && attribute == attributes[*iter])
+            return *iter;
+        else
+            throw std::out_of_range(attribute + " is not found.");
+    }
 
 public:
 

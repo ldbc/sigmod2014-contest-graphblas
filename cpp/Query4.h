@@ -69,11 +69,14 @@ class Query4 : public Query<int, std::string> {
         GBxx_Object<GrB_Vector> ccv{ccv_ptr};
 
         // extract tuples from ccv result
-        std::vector<double> cc_values(relevant_persons_nvals);
+        GrB_Index ccv_nvals;
+        ok(GrB_Vector_nvals(&ccv_nvals, ccv.get()));
+        std::vector<GrB_Index> cc_indices(ccv_nvals);
+        std::vector<double> cc_values(ccv_nvals);
         {
             GrB_Index nvals_out = relevant_persons_nvals;
-            ok(GrB_Vector_extractTuples_FP64(GrB_NULL, cc_values.data(), &nvals_out, ccv.get()));
-            assert(relevant_persons_nvals == nvals_out);
+            ok(GrB_Vector_extractTuples_FP64(cc_indices.data(), cc_values.data(), &nvals_out, ccv.get()));
+//            assert(relevant_persons_nvals == nvals_out); // TODO: what does happen if a person doesn't have CCV?
         }
 
         // define comparator for top scores
@@ -87,9 +90,13 @@ class Query4 : public Query<int, std::string> {
         auto person_scores = makeSmallestElementsContainer<person_score_type>(topKLimit, comparator);
 
         // collect top scores
-        for (int personLocalIndex = 0; personLocalIndex < cc_values.size(); ++personLocalIndex) {
-            double score = cc_values[personLocalIndex];
-            uint64_t person_id = input.persons.vertexIds[relevant_person_indices[personLocalIndex]];
+        for (size_t i = 0; i < cc_values.size(); ++i) {
+            double score = cc_values[i];
+            
+            GrB_Index person_local_index = cc_indices[i];
+            GrB_Index person_index = relevant_person_indices[person_local_index];
+            uint64_t person_id = input.persons.vertexIds[person_index];
+            
             person_scores.add({score, person_id});
         }
 

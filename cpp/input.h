@@ -38,12 +38,21 @@ public:
 };
 
 struct Tags : public VertexCollection<1> {
+    std::vector<GrB_Index> indicesSortedByNames;
+
+public:
     using VertexCollection::VertexCollection;
 
     std::vector<std::string> names;
 
     std::vector<std::string> extraColumns() const override {
         return {"name"};
+    }
+
+    void importFile() override {
+        VertexCollection::importFile();
+
+        sortIndicesByAttribute(names, indicesSortedByNames);
     }
 
     bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
@@ -53,6 +62,10 @@ struct Tags : public VertexCollection<1> {
             return true;
         } else
             return false;
+    }
+
+    GrB_Index findIndexByName(std::string const &name) const {
+        return findIndexByAttributeValue(name, names, indicesSortedByNames);
     }
 };
 
@@ -84,9 +97,18 @@ struct Comments : public VertexCollection<0> {
     }
 };
 
+struct Forums : public VertexCollection<0> {
+    using VertexCollection::VertexCollection;
+
+    bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
+        return csv_reader.read_row(id);
+    }
+};
+
 struct QueryInput : public BaseQueryInput {
     Places places;
     Tags tags;
+    Forums forums;
     Persons persons;
     Comments comments;
 
@@ -95,34 +117,30 @@ struct QueryInput : public BaseQueryInput {
     EdgeCollection hasCreatorTran;
     EdgeCollection hasCreator;
     EdgeCollection replyOf;
+    EdgeCollection hasTag;
+    EdgeCollection hasMember;
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
-            BaseQueryInput{{places, tags,            persons,        comments},
-                           {knows,  hasInterestTran, hasCreatorTran, hasCreator, replyOf}},
+            BaseQueryInput{{places, tags,            forums,         persons,    comments},
+                           {knows,  hasInterestTran, hasCreatorTran, hasCreator, replyOf, hasTag, hasMember}},
             places{parameters.CsvPath + "place.csv"},
             tags{parameters.CsvPath + "tag.csv"},
+            forums{parameters.CsvPath + "forum.csv"},
             persons{parameters.CsvPath + "person.csv"},
             comments{parameters.CsvPath + "comment.csv"},
 
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
-
             hasCreatorTran{parameters.CsvPath + "comment_hasCreator_person.csv", true},
             hasCreator{parameters.CsvPath + "comment_hasCreator_person.csv"},
-            replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"} {
+            replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
+            hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
+            hasMember{parameters.CsvPath + "forum_hasMember_person.csv"} {
         for (auto const &collection : vertexCollections) {
             collection.get().importFile();
         }
         for (auto const &collection : edgeCollections) {
             collection.get().importFile(vertexCollections);
         }
-    }
-
-    auto comment_size() const {
-        return comments.size();
-    }
-
-    auto person_size() const {
-        return persons.size();
     }
 };

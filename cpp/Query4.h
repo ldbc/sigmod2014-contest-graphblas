@@ -1,11 +1,8 @@
 #pragma once
 
-#include "utils.h"
-#include "Query.h"
-
-extern "C" {
 #include "ccv.h"
-}
+#include "Query.h"
+#include "utils.h"
 
 #include <queue>
 #include <algorithm>

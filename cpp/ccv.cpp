@@ -8,7 +8,7 @@
 
 uint64_t extract(const GrB_Matrix A, const GrB_Index i, const GrB_Index j) {
     uint64_t x;
-    GrB_Info info = GrB_Matrix_extractElement(&x, A, i, j);
+    GrB_Info info = GrB_Matrix_extractElement_UINT64(&x, A, i, j);
     if (info == GrB_NO_VALUE) {
         return 0xcccccccccccccccc;
     }
@@ -17,7 +17,7 @@ uint64_t extract(const GrB_Matrix A, const GrB_Index i, const GrB_Index j) {
 
 uint64_t extract_v(const GrB_Vector v, const GrB_Index i) {
     uint64_t x;
-    GrB_Info info = GrB_Vector_extractElement(&x, v, i);
+    GrB_Info info = GrB_Vector_extractElement_UINT64(&x, v, i);
     if (info == GrB_NO_VALUE) {
         return 9999999;
     }
@@ -64,9 +64,9 @@ GrB_Info create_diagonal_bit_matrix(GrB_Matrix D) {
 //    I = 0, 1, ..., n
 //    J = 0, 0, ..., 0 [64], 1, 1, ..., 1 [64], ..., ceil(n/64)
 //    X = repeat {b100..., b010..., b001..., ..., b...001} until we have n elements
-    GrB_Index* I = LAGraph_malloc(n, sizeof(GrB_Index));
-    GrB_Index* J = LAGraph_malloc(n, sizeof(GrB_Index));
-    uint64_t*  X = LAGraph_malloc(n, sizeof(uint64_t));
+    GrB_Index *I = (GrB_Index *) LAGraph_malloc(n, sizeof(GrB_Index));
+    GrB_Index *J = (GrB_Index *) LAGraph_malloc(n, sizeof(GrB_Index));
+    uint64_t  *X = (uint64_t *)  LAGraph_malloc(n, sizeof(uint64_t));
 
     // TODO: parallelize this
     for (GrB_Index k = 0; k < n; k++) {
@@ -74,7 +74,7 @@ GrB_Info create_diagonal_bit_matrix(GrB_Matrix D) {
         J[k] = k/64;
         X[k] = 0x8000000000000000L >> (k%64);
     }
-    GrB_Matrix_build(D, I, J, X, n, GrB_BOR_UINT64);
+    GrB_Matrix_build_UINT64(D, I, J, X, n, GrB_BOR_UINT64);
 
     return info;
 }
@@ -103,42 +103,42 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
     // initializing unary operator for next_popcount
     GrB_UnaryOp op_popcount = NULL ;
-    LAGRAPH_TRY_CATCH (GrB_UnaryOp_new(&op_popcount, fun_sum_popcount, GrB_UINT64, GrB_UINT64))
-    GrB_Semiring LAGr_BOR_FIRST = NULL, LAGr_BOR_SECOND = NULL ;
-    LAGRAPH_TRY_CATCH (GrB_Semiring_new(&LAGr_BOR_FIRST, GxB_BOR_UINT64_MONOID, GrB_FIRST_UINT64))
-    LAGRAPH_TRY_CATCH (GrB_Semiring_new(&LAGr_BOR_SECOND, GxB_BOR_UINT64_MONOID, GrB_SECOND_UINT64))
+    LAGRAPH_TRY_CATCH (GrB_UnaryOp_new(&op_popcount, fun_sum_popcount, GrB_UINT64, GrB_UINT64));
+    GrB_Semiring BOR_FIRST = NULL, BOR_SECOND = NULL ;
+    LAGRAPH_TRY_CATCH (GrB_Semiring_new(&BOR_FIRST, GxB_BOR_UINT64_MONOID, GrB_FIRST_UINT64));
+    LAGRAPH_TRY_CATCH (GrB_Semiring_new(&BOR_SECOND, GxB_BOR_UINT64_MONOID, GrB_SECOND_UINT64));
 
     GrB_Index n;
-    LAGr_Matrix_nrows(&n, A);
+    GrB_Matrix_nrows(&n, A);
     {
         GrB_Index ncols;
-        LAGr_Matrix_ncols(&ncols, A);
+        GrB_Matrix_ncols(&ncols, A);
         assert(n == ncols); // TODO replace with proper input check
     }
 
     const GrB_Index bit_matrix_ncols = (n+63)/64;
 
-    LAGr_Matrix_new(&frontier, GrB_UINT64, n, bit_matrix_ncols)
-    LAGr_Matrix_new(&next, GrB_UINT64, n, bit_matrix_ncols)
-    LAGr_Matrix_new(&seen, GrB_UINT64, n, bit_matrix_ncols)
-    LAGr_Matrix_new(&Next_PopCount, GrB_UINT64, n, bit_matrix_ncols)
-    LAGr_Matrix_new(&Seen_PopCount, GrB_UINT64, n, bit_matrix_ncols)
+    GrB_Matrix_new(&frontier, GrB_UINT64, n, bit_matrix_ncols);
+    GrB_Matrix_new(&next, GrB_UINT64, n, bit_matrix_ncols);
+    GrB_Matrix_new(&seen, GrB_UINT64, n, bit_matrix_ncols);
+    GrB_Matrix_new(&Next_PopCount, GrB_UINT64, n, bit_matrix_ncols);
+    GrB_Matrix_new(&Seen_PopCount, GrB_UINT64, n, bit_matrix_ncols);
 
-    LAGr_Vector_new(&next_popcount, GrB_UINT64, n)
-    LAGr_Vector_new(&ones, GrB_UINT64, n)
-    LAGr_Vector_new(&n_minus_one, GrB_UINT64, n)
-    LAGr_Vector_new(&level_v, GrB_UINT64, n)
-    LAGr_Vector_new(&sp, GrB_UINT64, n)
-    LAGr_Vector_new(&compsize, GrB_UINT64, n)
-    LAGr_Vector_new(ccv_handle, GrB_FP64, n)
+    GrB_Vector_new(&next_popcount, GrB_UINT64, n);
+    GrB_Vector_new(&ones, GrB_UINT64, n);
+    GrB_Vector_new(&n_minus_one, GrB_UINT64, n);
+    GrB_Vector_new(&level_v, GrB_UINT64, n);
+    GrB_Vector_new(&sp, GrB_UINT64, n);
+    GrB_Vector_new(&compsize, GrB_UINT64, n);
+    GrB_Vector_new(ccv_handle, GrB_FP64, n);
 
     // initialize frontier and seen matrices: to compute closeness centrality, start off with a diagonal
     create_diagonal_bit_matrix(frontier);
-    LAGr_Matrix_dup(&seen, frontier)
+    GrB_Matrix_dup(&seen, frontier);
 
     // initialize vectors
-    GrB_assign(ones, NULL, NULL, 1, GrB_ALL, n, NULL);
-    GrB_assign(n_minus_one, NULL, NULL, n-1, GrB_ALL, n, NULL);
+    GrB_Vector_assign_UINT64(ones, NULL, NULL, 1, GrB_ALL, n, NULL);
+    GrB_Vector_assign_UINT64(n_minus_one, NULL, NULL, n-1, GrB_ALL, n, NULL);
 
     // initialize
 
@@ -146,14 +146,14 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
     for (GrB_Index level = 1; level < n; level++) {
 //        printf("========================= Level %2ld =========================\n\n", level);
         // level_v += 1
-        LAGr_eWiseAdd(level_v, NULL, NULL, GrB_PLUS_UINT64, level_v, ones, NULL)
+        GrB_Vector_eWiseAdd_BinaryOp(level_v, NULL, NULL, GrB_PLUS_UINT64, level_v, ones, NULL);
 
         // next = frontier * A
         bool push = true; // TODO: add heuristic
         if (push) {
-            LAGr_vxm(next, NULL, NULL, LAGr_BOR_FIRST, frontier, A, NULL)
+            GrB_vxm((GrB_Vector)next, NULL, NULL, BOR_FIRST, (GrB_Vector)frontier, A, NULL); // TODO: remove incorrect pointer casts
         } else {
-            LAGr_mxv(next, NULL, NULL, LAGr_BOR_SECOND, A, frontier, NULL)
+            GrB_mxv((GrB_Vector)next, NULL, NULL, BOR_SECOND, A, (GrB_Vector)frontier, NULL); // TODO: remove incorrect pointer casts
         }
 
         // next = next & ~seen
@@ -182,34 +182,34 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
             (Seen = Next)
          */
 
-        LAGr_apply(next, next, GrB_BAND_UINT64, GrB_BNOT_UINT64, seen, NULL)
+        GrB_Matrix_apply(next, next, GrB_BAND_UINT64, GrB_BNOT_UINT64, seen, NULL);
 
         GrB_Index next_nvals;
-        LAGr_Vector_nvals(&next_nvals, next)
+        GrB_Matrix_nvals(&next_nvals, next);
         if (next == 0) {
 //            printf("no new vertices found\n");
             break;
         }
         // next_popCount = reduce(apply(popcount, next))
-        LAGr_apply(Next_PopCount, NULL, NULL, op_popcount, next, NULL);
-        LAGr_reduce(next_popcount, NULL, NULL, GxB_PLUS_UINT64_MONOID, Next_PopCount, NULL)
+        GrB_Matrix_apply(Next_PopCount, NULL, NULL, op_popcount, next, NULL);
+        GrB_Matrix_reduce_Monoid(next_popcount, NULL, NULL, GxB_PLUS_UINT64_MONOID, Next_PopCount, NULL);
 
         // seen = seen | next
-        LAGr_eWiseAdd(seen, NULL, NULL, GrB_BOR_UINT64, seen, next, NULL)
+        GrB_Matrix_eWiseAdd_BinaryOp(seen, NULL, NULL, GrB_BOR_UINT64, seen, next, NULL);
 
         // sp += (next_popcount * level)
         //   next_popcount * level is expressed as next_popcount *= level_v
-        LAGr_eWiseMult(next_popcount, NULL, NULL, GrB_TIMES_UINT64, next_popcount, level_v, NULL)
-        LAGr_eWiseAdd(sp, NULL, NULL, GrB_PLUS_UINT64, sp, next_popcount, NULL)
+        GrB_Vector_eWiseMult_BinaryOp(next_popcount, NULL, NULL, GrB_TIMES_UINT64, next_popcount, level_v, NULL);
+        GrB_Vector_eWiseAdd_BinaryOp(sp, NULL, NULL, GrB_PLUS_UINT64, sp, next_popcount, NULL);
 
 //        print_bit_matrices(frontier, next, seen, next_popcount, sp);
 
         // frontier = next
-        LAGr_Matrix_dup(&frontier, next)
+        GrB_Matrix_dup(&frontier, next);
     }
     // compsize = reduce(seen, row -> popcount(row))
     GrB_Matrix_apply(Seen_PopCount, NULL, NULL, op_popcount, seen, NULL);
-    LAGr_reduce(compsize, NULL, NULL, GxB_PLUS_UINT64_MONOID, Seen_PopCount, NULL)
+    GrB_Matrix_reduce_Monoid(compsize, NULL, NULL, GxB_PLUS_UINT64_MONOID, Seen_PopCount, NULL);
 
     // compute the closeness centrality value:
     //
@@ -218,12 +218,12 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
     //          (n-1)*s(p)
 
     // C(p)-1
-    GrB_eWiseAdd(compsize, NULL, NULL, GrB_MINUS_UINT64, compsize, ones, NULL);
+    GrB_Vector_eWiseAdd_BinaryOp(compsize, NULL, NULL, GrB_MINUS_UINT64, compsize, ones, NULL);
     // (C(p)-1)^2
-    GrB_eWiseMult(compsize, NULL, NULL, GrB_TIMES_UINT64, compsize, compsize, NULL);
+    GrB_Vector_eWiseMult_BinaryOp(compsize, NULL, NULL, GrB_TIMES_UINT64, compsize, compsize, NULL);
 
-    GrB_eWiseMult(sp, NULL, NULL, GrB_TIMES_UINT64, n_minus_one, sp, NULL);
-    GrB_eWiseMult(*ccv_handle, NULL, NULL, GrB_DIV_FP64, compsize, sp, NULL);
+    GrB_Vector_eWiseMult_BinaryOp(sp, NULL, NULL, GrB_TIMES_UINT64, n_minus_one, sp, NULL);
+    GrB_Vector_eWiseMult_BinaryOp(*ccv_handle, NULL, NULL, GrB_DIV_FP64, compsize, sp, NULL);
 
 //    GxB_print(compsize, GxB_SHORT);
 //    GxB_print(sp, GxB_SHORT);

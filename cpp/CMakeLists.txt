@@ -24,7 +24,7 @@ add_executable(sigmod2014pc_cpp
         load.cpp
         utils.cpp
         query-parameters.cpp
-        ccv.c)
+        ccv.cpp)
 
 add_executable(paramgen
         paramgen-main.cpp

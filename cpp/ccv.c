@@ -144,7 +144,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
     // traversal
     for (GrB_Index level = 1; level < n; level++) {
-        printf("========================= Level %2ld =========================\n\n", level);
+//        printf("========================= Level %2ld =========================\n\n", level);
         // level_v += 1
         LAGr_eWiseAdd(level_v, NULL, NULL, GrB_PLUS_UINT64, level_v, ones, NULL)
 
@@ -187,7 +187,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
         GrB_Index next_nvals;
         LAGr_Vector_nvals(&next_nvals, next)
         if (next == 0) {
-            printf("no new vertices found\n");
+//            printf("no new vertices found\n");
             break;
         }
         // next_popCount = reduce(apply(popcount, next))
@@ -202,7 +202,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
         LAGr_eWiseMult(next_popcount, NULL, NULL, GrB_TIMES_UINT64, next_popcount, level_v, NULL)
         LAGr_eWiseAdd(sp, NULL, NULL, GrB_PLUS_UINT64, sp, next_popcount, NULL)
 
-        print_bit_matrices(frontier, next, seen, next_popcount, sp);
+//        print_bit_matrices(frontier, next, seen, next_popcount, sp);
 
         // frontier = next
         LAGr_Matrix_dup(&frontier, next)

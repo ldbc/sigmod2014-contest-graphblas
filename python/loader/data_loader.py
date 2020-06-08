@@ -106,35 +106,32 @@ class DataLoader:
             return result
         
     def load_edge(self, edge_name, from_vertex, to_vertex, typ=INT64, drop_dangling_edges=False):
-        # TODO: dictreader -> csv reader
+
+        first_line = True
         start_mapping = from_vertex.index2id
         end_mapping = to_vertex.index2id
         
         filename = self.data_dir + from_vertex.name + '_' + edge_name + '_' + to_vertex.name + self.data_format
         with open(filename, newline='') as csvfile:
-            reader = csv.DictReader(csvfile, delimiter='|', quotechar='"')
+            reader = csv.reader(csvfile, delimiter='|', quotechar='"')
             row_ids = []
             col_ids = []
             values = []
-            headers = reader.fieldnames
-            log.info(f'Loading {filename} with headers: {headers}')
-            start_key = headers[0]
-            end_key = headers[1]
             for row in reader:
-                start_id = int(row[start_key])
-                end_id = int(row[end_key])
+                if first_line:
+                    first_line = False
+                    continue
+                start_id = int(row[0])
+                end_id = int(row[1])
                 if not drop_dangling_edges or (start_id in start_mapping and end_id in end_mapping):
                     row_ids.append(start_mapping[start_id])
                     col_ids.append(end_mapping[end_id])
                     values.append(1)
         
-            edge_matrix = Matrix.from_lists(
-            row_ids,
-            col_ids,
-            values,
-            nrows=len(start_mapping), 
-            ncols=len(end_mapping), 
-            typ=typ)
+            edge_matrix = Matrix.from_lists(row_ids, col_ids, values,
+                                            nrows=len(start_mapping),
+                                            ncols=len(end_mapping),
+                                            typ=typ)
             return edge_matrix
 
     def load_all_csvs(self):

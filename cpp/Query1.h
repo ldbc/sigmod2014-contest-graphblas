@@ -44,6 +44,10 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             ok(GxB_Scalar_setElement_INT32(limit.get(), comment_lower_limit));
             ok(GxB_Matrix_select(personToPerson.get(), GrB_NULL, GrB_NULL, GxB_GT_THUNK, personToPerson.get(),
                                  limit.get(), GrB_NULL));
+            // make symmetric by removing one-directional freqComm relationships
+            ok(GrB_eWiseMult_Matrix_BinaryOp(personToPerson.get(), GrB_NULL, GrB_NULL,
+                                             GxB_PAIR_UINT64, personToPerson.get(), personToPerson.get(), GrB_DESC_T0));
+
             filtered_matrix_ptr = personToPerson.get();
         }
 

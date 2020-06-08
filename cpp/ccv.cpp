@@ -217,6 +217,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
     // CCV(p) = ----------
     //          (n-1)*s(p)
 
+    // all vectors are dense therefore eWiseAdd and eWiseMult are the same
     // C(p)-1
     GrB_Vector_eWiseAdd_BinaryOp(compsize, NULL, NULL, GrB_MINUS_UINT64, compsize, ones, NULL);
     // (C(p)-1)^2

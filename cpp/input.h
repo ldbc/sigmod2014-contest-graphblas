@@ -121,8 +121,6 @@ struct QueryInput : public BaseQueryInput {
     EdgeCollection hasMember;
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
-            BaseQueryInput{{places, tags,            forums,         persons,    comments},
-                           {knows,  hasInterestTran, hasCreatorTran, hasCreator, replyOf, hasTag, hasMember}},
             places{parameters.CsvPath + "place.csv"},
             tags{parameters.CsvPath + "tag.csv"},
             forums{parameters.CsvPath + "forum.csv"},
@@ -136,6 +134,29 @@ struct QueryInput : public BaseQueryInput {
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"} {
+        switch (parameters.Query) {
+            case 1:
+                vertexCollections = {comments, persons};
+                edgeCollections = {knows, hasCreatorTran, hasCreator, replyOf};
+                break;
+            case 2:
+                vertexCollections = {tags, persons};
+                edgeCollections = {knows, hasInterestTran};
+                break;
+            case 3:
+                vertexCollections = {places, tags, persons};
+                edgeCollections = {knows, hasInterestTran};
+                break;
+            case 4:
+                vertexCollections = {tags, forums, persons};
+                edgeCollections = {knows, hasTag, hasMember};
+                break;
+            default:
+                vertexCollections = {places, tags, forums, persons, comments};
+                edgeCollections = {knows, hasInterestTran, hasCreatorTran, hasCreator, replyOf, hasTag, hasMember};
+                break;
+        }
+
         for (auto const &collection : vertexCollections) {
             collection.get().importFile();
         }

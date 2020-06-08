@@ -181,9 +181,4 @@ struct EdgeCollection {
 struct BaseQueryInput {
     std::vector<std::reference_wrapper<BaseVertexCollection>> vertexCollections;
     std::vector<std::reference_wrapper<EdgeCollection>> edgeCollections;
-
-    BaseQueryInput(std::vector<std::reference_wrapper<BaseVertexCollection>> vertex_collections,
-                   std::vector<std::reference_wrapper<EdgeCollection>> edge_collections)
-            : vertexCollections(std::move(vertex_collections)),
-              edgeCollections(std::move(edge_collections)) {}
 };

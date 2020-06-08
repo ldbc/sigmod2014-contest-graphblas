@@ -5,7 +5,9 @@ import glob
 import errno
 import os
 from collections import namedtuple
-
+from timeit import default_timer as timer
+import numpy as np
+import mmap
 
 # Setup logger
 handler = logging.StreamHandler()
@@ -15,6 +17,7 @@ log.addHandler(handler)
 log.setLevel(logging.INFO)
 
 Vertex = namedtuple('Vertex', ['name', 'id2index', 'index2id'])
+
 
 class DataLoader:
     
@@ -27,19 +30,60 @@ class DataLoader:
         
     def load_vertex(self, vertex):
         filename = self.data_dir + vertex + self.data_format
-        with open(filename, newline='') as csvfile:
-            reader = csv.DictReader(csvfile, delimiter='|', quotechar='"')
-            headers = reader.fieldnames
-            log.info(f'Loading {filename} with headers: {headers}')
-            node_key = headers[0]
-            original_ids = [int(row[node_key]) for row in reader]
+        original_ids = []
+        first_line = True
+        with open(filename) as csvfile:
+            reader = csv.reader(csvfile, delimiter='|', quotechar='"')
+            for idx, row in enumerate(reader):
+                if first_line:
+                    first_line = False
+                    continue
+                original_ids.append(int(row[0]))
             id_mapping = {}
             for index in range(len(original_ids)):
                 id_mapping[original_ids[index]] = index
 
         return Vertex(vertex, original_ids, id_mapping)
 
-    
+    def mem_map_loader(self, csvFilePath, skipHeader=True):
+
+        firstline = False
+        try:
+            with open(csvFilePath, "r+b") as f:
+                mm = mmap.mmap(f.fileno(), 0)
+
+                data = mm.readline()
+                cnt = 0
+                while data:
+                    data = mm.readline()
+                    if data:
+                        cnt += 1
+                mm.seek(0)
+                contents = np.empty(cnt, dtype='int32')
+                idx = 0
+                for line in iter(mm.readline, b''):
+                    if firstline == False:
+                        firstline = True
+
+                        if skipHeader == True:
+                            continue
+
+                    line = line.decode('utf-8')
+                    id = int(line.partition('|')[0])
+
+                    contents[idx] = id
+                    idx += 1
+
+        except IOError as ie:
+            print('Error: {0}'.format(ie))
+            return {}
+
+        id_mapping = {}
+        for index in range(len(contents)):
+            id_mapping[contents[index]] = index
+
+        return contents, id_mapping
+
     def load_extra_columns(self, vertex, column_names):
         filename = self.data_dir + vertex + self.data_format
         with open(filename, newline='') as csv_file:
@@ -90,8 +134,7 @@ class DataLoader:
             ncols=len(end_mapping), 
             typ=typ)
             return edge_matrix
-        
-        
+
     def load_all_csvs(self):
         '''
         Loads all .csv files in the data directory defined in the DataLoader class

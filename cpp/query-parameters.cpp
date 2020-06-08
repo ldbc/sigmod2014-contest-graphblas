@@ -4,6 +4,7 @@
 #include "Query3.h"
 #include "Query4.h"
 #include <stdexcept>
+#include <iostream>
 
 template<typename QueryType, typename... ParameterT>
 auto getQueryWrapper(BenchmarkParameters benchmark_parameters, QueryInput const &input) {
@@ -27,10 +28,19 @@ auto getQueryWrapper(BenchmarkParameters benchmark_parameters, QueryInput const 
                             expected_result_value.end());
                 }
 
-                if (result != expected_result_value)
+                if (result != expected_result_value) {
+                    std::ostringstream params_stream;
+                    ((params_stream << query_parameters << ", "), ...);
+                    std::string params = params_stream.str();
+                    // remove comma
+                    if (params.length() >= 2)
+                        params.erase(params.length() - 2);
+
                     throw std::runtime_error(
-                            "Query result mismatches:\nExpected: \"" + expected_result_value + "\"\nActual:   \"" +
+                            "Results of query (" + params + ") mismatch:\nExpected: \"" + expected_result_value +
+                            "\"\nActual:   \"" +
                             result + '"');
+                }
             }
 
             return result;

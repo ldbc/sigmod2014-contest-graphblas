@@ -45,11 +45,11 @@ class DataLoader:
 
         return Vertex(vertex, original_ids, id_mapping)
 
-    def mem_map_loader(self, csvFilePath, skipHeader=True):
-
-        firstline = False
+    def load_vertex_mem_map(self, vertex, skip_header=True):
+        filename = self.data_dir + vertex + self.data_format
+        first_line = False
         try:
-            with open(csvFilePath, "r+b") as f:
+            with open(filename, "r+b") as f:
                 mm = mmap.mmap(f.fileno(), 0)
 
                 data = mm.readline()
@@ -59,19 +59,19 @@ class DataLoader:
                     if data:
                         cnt += 1
                 mm.seek(0)
-                contents = np.empty(cnt, dtype='int32')
+                original_ids = np.empty(cnt, dtype='int32')
                 idx = 0
                 for line in iter(mm.readline, b''):
-                    if firstline == False:
-                        firstline = True
+                    if not first_line:
+                        first_line = True
 
-                        if skipHeader == True:
+                        if skip_header:
                             continue
 
                     line = line.decode('utf-8')
                     id = int(line.partition('|')[0])
 
-                    contents[idx] = id
+                    original_ids[idx] = id
                     idx += 1
 
         except IOError as ie:
@@ -79,12 +79,13 @@ class DataLoader:
             return {}
 
         id_mapping = {}
-        for index in range(len(contents)):
-            id_mapping[contents[index]] = index
+        for index in range(len(original_ids)):
+            id_mapping[original_ids[index]] = index
 
-        return contents, id_mapping
+        return Vertex(vertex, original_ids, id_mapping)
 
     def load_extra_columns(self, vertex, column_names):
+        # TODO: merge this into load_vertex
         filename = self.data_dir + vertex + self.data_format
         with open(filename, newline='') as csv_file:
             reader = csv.DictReader(csv_file, delimiter='|', quotechar='"')
@@ -105,6 +106,7 @@ class DataLoader:
             return result
         
     def load_edge(self, edge_name, from_vertex, to_vertex, typ=INT64, drop_dangling_edges=False):
+        # TODO: dictreader -> csv reader
         start_mapping = from_vertex.index2id
         end_mapping = to_vertex.index2id
         
@@ -149,6 +151,7 @@ class DataLoader:
             matrices: Dictionary containing the adjacency matrices with edge_names as keys
         
         '''
+
         files = glob.glob(f'{self.data_dir}*.csv')
         vertices = {}
         mappings = {}

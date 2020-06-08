@@ -64,6 +64,7 @@ do
 
     echo Run query$i: "${COMMAND[@]}" | tee -a "$LOG_PATH"
     # extend result lines
+    # <tool name>,<size of dataset 1,10,...>,<query e.g. q4>,<loading time in μs>,<query running time in μs>
     echo -n $TOOL_NAME,$SIZE_ONLY_NUMBER, | tee -a "$LOG_PATH" "$RESULTS_PATH"
 
     # run tool and write results to CSV and log every output

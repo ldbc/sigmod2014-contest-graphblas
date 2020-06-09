@@ -50,8 +50,7 @@ class Query2 : public Query<int, std::string> {
 
         auto tag_scores = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
 
-        int nthreads = LAGraph_get_nthreads();
-#pragma omp parallel num_threads(nthreads)
+#pragma omp parallel num_threads(GlobalNThreads)
         {
             auto tag_scores_local = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
             GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());

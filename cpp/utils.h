@@ -21,6 +21,8 @@ struct BenchmarkParameters {
 
 BenchmarkParameters parse_benchmark_params(int argc, char *argv[]);
 
+extern int GlobalNThreads;
+
 void report_load(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime);
 
 void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime,

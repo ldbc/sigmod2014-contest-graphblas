@@ -3,6 +3,7 @@
 #include <omp.h>
 #include "gb_utils.h"
 #include "query-parameters.h"
+#include "utils.h"
 
 std::unique_ptr<QueryInput> load(BenchmarkParameters const &parameters) {
     using namespace std::chrono;
@@ -22,7 +23,8 @@ int main(int argc, char *argv[]) {
 
     if (parameters.ThreadsNum > 0)
         LAGraph_set_nthreads(parameters.ThreadsNum);
-    std::cerr << "Threads: " << LAGraph_get_nthreads() << '/' << omp_get_max_threads() << std::endl;
+    GlobalNThreads = LAGraph_get_nthreads();
+    std::cerr << "Threads: " << GlobalNThreads << '/' << omp_get_max_threads() << std::endl;
 
     std::unique_ptr<QueryInput> input = load(parameters);
 

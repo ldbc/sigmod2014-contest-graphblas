@@ -8,6 +8,8 @@ extern "C" {
 #include <LAGraph.h>
 }
 
+#include "utils.h"
+
 //------------------------------------------------------------------------------
 // ok: call a GraphBLAS method and check the result
 //------------------------------------------------------------------------------
@@ -28,7 +30,14 @@ GrB_Info ok(GrB_Info info, bool no_value_is_error = true) {
 inline __attribute__((always_inline))
 std::unique_ptr<bool[]> array_of_true(size_t n) {
     std::unique_ptr<bool[]> array{new bool[n]};
-    std::fill_n(array.get(), n, true);
+
+    int nthreads = GlobalNThreads;
+    nthreads = std::min<size_t>(n / 4096, nthreads);
+    nthreads = std::max(nthreads, 1);
+#pragma omp parallel for num_threads(nthreads) schedule(static)
+    for (size_t i = 0; i < n; ++i) {
+        array[i] = true;
+    }
 
     return array;
 }
@@ -36,7 +45,14 @@ std::unique_ptr<bool[]> array_of_true(size_t n) {
 inline __attribute__((always_inline))
 std::unique_ptr<GrB_Index[]> array_of_indices(size_t n) {
     std::unique_ptr<GrB_Index[]> array{new GrB_Index[n]};
-    std::iota(array.get(), array.get() + n, 0);
+
+    int nthreads = GlobalNThreads;
+    nthreads = std::min<size_t>(n / 4096, nthreads);
+    nthreads = std::max(nthreads, 1);
+#pragma omp parallel for num_threads(nthreads) schedule(static)
+    for (size_t i = 0; i < n; ++i) {
+        array[i] = i;
+    }
 
     return array;
 }

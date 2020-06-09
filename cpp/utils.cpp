@@ -54,6 +54,8 @@ BenchmarkParameters parse_benchmark_params(int argc, char *argv[]) {
     return params;
 }
 
+int GlobalNThreads;
+
 void report_load(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime) {
     using namespace std::chrono;
 

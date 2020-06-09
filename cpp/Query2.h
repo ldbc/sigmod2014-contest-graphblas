@@ -28,11 +28,10 @@ class Query2 : public Query<int, std::string> {
 
         // mask of persons based on their birthdays
         GBxx_Object<GrB_Vector> birthday_person_mask = GB(GrB_Vector_new, GB_TIME_T, input.persons.size());
-        std::vector<GrB_Index> all_indices;
-        all_indices.resize(input.persons.size());
-        std::iota(all_indices.begin(), all_indices.end(), 0);
         ok(GrB_Vector_build_INT64(birthday_person_mask.get(),
-                                  all_indices.data(), input.persons.birthdays.data(), input.persons.birthdays.size(),
+                                  array_of_indices(input.persons.size()).get(),
+                                  input.persons.birthdays.data(),
+                                  input.persons.birthdays.size(),
                                   GrB_PLUS_INT64));
 
         ok(GxB_Vector_select(birthday_person_mask.get(), GrB_NULL, GrB_NULL,

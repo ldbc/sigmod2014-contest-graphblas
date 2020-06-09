@@ -53,11 +53,9 @@ class Query4 : public Query<int, std::string> {
 //        // diagonal sources matrix
 //        GBxx_Object<GrB_Matrix> sources = GB(GrB_Matrix_new, GrB_BOOL,
 //                                             relevant_persons_nvals, relevant_persons_nvals);
-//        std::vector<GrB_Index> all_indices;
-//        all_indices.resize(relevant_persons_nvals);
-//        std::iota(all_indices.begin(), all_indices.end(), 0);
+//        auto all_indices = array_of_indices(relevant_persons_nvals);
 //        ok(GrB_Matrix_build_BOOL(sources.get(),
-//                                 all_indices.data(), all_indices.data(), array_of_true(relevant_persons_nvals).get(),
+//                                 all_indices.get(), all_indices.get(), array_of_true(relevant_persons_nvals).get(),
 //                                 relevant_persons_nvals, GrB_SECOND_BOOL));
 
         // call MSBFS-based closeness centrality value computation

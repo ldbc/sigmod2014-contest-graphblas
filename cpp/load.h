@@ -42,11 +42,11 @@ protected:
     using CsvReaderT = io::CSVReader<1 + ExtraColumnCount, io::trim_chars<>, io::no_quote_escape<'|'>>;
 
     void sortIndicesByAttribute(std::vector<std::string> const &attributes,
-                                std::vector<GrB_Index> &indicesSortedByAttribute) {
-        indicesSortedByAttribute.resize(size());
-        std::iota(indicesSortedByAttribute.begin(), indicesSortedByAttribute.end(), 0);
+                                std::unique_ptr<GrB_Index[]> &indicesSortedByAttribute) {
+        indicesSortedByAttribute = array_of_indices(size());
+
         // stable sort to keep the lowest indices of duplicates first
-        std::stable_sort(indicesSortedByAttribute.begin(), indicesSortedByAttribute.end(),
+        std::stable_sort(indicesSortedByAttribute.get(), indicesSortedByAttribute.get() + size(),
                          [&attributes](GrB_Index lhs, GrB_Index rhs) {
                              return attributes[lhs] < attributes[rhs];
                          });
@@ -54,9 +54,9 @@ protected:
 
     /// Find the minimum index of vertices having the given attribute
     GrB_Index findIndexByAttributeValue(std::string const &attribute, std::vector<std::string> const &attributes,
-                                        std::vector<GrB_Index> const &indicesSortedByAttribute) const {
-        auto begin = indicesSortedByAttribute.begin();
-        auto end = indicesSortedByAttribute.end();
+                                        std::unique_ptr<GrB_Index[]> const &indicesSortedByAttribute) const {
+        auto begin = indicesSortedByAttribute.get();
+        auto end = indicesSortedByAttribute.get() + size();
         auto iter = std::lower_bound(begin, end, attribute, [&attributes](GrB_Index lhs, std::string const &rhs) {
             return attributes[lhs] < rhs;
         });

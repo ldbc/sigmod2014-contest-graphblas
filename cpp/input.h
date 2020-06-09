@@ -5,7 +5,7 @@
 #include <vector>
 
 class Places : public VertexCollection<1> {
-    std::vector<GrB_Index> indicesSortedByNames;
+    std::unique_ptr<GrB_Index[]> indicesSortedByNames;
 
 public:
     using VertexCollection::VertexCollection;
@@ -38,7 +38,7 @@ public:
 };
 
 struct Tags : public VertexCollection<1> {
-    std::vector<GrB_Index> indicesSortedByNames;
+    std::unique_ptr<GrB_Index[]> indicesSortedByNames;
 
 public:
     using VertexCollection::VertexCollection;
@@ -128,11 +128,6 @@ struct HasCreatorEdgeCollection : public EdgeCollection {
         trg = &persons;
         edgeNumber = comments.size();
 
-        // indices of comments
-        std::vector<GrB_Index> comment_indices;
-        comment_indices.resize(comments.size());
-        std::iota(comment_indices.begin(), comment_indices.end(), 0);
-
         // convert person IDs to indices in comments
         for (int comment_index = 0; comment_index < comments.size(); ++comment_index) {
             ok(GrB_Vector_extractElement_UINT64(&comments.creatorPersonIndices[comment_index], persons.idToIndex.get(),
@@ -141,7 +136,7 @@ struct HasCreatorEdgeCollection : public EdgeCollection {
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
         ok(GrB_Matrix_build_BOOL(matrix.get(),
-                                 comment_indices.data(), comments.creatorPersonIndices.data(),
+                                 array_of_indices(comments.size()).get(), comments.creatorPersonIndices.data(),
                                  array_of_true(edgeNumber).get(),
                                  edgeNumber, GrB_LOR));
     }

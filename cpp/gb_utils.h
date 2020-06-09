@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <numeric>
 
 extern "C" {
 #include <GraphBLAS.h>
@@ -28,6 +29,14 @@ inline __attribute__((always_inline))
 std::unique_ptr<bool[]> array_of_true(size_t n) {
     std::unique_ptr<bool[]> array{new bool[n]};
     std::fill_n(array.get(), n, true);
+
+    return array;
+}
+
+inline __attribute__((always_inline))
+std::unique_ptr<GrB_Index[]> array_of_indices(size_t n) {
+    std::unique_ptr<GrB_Index[]> array{new GrB_Index[n]};
+    std::iota(array.get(), array.get() + n, 0);
 
     return array;
 }

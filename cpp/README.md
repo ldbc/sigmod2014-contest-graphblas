@@ -39,11 +39,13 @@ Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../c
 To build and test the query implementation on o1k (original contest data set with 1k persons) with [test queries](query-parameters.cpp), run:
 
 ```bash
-mkdir -p cmake-build-release
-cd cmake-build-release
+rm -rf cmake-build-release
+mkdir cmake-build-release
+pushd cmake-build-release
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ./sigmod2014pc_cpp
+popd
 ```
 
 ## Generate new query parameters

@@ -48,6 +48,11 @@ make
 popd
 ```
 
+To only build run this from the repo's root:
+```bash
+pushd cpp && rm -rf cmake-build-release && mkdir cmake-build-release && pushd cmake-build-release && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) ; popd ; popd
+```
+
 ## Generate new query parameters
 
 Set `$CsvPath` environment variable to the data set.

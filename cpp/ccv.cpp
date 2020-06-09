@@ -199,6 +199,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
         // sp += (next_popcount * level)
         //   next_popcount * level is expressed as next_popcount *= level_v
+        ok(GxB_Vector_subassign_UINT64(level_v, next_popcount, NULL, level, GrB_ALL, n, GrB_DESC_S));
         ok(GrB_Vector_eWiseMult_BinaryOp(next_popcount, NULL, NULL, GrB_TIMES_UINT64, next_popcount, level_v, NULL));
         ok(GrB_Vector_eWiseAdd_BinaryOp(sp, NULL, NULL, GrB_PLUS_UINT64, sp, next_popcount, NULL));
 

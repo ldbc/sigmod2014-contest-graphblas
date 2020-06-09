@@ -92,6 +92,14 @@ struct Persons : public VertexCollection<1> {
 struct Comments : public VertexCollection<0> {
     using VertexCollection::VertexCollection;
 
+    const char *getIdFieldName() const override {
+        return ":START_ID(Comment)";
+    }
+
+    const char *getIdFieldPrefix() const override {
+        return ":START_ID(";
+    }
+
     bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
         return csv_reader.read_row(id);
     }
@@ -125,7 +133,7 @@ struct QueryInput : public BaseQueryInput {
             tags{parameters.CsvPath + "tag.csv"},
             forums{parameters.CsvPath + "forum.csv"},
             persons{parameters.CsvPath + "person.csv"},
-            comments{parameters.CsvPath + "comment.csv"},
+            comments{parameters.CsvPath + "comment_hasCreator_person.csv"},
 
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},

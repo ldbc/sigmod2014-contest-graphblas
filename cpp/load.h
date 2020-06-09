@@ -36,9 +36,9 @@ protected:
 
 template<unsigned ExtraColumnCount>
 class VertexCollection : public BaseVertexCollection {
+protected:
     std::string filePath;
 
-protected:
     using CsvReaderT = io::CSVReader<1 + ExtraColumnCount, io::trim_chars<>, io::no_quote_escape<'|'>>;
 
     void sortIndicesByAttribute(std::vector<std::string> const &attributes,
@@ -82,11 +82,15 @@ public:
 
     virtual bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) = 0;
 
+    virtual const char *getIdFieldName() const { return "id"; }
+
+    virtual const char *getIdFieldPrefix() const { return "id:ID("; }
+
     void importFile() override {
         auto[csv_file, full_column_names, header_line] = openFileWithHeader(filePath);
 
         std::vector<std::string> selected_column_names = extraColumns();
-        selected_column_names.insert(selected_column_names.begin(), "id");
+        selected_column_names.insert(selected_column_names.begin(), getIdFieldName());
 
         for (auto &col_name : selected_column_names) {
             auto iterator = std::find_if(full_column_names.begin(), full_column_names.end(),
@@ -104,7 +108,7 @@ public:
         }
 
         std::string id_column = selected_column_names[0];
-        vertexName = parseHeaderField(id_column, "id:ID(", ")");
+        vertexName = parseHeaderField(id_column, getIdFieldPrefix(), ")");
 
         CsvReaderT csv_reader(filePath, csv_file);
 

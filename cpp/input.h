@@ -89,8 +89,14 @@ struct Persons : public VertexCollection<1> {
     }
 };
 
-struct Comments : public VertexCollection<0> {
+struct Comments : public VertexCollection<1> {
     using VertexCollection::VertexCollection;
+    /// loaded as IDs, later transformed to indices when hasCreator edge is loaded
+    std::vector<GrB_Index> creatorPersonIndices;
+
+    std::vector<std::string> extraColumns() const override {
+        return {":END_ID(Person)"};
+    }
 
     const char *getIdFieldName() const override {
         return ":START_ID(Comment)";
@@ -101,7 +107,43 @@ struct Comments : public VertexCollection<0> {
     }
 
     bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
-        return csv_reader.read_row(id);
+        GrB_Index creator_person_id;
+        if (csv_reader.read_row(id, creator_person_id)) {
+            creatorPersonIndices.push_back(creator_person_id);
+            return true;
+        } else
+            return false;
+    }
+};
+
+struct HasCreatorEdgeCollection : public EdgeCollection {
+    Comments &comments;
+    Persons const &persons;
+
+    HasCreatorEdgeCollection(Comments &comments, Persons const &persons)
+            : EdgeCollection("", false), comments(comments), persons(persons) {}
+
+    void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
+        src = &comments;
+        trg = &persons;
+        edgeNumber = comments.size();
+
+        // indices of comments
+        std::vector<GrB_Index> comment_indices;
+        comment_indices.resize(comments.size());
+        std::iota(comment_indices.begin(), comment_indices.end(), 0);
+
+        // convert person IDs to indices in comments
+        for (int comment_index = 0; comment_index < comments.size(); ++comment_index) {
+            ok(GrB_Vector_extractElement_UINT64(&comments.creatorPersonIndices[comment_index], persons.idToIndex.get(),
+                                                comments.creatorPersonIndices[comment_index]));
+        }
+
+        matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
+        ok(GrB_Matrix_build_BOOL(matrix.get(),
+                                 comment_indices.data(), comments.creatorPersonIndices.data(),
+                                 array_of_true(edgeNumber).get(),
+                                 edgeNumber, GrB_LOR));
     }
 };
 
@@ -122,7 +164,7 @@ struct QueryInput : public BaseQueryInput {
 
     EdgeCollection knows;
     EdgeCollection hasInterestTran;
-    EdgeCollection hasCreator;
+    HasCreatorEdgeCollection hasCreator;
     TransposedEdgeCollection hasCreatorTran;
     EdgeCollection replyOf;
     EdgeCollection hasTag;
@@ -137,7 +179,7 @@ struct QueryInput : public BaseQueryInput {
 
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
-            hasCreator{parameters.CsvPath + "comment_hasCreator_person.csv"},
+            hasCreator{comments, persons},
             hasCreatorTran{hasCreator},
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},

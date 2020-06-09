@@ -122,8 +122,8 @@ struct QueryInput : public BaseQueryInput {
 
     EdgeCollection knows;
     EdgeCollection hasInterestTran;
-    EdgeCollection hasCreatorTran;
     EdgeCollection hasCreator;
+    TransposedEdgeCollection hasCreatorTran;
     EdgeCollection replyOf;
     EdgeCollection hasTag;
     EdgeCollection hasMember;
@@ -137,15 +137,15 @@ struct QueryInput : public BaseQueryInput {
 
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
-            hasCreatorTran{parameters.CsvPath + "comment_hasCreator_person.csv", true},
             hasCreator{parameters.CsvPath + "comment_hasCreator_person.csv"},
+            hasCreatorTran{hasCreator},
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"} {
         switch (parameters.Query) {
             case 1:
                 vertexCollections = {comments, persons};
-                edgeCollections = {knows, hasCreatorTran, hasCreator, replyOf};
+                edgeCollections = {knows, hasCreator, hasCreatorTran, replyOf};
                 break;
             case 2:
                 vertexCollections = {tags, persons};
@@ -161,7 +161,7 @@ struct QueryInput : public BaseQueryInput {
                 break;
             default:
                 vertexCollections = {places, tags, forums, persons, comments};
-                edgeCollections = {knows, hasInterestTran, hasCreatorTran, hasCreator, replyOf, hasTag, hasMember};
+                edgeCollections = {knows, hasInterestTran, hasCreator, hasCreatorTran, replyOf, hasTag, hasMember};
                 break;
         }
 

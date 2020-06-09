@@ -142,7 +142,7 @@ struct EdgeCollection {
     static const BaseVertexCollection &findVertexCollection(const std::string &vertex_name,
                                                             const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection);
 
-    void importFile(std::vector<std::reference_wrapper<BaseVertexCollection>> const &vertex_collection) {
+    virtual void importFile(std::vector<std::reference_wrapper<BaseVertexCollection>> const &vertex_collection) {
         auto[csv_file, full_column_names, header_line] = openFileWithHeader(filePath);
 
         char const *src_prefix = ":START_ID(", *trg_prefix = ":END_ID(", *postfix = ")";
@@ -179,6 +179,22 @@ struct EdgeCollection {
                                  src_indices.data(), trg_indices.data(),
                                  array_of_true(edgeNumber).get(),
                                  edgeNumber, GrB_LOR));
+    }
+};
+
+struct TransposedEdgeCollection : public EdgeCollection {
+    EdgeCollection const &baseEdge;
+
+    TransposedEdgeCollection(const EdgeCollection &base_edge)
+            : EdgeCollection(base_edge.filePath, true), baseEdge(base_edge) {}
+
+    void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
+        src = baseEdge.trg;
+        trg = baseEdge.src;
+        edgeNumber = baseEdge.edgeNumber;
+
+        matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
+        ok(GrB_transpose(matrix.get(), GrB_NULL, GrB_NULL, baseEdge.matrix.get(), GrB_NULL));
     }
 };
 

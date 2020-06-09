@@ -5,7 +5,6 @@ import logging
 from queries.QueryBase import QueryBase
 from algorithms.search import naive_bfs_levels, push_pull_bfs_levels, msbfs_levels, push_pull_msbfs_levels
 from pygraphblas import *
-#from _pygraphblas import lib
 
 Test = namedtuple('Test', ['inputs', 'expected_result'])
 
@@ -60,6 +59,13 @@ class Query1(QueryBase):
             personA_to_comment2 = hasCreatorTransposed @ self.replyOf
             person_to_person = personA_to_comment2.mxm(self.hasCreator, mask=self.knows)
             person_to_person_filtered = person_to_person.select(lib.GxB_GT_THUNK, self.num_of_interactions)
+
+            # make symmetric by removing one-directional freqComm relationships
+            person_to_person_filtered.emult(person_to_person_filtered,
+                                            mult_op=binaryop.PAIR_UINT64,
+                                            desc=lib.GrB_DESC_T0,
+                                            out=person_to_person_filtered)
+
             overlay_graph = person_to_person_filtered.pattern()
 
         levels = search_method(overlay_graph, person1_id_remapped)

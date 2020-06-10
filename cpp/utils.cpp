@@ -72,7 +72,7 @@ void report_result(const BenchmarkParameters &parameters, std::chrono::nanosecon
 
     std::cout
             << round<microseconds>(runtime).count()
-            #ifndef NDEBUG
+            #if !defined(NDEBUG) || defined(PRINT_RESULTS)
             << CSV_SEPARATOR << result
             << CSV_SEPARATOR << comment
             #endif

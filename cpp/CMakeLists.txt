@@ -26,6 +26,15 @@ add_executable(sigmod2014pc_cpp
         query-parameters.cpp
         ccv.cpp)
 
+option(
+        PRINT_RESULTS
+        "In enabled, then the results of the queries are going to be printed to cout in Release mode. In Debug mode it is always printed."
+        OFF
+)
+if (PRINT_RESULTS)
+    target_compile_definitions(sigmod2014pc_cpp PRIVATE PRINT_RESULTS)
+endif()
+
 add_executable(paramgen
         paramgen-main.cpp
         load.cpp

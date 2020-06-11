@@ -47,8 +47,10 @@ class QueryBase(ABC):
 
         if failed_tests == 0:
             log.info(f'ALL TESTS PASSED: {all_tests}')
+            return True
         else:
             log.error(f'TESTS FAILED: {failed_tests}/{all_tests}')
+            return False
 
     @abstractmethod
     def init_tests(self):

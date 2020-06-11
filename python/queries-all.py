@@ -10,7 +10,14 @@ q2 = Query2(data_dir, data_format)
 q3 = Query3(data_dir, data_format)
 q4 = Query4(data_dir, data_format)
 
-q1.run_tests()
-q2.run_tests()
-q3.run_tests()
-q4.run_tests()
+tests_passed = True
+
+tests_passed = q1.run_tests() and tests_passed
+tests_passed = q2.run_tests() and tests_passed
+tests_passed = q3.run_tests() and tests_passed
+tests_passed = q4.run_tests() and tests_passed
+
+if tests_passed:
+    print('\nALL TESTS PASSED')
+else:
+    print('\nTESTS FAILED')

@@ -31,17 +31,24 @@ class QueryBase(ABC):
     def run_tests(self):
         # To run the tests of Q1 and Q4 with different search methods,
         # change the default parameter in their execute_query function
+        all_tests = 0
+        failed_tests = 0
         for test in self.tests:
             result = self.execute_query(test.inputs)
             test = test._replace(expected_result=self.format_result_string(test.expected_result))
-            result_correct = result == test.expected_result
-            try:
-                assert result_correct
+            if result == test.expected_result:
                 log.info(f'Result: {result}')
                 log.info(f'TEST PASSED')
                 log.info('----------------------')
-            except:
-                log.info(f'TEST FAILED: result: {result}  expected result: {test.expected_result}')
+            else:
+                failed_tests += 1
+                log.error(f'TEST FAILED: result: {result}  expected result: {test.expected_result}')
+            all_tests += 1
+
+        if failed_tests == 0:
+            log.info(f'ALL TESTS PASSED: {all_tests}')
+        else:
+            log.error(f'TESTS FAILED: {failed_tests}/{all_tests}')
 
     @abstractmethod
     def init_tests(self):

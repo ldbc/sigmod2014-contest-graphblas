@@ -68,33 +68,50 @@ class Query3(QueryBase):
         # Run query
         query_start = timer()
 
-        diagMtx = self.RelevantPeopleInPlaceMatrix(self.p)
-        maskMtx = self.knows
-        for i in range(self.h, self.h + 1):
-            maskMtx = maskMtx.eadd(self.powerMatrix(i, maskMtx))
-        # Selecting the relevant rows and columns by multiplying the mask matrix from the right then from the left with the diagonal matrix
-        maskMtx = diagMtx.mxm(maskMtx).mxm(diagMtx).pattern()
+        persons_diag_mx = self.RelevantPeopleInPlaceMatrix(self.p)
+
+        next_mx = persons_diag_mx
+        seen_mx = next_mx.dup()
+
+        # MSBFS
+        for level in range(self.h):
+            next_mx = next_mx.mxm(self.knows, mask=seen_mx, desc=descriptor.ooco)
+            # emptied the component
+            if next_mx.nvals == 0:
+                break
+
+            seen_mx = seen_mx + next_mx
+
+        # source persons were filtered at the beginning
+        # drop friends in different place
+        h_reachable_knows_tril = seen_mx.offdiag().tril() @ persons_diag_mx
+
         # pattern: a hacky way to cast to UINT64 because count is required instead of existence
-        resultMatrix = self.hasInterest.pattern(UINT64).mxm(self.hasInterest.transpose(), mask=maskMtx)
-        resultMatrix = resultMatrix.triu().offdiag()
+        resultMatrix = self.hasInterest.pattern(UINT64).mxm(self.hasInterest.transpose(), mask=h_reachable_knows_tril)
         result = heapq.nsmallest(self.k, resultMatrix, key=self.sortTriples)
         result_string = ''
         for res in result:
-            if self.person.id2index[res[0]] > self.person.id2index[res[1]]:
-                result_string += f'{self.person.id2index[res[1]]}|{self.person.id2index[res[0]]} '
-            else:
-                result_string += f'{self.person.id2index[res[0]]}|{self.person.id2index[res[1]]} '
+            person1_id = self.person.id2index[res[0]]
+            person2_id = self.person.id2index[res[1]]
+
+            if person1_id > person2_id:
+                person1_id, person2_id = person2_id, person1_id
+
+            result_string += f'{person1_id}|{person2_id} '
 
         if len(result) < self.k:
-            result_zeros = heapq.nsmallest(self.k, maskMtx.triu().offdiag(), key=self.sortTriples)
+            result_zeros = heapq.nsmallest(self.k, h_reachable_knows_tril, key=self.sortTriples)
             remaining = self.k - len(result)
             while remaining > 0:
                 res = result_zeros.pop(0)
                 if resultMatrix.get(res[0], res[1]) is None:
-                    if self.person.id2index[res[0]] > self.person.id2index[res[1]]:
-                        result_string += f'{self.person.id2index[res[1]]}|{self.person.id2index[res[0]]} '
-                    else:
-                        result_string += f'{self.person.id2index[res[0]]}|{self.person.id2index[res[1]]} '
+                    person1_id = self.person.id2index[res[0]]
+                    person2_id = self.person.id2index[res[1]]
+
+                    if person1_id > person2_id:
+                        person1_id, person2_id = person2_id, person1_id
+
+                    result_string += f'{person1_id}|{person2_id} '
 
                     remaining -= 1
 
@@ -107,9 +124,13 @@ class Query3(QueryBase):
         return result.split('%')[0]
 
     def sortTriples(self, triple):
-        if self.person.id2index[triple[0]] > self.person.id2index[triple[1]]:
-            return -triple[2], self.person.id2index[triple[1]], self.person.id2index[triple[0]]
-        return -triple[2], self.person.id2index[triple[0]], self.person.id2index[triple[1]]
+        person1_id = self.person.id2index[triple[0]]
+        person2_id = self.person.id2index[triple[1]]
+
+        if person1_id > person2_id:
+            person1_id, person2_id = person2_id, person1_id
+
+        return -triple[2], person1_id, person2_id
 
     def RelevantPeopleInPlaceMatrix(self, placeName):
         placeID = self.placeNames.index(placeName)
@@ -135,12 +156,6 @@ class Query3(QueryBase):
                                     relevantPeopleVector.to_lists()[1], self.knows.nrows, self.knows.ncols)
         return diagMtx
 
-    @staticmethod
-    def powerMatrix(p, mtx):
-        if p == 1:
-            return mtx
-        return mtx.mxm(Query3.powerMatrix(p - 1, mtx))
-
     def init_tests(self):
         tests = [
             Test([3, 2, 'Asia'], '361|812 174|280 280|812 % common interest counts 4 3 3'),
@@ -150,7 +165,8 @@ class Query3(QueryBase):
             Test([5, 4, 'Chengdu'], '590|650 590|658 590|614 590|629 590|638 % common interest counts 1 1 0 0 0'),
             Test([3, 2, 'Peru'], '65|766 65|767 65|863 % common interest counts 0 0 0'),
             Test([3, 2, 'Democratic_Republic_of_the_Congo'], '99|100 99|101 99|102 % common interest counts 0 0 0'),
-            Test([7, 6, 'Ankara'], '891|898 890|891 890|895 890|898 890|902 891|895 891|902 % common interest counts 1 0 0 0 0 0 0'),
+            Test([7, 6, 'Ankara'],
+                 '891|898 890|891 890|895 890|898 890|902 891|895 891|902 % common interest counts 1 0 0 0 0 0 0'),
             Test([3, 2, 'Luoyang'], '565|625 653|726 565|653 % common interest counts 2 1 0'),
             Test([4, 3, 'Taiwan'], '795|798 797|798 567|795 567|796 % common interest counts 1 1 0 0')
         ]

@@ -79,18 +79,9 @@ GrB_Info create_diagonal_bit_matrix(GrB_Matrix D) {
     return info;
 }
 
-uint64_t next_popcount(uint64_t x)
-{
-    int c = 0;
-    for (; x != 0; x >>= 1)
-        if (x & 1)
-            c++;
-    return c;
-}
-
-void fun_sum_popcount (void *z, const void *x)
-{
-    (*((uint64_t *) z))  = next_popcount(* ((uint64_t *) x));
+void fun_sum_popcount(void *z, const void *x) {
+    static_assert(sizeof(uint64_t) == sizeof(unsigned long long));
+    *((uint64_t *) z) = __builtin_popcountll(*((uint64_t *) x));
 }
 
 GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {

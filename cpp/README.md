@@ -42,7 +42,7 @@ To build and test the query implementation on o1k (original contest data set wit
 rm -rf cmake-build-release
 mkdir cmake-build-release
 pushd cmake-build-release
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_BUILD_TYPE=Release -DPRINT_RESULTS=1 ..
 make
 ./sigmod2014pc_cpp
 popd
@@ -50,8 +50,10 @@ popd
 
 To only build run this from the repo's root:
 ```bash
-pushd cpp && rm -rf cmake-build-release && mkdir cmake-build-release && pushd cmake-build-release && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j$(nproc) ; popd ; popd
+pushd cpp && rm -rf cmake-build-release && mkdir cmake-build-release && pushd cmake-build-release && cmake -DCMAKE_BUILD_TYPE=Release -DPRINT_RESULTS=1 .. && make -j$(nproc) ; popd ; popd
 ```
+
+Remove `-DPRINT_RESULTS=1` if result and comment columns are not necessary.
 
 ## Generate new query parameters
 

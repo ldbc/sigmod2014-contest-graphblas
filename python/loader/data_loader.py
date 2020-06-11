@@ -105,7 +105,7 @@ class DataLoader:
 
             return result
         
-    def load_edge(self, edge_name, from_vertex, to_vertex, typ=INT64, drop_dangling_edges=False):
+    def load_edge(self, edge_name, from_vertex, to_vertex, typ=BOOL, drop_dangling_edges=False):
 
         first_line = True
         start_mapping = from_vertex.index2id

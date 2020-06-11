@@ -55,7 +55,8 @@ class Query1(QueryBase):
         if self.num_of_interactions == -1:
             overlay_graph = self.knows
         else:
-            hasCreatorTransposed =self.hasCreator.transpose()
+            # pattern: a hacky way to cast to UINT64 for next steps, where count is required instead of existence
+            hasCreatorTransposed =self.hasCreator.transpose().pattern(UINT64)
             personA_to_comment2 = hasCreatorTransposed @ self.replyOf
             person_to_person = personA_to_comment2.mxm(self.hasCreator, mask=self.knows)
             person_to_person_filtered = person_to_person.select(lib.GxB_GT_THUNK, self.num_of_interactions)

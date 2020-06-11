@@ -74,7 +74,8 @@ class Query3(QueryBase):
             maskMtx = maskMtx.eadd(self.powerMatrix(i, maskMtx))
         # Selecting the relevant rows and columns by multiplying the mask matrix from the right then from the left with the diagonal matrix
         maskMtx = diagMtx.mxm(maskMtx).mxm(diagMtx).pattern()
-        resultMatrix = self.hasInterest.mxm(self.hasInterest.transpose(), mask=maskMtx)
+        # pattern: a hacky way to cast to UINT64 because count is required instead of existence
+        resultMatrix = self.hasInterest.pattern(UINT64).mxm(self.hasInterest.transpose(), mask=maskMtx)
         resultMatrix = resultMatrix.triu().offdiag()
         result = heapq.nsmallest(self.k, resultMatrix, key=self.sortTriples)
         result_string = ''

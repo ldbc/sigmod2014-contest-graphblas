@@ -91,8 +91,8 @@ class Query3(QueryBase):
         result = heapq.nsmallest(self.k, resultMatrix, key=self.sortTriples)
         result_string = ''
         for res in result:
-            person1_id = self.person.id2index[res[0]]
-            person2_id = self.person.id2index[res[1]]
+            person1_id = self.person.index2id[res[0]]
+            person2_id = self.person.index2id[res[1]]
 
             if person1_id > person2_id:
                 person1_id, person2_id = person2_id, person1_id
@@ -105,8 +105,8 @@ class Query3(QueryBase):
             while remaining > 0:
                 res = result_zeros.pop(0)
                 if resultMatrix.get(res[0], res[1]) is None:
-                    person1_id = self.person.id2index[res[0]]
-                    person2_id = self.person.id2index[res[1]]
+                    person1_id = self.person.index2id[res[0]]
+                    person2_id = self.person.index2id[res[1]]
 
                     if person1_id > person2_id:
                         person1_id, person2_id = person2_id, person1_id
@@ -124,8 +124,8 @@ class Query3(QueryBase):
         return result.split('%')[0]
 
     def sortTriples(self, triple):
-        person1_id = self.person.id2index[triple[0]]
-        person2_id = self.person.id2index[triple[1]]
+        person1_id = self.person.index2id[triple[0]]
+        person2_id = self.person.index2id[triple[1]]
 
         if person1_id > person2_id:
             person1_id, person2_id = person2_id, person1_id

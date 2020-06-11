@@ -67,7 +67,7 @@ class Query4(QueryBase):
                     score = 0
                 else:
                     score = ((r - 1) * (r - 1)) / ((n - 1) * s)
-                resultList += [[self.person.id2index[value[1]], score]]
+                resultList += [[self.person.index2id[value[1]], score]]
 
             resultList.sort(key=operator.itemgetter(0))
             resultList.sort(key=operator.itemgetter(1), reverse=True)
@@ -98,7 +98,7 @@ class Query4(QueryBase):
                 else:
                     score = ((r - 1) * (r - 1)) / ((n - 1) * s)
 
-                resultList += [[self.person.id2index[value[1]], score]]
+                resultList += [[self.person.index2id[value[1]], score]]
 
             resultList.sort(key=operator.itemgetter(0))
             resultList.sort(key=operator.itemgetter(1), reverse=True)

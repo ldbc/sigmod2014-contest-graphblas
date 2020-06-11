@@ -60,7 +60,7 @@ class Query2(QueryBase):
         birthday_person_mask.select(lib.GxB_NONZERO, out=birthday_person_mask)
 
         tags_with_score = {(self.tagNames[tagCol], self.get_score_for_tag(tagCol, birthday_person_mask))
-                           for tagCol in range(len(self.tag.id2index))}
+                           for tagCol in range(len(self.tag.index2id))}
 
         result = heapq.nsmallest(self.top_k, tags_with_score, key=lambda kv: (-kv[1], kv[0]))
 

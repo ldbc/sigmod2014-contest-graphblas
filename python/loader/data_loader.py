@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 log.addHandler(handler)
 log.setLevel(logging.INFO)
 
-Vertex = namedtuple('Vertex', ['name', 'id2index', 'index2id'])
+Vertex = namedtuple('Vertex', ['name', 'index2id', 'id2index'])
 
 
 class DataLoader:
@@ -108,8 +108,8 @@ class DataLoader:
     def load_edge(self, edge_name, from_vertex, to_vertex, typ=BOOL, drop_dangling_edges=False):
 
         first_line = True
-        start_mapping = from_vertex.index2id
-        end_mapping = to_vertex.index2id
+        start_mapping = from_vertex.id2index
+        end_mapping = to_vertex.id2index
         
         filename = self.data_dir + from_vertex.name + '_' + edge_name + '_' + to_vertex.name + self.data_format
         with open(filename, newline='') as csvfile:

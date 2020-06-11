@@ -50,8 +50,8 @@ class Query1(QueryBase):
 
         # Run query
         query_start = timer()
-        person1_id_remapped = self.person.index2id[self.person1_id]
-        person2_id_remapped = self.person.index2id[self.person2_id]
+        person1_id_remapped = self.person.id2index[self.person1_id]
+        person2_id_remapped = self.person.id2index[self.person2_id]
         if self.num_of_interactions == -1:
             overlay_graph = self.knows
         else:

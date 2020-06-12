@@ -81,8 +81,9 @@ class Query2 : public Query<int, std::string> {
                                           GrB_NULL));
 
                     // assuming that all component_ids will be in [0, n)
-                    GrB_Matrix A = knows_subgraph.get();
-                    GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv5b, &A, false);
+                    GrB_Matrix knows_subgraph_owning_ptr = knows_subgraph.release();
+                    GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv5b, &knows_subgraph_owning_ptr, false);
+                    knows_subgraph.reset(knows_subgraph_owning_ptr);
 
                     std::vector<uint64_t> components(interested_person_nvals),
                             component_sizes(interested_person_nvals);

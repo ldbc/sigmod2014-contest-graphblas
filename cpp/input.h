@@ -313,6 +313,9 @@ struct QueryInput : public BaseQueryInput {
     EdgeCollection hasMember;
     PersonIsLocatedInCityEdgeCollection personIsLocatedInCity;
     OrganizationIsLocatedInPlaceEdgeCollection organizationIsLocatedInPlaceEdgeCollection;
+    EdgeCollection isPartOfTran;
+    EdgeCollection workAtTran;
+    EdgeCollection studyAtTran;
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
             places{parameters.CsvPath + "place.csv"},
@@ -331,7 +334,10 @@ struct QueryInput : public BaseQueryInput {
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"},
             personIsLocatedInCity{persons, places},
-            organizationIsLocatedInPlaceEdgeCollection{organizations, places} {
+            organizationIsLocatedInPlaceEdgeCollection{organizations, places},
+            isPartOfTran{parameters.CsvPath + "place_isPartOf_place.csv", true},
+            workAtTran{parameters.CsvPath + "person_workAt_organisation.csv", true},
+            studyAtTran{parameters.CsvPath + "person_studyAt_organisation.csv", true} {
         switch (parameters.Query) {
             case 1:
                 vertexCollections = {comments, persons};
@@ -344,7 +350,7 @@ struct QueryInput : public BaseQueryInput {
             case 3:
                 vertexCollections = {places, tags, persons, organizations};
                 edgeCollections = {knows, hasInterestTran, personIsLocatedInCity,
-                                   organizationIsLocatedInPlaceEdgeCollection};
+                                   organizationIsLocatedInPlaceEdgeCollection, isPartOfTran, workAtTran, studyAtTran};
                 break;
             case 4:
                 vertexCollections = {tags, forums, persons};
@@ -353,7 +359,8 @@ struct QueryInput : public BaseQueryInput {
             default:
                 vertexCollections = {places, tags, forums, persons, personsWithBirthdays, comments, organizations};
                 edgeCollections = {knows, hasInterestTran, hasCreator, hasCreatorTran, replyOf, hasTag, hasMember,
-                                   personIsLocatedInCity, organizationIsLocatedInPlaceEdgeCollection};
+                                   personIsLocatedInCity, organizationIsLocatedInPlaceEdgeCollection,
+                                   isPartOfTran, workAtTran, studyAtTran};
                 break;
         }
 

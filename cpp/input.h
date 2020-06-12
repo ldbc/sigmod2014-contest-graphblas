@@ -88,6 +88,33 @@ public:
     }
 };
 
+struct Persons : public VertexCollection<1> {
+    using VertexCollection::VertexCollection;
+    /// loaded as IDs, later transformed to indices when hasCreator edge is loaded
+    std::vector<GrB_Index> placeIndices;
+
+    std::vector<std::string> extraColumns() const override {
+        return {":END_ID(Place)"};
+    }
+
+    const char *getIdFieldName() const override {
+        return ":START_ID(Person)";
+    }
+
+    const char *getIdFieldPrefix() const override {
+        return ":START_ID(";
+    }
+
+    bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
+        GrB_Index place_id;
+        if (csv_reader.read_row(id, place_id)) {
+            placeIndices.push_back(place_id);
+            return true;
+        } else
+            return false;
+    }
+};
+
 struct PersonsWithBirthdays : public VertexCollection<1> {
     using VertexCollection::VertexCollection;
 
@@ -173,6 +200,7 @@ struct QueryInput : public BaseQueryInput {
     Places places;
     Tags tags;
     Forums forums;
+    Persons persons;
     PersonsWithBirthdays personsWithBirthdays;
     Comments comments;
 
@@ -188,6 +216,7 @@ struct QueryInput : public BaseQueryInput {
             places{parameters.CsvPath + "place.csv"},
             tags{parameters.CsvPath + "tag.csv"},
             forums{parameters.CsvPath + "forum.csv"},
+            persons{parameters.CsvPath + "person_isLocatedIn_place.csv"},
             personsWithBirthdays{parameters.CsvPath + "person.csv"},
             comments{parameters.CsvPath + "comment_hasCreator_person.csv"},
 
@@ -216,7 +245,7 @@ struct QueryInput : public BaseQueryInput {
                 edgeCollections = {knows, hasTag, hasMember};
                 break;
             default:
-                vertexCollections = {places, tags, forums, personsWithBirthdays, comments};
+                vertexCollections = {places, tags, forums, persons, personsWithBirthdays, comments};
                 edgeCollections = {knows, hasInterestTran, hasCreator, hasCreatorTran, replyOf, hasTag, hasMember};
                 break;
         }

@@ -115,16 +115,16 @@ struct Persons : public VertexCollection<1> {
     }
 };
 
-struct PersonIsLocatedInCityEdgeCollection : public EdgeCollection {
+struct PersonIsLocatedInCityTranEdgeCollection : public EdgeCollection {
     Persons &persons;
     Places const &places;
 
-    PersonIsLocatedInCityEdgeCollection(Persons &persons, Places const &places)
-            : EdgeCollection("", false), persons(persons), places(places) {}
+    PersonIsLocatedInCityTranEdgeCollection(Persons &persons, Places const &places)
+            : EdgeCollection("", true), persons(persons), places(places) {}
 
     void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
-        src = &persons;
-        trg = &places;
+        trg = &persons;
+        src = &places;
         edgeNumber = persons.size();
 
         // convert place IDs to indices in persons
@@ -135,7 +135,7 @@ struct PersonIsLocatedInCityEdgeCollection : public EdgeCollection {
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
         ok(GrB_Matrix_build_BOOL(matrix.get(),
-                                 array_of_indices(edgeNumber).get(), persons.placeIndices.data(),
+                                 persons.placeIndices.data(), array_of_indices(edgeNumber).get(),
                                  array_of_true(edgeNumber).get(),
                                  edgeNumber, GrB_LOR));
     }
@@ -261,16 +261,16 @@ struct Organizations : public VertexCollection<1> {
     }
 };
 
-struct OrganizationIsLocatedInPlaceEdgeCollection : public EdgeCollection {
+struct OrganizationIsLocatedInPlaceTranEdgeCollection : public EdgeCollection {
     Organizations &organizations;
     Places const &places;
 
-    OrganizationIsLocatedInPlaceEdgeCollection(Organizations &organizations, Places const &places)
-            : EdgeCollection("", false), organizations(organizations), places(places) {}
+    OrganizationIsLocatedInPlaceTranEdgeCollection(Organizations &organizations, Places const &places)
+            : EdgeCollection("", true), organizations(organizations), places(places) {}
 
     void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
-        src = &organizations;
-        trg = &places;
+        trg = &organizations;
+        src = &places;
         edgeNumber = organizations.size();
 
         // convert place IDs to indices in organizations
@@ -289,7 +289,7 @@ struct OrganizationIsLocatedInPlaceEdgeCollection : public EdgeCollection {
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
         ok(GrB_Matrix_build_BOOL(matrix.get(),
-                                 array_of_indices(edgeNumber).get(), organizations.placeIndices.data(),
+                                 organizations.placeIndices.data(), array_of_indices(edgeNumber).get(),
                                  array_of_true(edgeNumber).get(),
                                  edgeNumber, GrB_LOR));
     }
@@ -311,8 +311,8 @@ struct QueryInput : public BaseQueryInput {
     EdgeCollection replyOf;
     EdgeCollection hasTag;
     EdgeCollection hasMember;
-    PersonIsLocatedInCityEdgeCollection personIsLocatedInCity;
-    OrganizationIsLocatedInPlaceEdgeCollection organizationIsLocatedInPlaceEdgeCollection;
+    PersonIsLocatedInCityTranEdgeCollection personIsLocatedInCityTran;
+    OrganizationIsLocatedInPlaceTranEdgeCollection organizationIsLocatedInPlaceTran;
     EdgeCollection isPartOfTran;
     EdgeCollection workAtTran;
     EdgeCollection studyAtTran;
@@ -333,8 +333,8 @@ struct QueryInput : public BaseQueryInput {
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"},
-            personIsLocatedInCity{persons, places},
-            organizationIsLocatedInPlaceEdgeCollection{organizations, places},
+            personIsLocatedInCityTran{persons, places},
+            organizationIsLocatedInPlaceTran{organizations, places},
             isPartOfTran{parameters.CsvPath + "place_isPartOf_place.csv", true},
             workAtTran{parameters.CsvPath + "person_workAt_organisation.csv", true},
             studyAtTran{parameters.CsvPath + "person_studyAt_organisation.csv", true} {
@@ -349,8 +349,8 @@ struct QueryInput : public BaseQueryInput {
                 break;
             case 3:
                 vertexCollections = {places, tags, persons, organizations};
-                edgeCollections = {knows, hasInterestTran, personIsLocatedInCity,
-                                   organizationIsLocatedInPlaceEdgeCollection, isPartOfTran, workAtTran, studyAtTran};
+                edgeCollections = {knows, hasInterestTran, personIsLocatedInCityTran,
+                                   organizationIsLocatedInPlaceTran, isPartOfTran, workAtTran, studyAtTran};
                 break;
             case 4:
                 vertexCollections = {tags, forums, persons};
@@ -359,7 +359,7 @@ struct QueryInput : public BaseQueryInput {
             default:
                 vertexCollections = {places, tags, forums, persons, personsWithBirthdays, comments, organizations};
                 edgeCollections = {knows, hasInterestTran, hasCreator, hasCreatorTran, replyOf, hasTag, hasMember,
-                                   personIsLocatedInCity, organizationIsLocatedInPlaceEdgeCollection,
+                                   personIsLocatedInCityTran, organizationIsLocatedInPlaceTran,
                                    isPartOfTran, workAtTran, studyAtTran};
                 break;
         }

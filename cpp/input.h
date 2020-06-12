@@ -127,10 +127,10 @@ struct PersonIsLocatedInCityEdgeCollection : public EdgeCollection {
         trg = &places;
         edgeNumber = persons.size();
 
-        // convert person IDs to indices in comments
-        for (int comment_index = 0; comment_index < persons.size(); ++comment_index) {
-            ok(GrB_Vector_extractElement_UINT64(&persons.placeIndices[comment_index], places.idToIndex.get(),
-                                                persons.placeIndices[comment_index]));
+        // convert place IDs to indices in persons
+        for (int person_index = 0; person_index < persons.size(); ++person_index) {
+            ok(GrB_Vector_extractElement_UINT64(&persons.placeIndices[person_index], places.idToIndex.get(),
+                                                persons.placeIndices[person_index]));
         }
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());

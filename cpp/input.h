@@ -135,7 +135,7 @@ struct PersonIsLocatedInCityEdgeCollection : public EdgeCollection {
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
         ok(GrB_Matrix_build_BOOL(matrix.get(),
-                                 array_of_indices(persons.size()).get(), persons.placeIndices.data(),
+                                 array_of_indices(edgeNumber).get(), persons.placeIndices.data(),
                                  array_of_true(edgeNumber).get(),
                                  edgeNumber, GrB_LOR));
     }
@@ -208,7 +208,7 @@ struct HasCreatorEdgeCollection : public EdgeCollection {
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
         ok(GrB_Matrix_build_BOOL(matrix.get(),
-                                 array_of_indices(comments.size()).get(), comments.creatorPersonIndices.data(),
+                                 array_of_indices(edgeNumber).get(), comments.creatorPersonIndices.data(),
                                  array_of_true(edgeNumber).get(),
                                  edgeNumber, GrB_LOR));
     }
@@ -222,6 +222,79 @@ struct Forums : public VertexCollection<0> {
     }
 };
 
+struct Organizations : public VertexCollection<1> {
+    enum Type : unsigned char {
+        University, Company
+    };
+
+    using VertexCollection::VertexCollection;
+    /// loaded as IDs, later transformed to indices when Organization_IsLocatedIn_Place edge is loaded
+    std::vector<GrB_Index> placeIndices;
+    /// overwritten later when Organization_IsLocatedIn_Place edge is loaded
+    std::vector<Type> types;
+
+    std::vector<std::string> extraColumns() const override {
+        return {":END_ID(Place)"};
+    }
+
+    const char *getIdFieldName() const override {
+        return ":START_ID(Organisation)";
+    }
+
+    const char *getIdFieldPrefix() const override {
+        return ":START_ID(";
+    }
+
+    void importFile() override {
+        VertexCollection::importFile();
+
+        types.resize(size());
+    }
+
+    bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
+        GrB_Index place_id;
+        if (csv_reader.read_row(id, place_id)) {
+            placeIndices.push_back(place_id);
+            return true;
+        } else
+            return false;
+    }
+};
+
+struct OrganizationIsLocatedInPlaceEdgeCollection : public EdgeCollection {
+    Organizations &organizations;
+    Places const &places;
+
+    OrganizationIsLocatedInPlaceEdgeCollection(Organizations &organizations, Places const &places)
+            : EdgeCollection("", false), organizations(organizations), places(places) {}
+
+    void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
+        src = &organizations;
+        trg = &places;
+        edgeNumber = organizations.size();
+
+        // convert place IDs to indices in organizations
+        for (int organization_index = 0; organization_index < organizations.size(); ++organization_index) {
+            GrB_Index &place_index = organizations.placeIndices[organization_index];
+            ok(GrB_Vector_extractElement_UINT64(&place_index, places.idToIndex.get(), place_index));
+
+            // set Organization.type
+            Organizations::Type type;
+            if (places.types[place_index] == Places::Country)
+                type = Organizations::Company;
+            else
+                type = Organizations::University;
+            organizations.types[organization_index] = type;
+        }
+
+        matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
+        ok(GrB_Matrix_build_BOOL(matrix.get(),
+                                 array_of_indices(edgeNumber).get(), organizations.placeIndices.data(),
+                                 array_of_true(edgeNumber).get(),
+                                 edgeNumber, GrB_LOR));
+    }
+};
+
 struct QueryInput : public BaseQueryInput {
     Places places;
     Tags tags;
@@ -229,6 +302,7 @@ struct QueryInput : public BaseQueryInput {
     Persons persons;
     PersonsWithBirthdays personsWithBirthdays;
     Comments comments;
+    Organizations organizations;
 
     EdgeCollection knows;
     EdgeCollection hasInterestTran;
@@ -238,6 +312,7 @@ struct QueryInput : public BaseQueryInput {
     EdgeCollection hasTag;
     EdgeCollection hasMember;
     PersonIsLocatedInCityEdgeCollection personIsLocatedInCity;
+    OrganizationIsLocatedInPlaceEdgeCollection organizationIsLocatedInPlaceEdgeCollection;
 
     explicit QueryInput(const BenchmarkParameters &parameters) :
             places{parameters.CsvPath + "place.csv"},
@@ -246,6 +321,7 @@ struct QueryInput : public BaseQueryInput {
             persons{parameters.CsvPath + "person_isLocatedIn_place.csv"},
             personsWithBirthdays{parameters.CsvPath + "person.csv"},
             comments{parameters.CsvPath + "comment_hasCreator_person.csv"},
+            organizations{parameters.CsvPath + "organisation_isLocatedIn_place.csv"},
 
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
@@ -254,7 +330,8 @@ struct QueryInput : public BaseQueryInput {
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"},
-            personIsLocatedInCity{persons, places} {
+            personIsLocatedInCity{persons, places},
+            organizationIsLocatedInPlaceEdgeCollection{organizations, places} {
         switch (parameters.Query) {
             case 1:
                 vertexCollections = {comments, persons};
@@ -265,17 +342,18 @@ struct QueryInput : public BaseQueryInput {
                 edgeCollections = {knows, hasInterestTran};
                 break;
             case 3:
-                vertexCollections = {places, tags, persons};
-                edgeCollections = {knows, hasInterestTran, personIsLocatedInCity};
+                vertexCollections = {places, tags, persons, organizations};
+                edgeCollections = {knows, hasInterestTran, personIsLocatedInCity,
+                                   organizationIsLocatedInPlaceEdgeCollection};
                 break;
             case 4:
                 vertexCollections = {tags, forums, persons};
                 edgeCollections = {knows, hasTag, hasMember};
                 break;
             default:
-                vertexCollections = {places, tags, forums, persons, personsWithBirthdays, comments};
+                vertexCollections = {places, tags, forums, persons, personsWithBirthdays, comments, organizations};
                 edgeCollections = {knows, hasInterestTran, hasCreator, hasCreatorTran, replyOf, hasTag, hasMember,
-                                   personIsLocatedInCity};
+                                   personIsLocatedInCity, organizationIsLocatedInPlaceEdgeCollection};
                 break;
         }
 

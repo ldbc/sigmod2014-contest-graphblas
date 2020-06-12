@@ -91,7 +91,7 @@ public:
 struct Persons : public VertexCollection<1> {
     using VertexCollection::VertexCollection;
     /// loaded as IDs, later transformed to indices when Person_IsLocatedIn_City edge is loaded
-    std::vector<GrB_Index> placeIndices;
+    std::vector<GrB_Index> cityIndices;
 
     std::vector<std::string> extraColumns() const override {
         return {":END_ID(Place)"};
@@ -108,7 +108,7 @@ struct Persons : public VertexCollection<1> {
     bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
         GrB_Index place_id;
         if (csv_reader.read_row(id, place_id)) {
-            placeIndices.push_back(place_id);
+            cityIndices.push_back(place_id);
             return true;
         } else
             return false;
@@ -127,15 +127,15 @@ struct PersonIsLocatedInCityTranEdgeCollection : public EdgeCollection {
         src = &places;
         edgeNumber = persons.size();
 
-        // convert place IDs to indices in persons
+        // convert city IDs to indices in persons
         for (int person_index = 0; person_index < persons.size(); ++person_index) {
-            ok(GrB_Vector_extractElement_UINT64(&persons.placeIndices[person_index], places.idToIndex.get(),
-                                                persons.placeIndices[person_index]));
+            ok(GrB_Vector_extractElement_UINT64(&persons.cityIndices[person_index], places.idToIndex.get(),
+                                                persons.cityIndices[person_index]));
         }
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
         ok(GrB_Matrix_build_BOOL(matrix.get(),
-                                 persons.placeIndices.data(), array_of_indices(edgeNumber).get(),
+                                 persons.cityIndices.data(), array_of_indices(edgeNumber).get(),
                                  array_of_true(edgeNumber).get(),
                                  edgeNumber, GrB_LOR));
     }

@@ -4,16 +4,21 @@
 
 #include <vector>
 
-class Places : public VertexCollection<1> {
+class Places : public VertexCollection<2> {
     std::unique_ptr<GrB_Index[]> indicesSortedByNames;
 
 public:
+    enum Type : unsigned char {
+        Continent, Country, City
+    };
+
     using VertexCollection::VertexCollection;
 
     std::vector<std::string> names;
+    std::vector<Type> types;
 
     std::vector<std::string> extraColumns() const override {
-        return {"name"};
+        return {"name", ":LABEL"};
     }
 
     void importFile() override {
@@ -23,9 +28,23 @@ public:
     }
 
     bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
+        using namespace std::literals;
+
         std::string name;
-        if (csv_reader.read_row(id, name)) {
+        char type_str[9 + 1];
+        char *type_str_ptr = type_str;
+        if (csv_reader.read_row(id, name, type_str_ptr)) {
             names.push_back(std::move(name));
+
+            Type type;
+            if (type_str == "Continent"sv)
+                type = Continent;
+            else if (type_str == "Country"sv)
+                type = Country;
+            else
+                type = City;
+            types.push_back(type);
+
             return true;
         } else
             return false;

@@ -69,7 +69,7 @@ public:
     }
 };
 
-struct Persons : public VertexCollection<1> {
+struct PersonsWithBirthdays : public VertexCollection<1> {
     using VertexCollection::VertexCollection;
 
     std::vector<time_t> birthdays;
@@ -118,9 +118,9 @@ struct Comments : public VertexCollection<1> {
 
 struct HasCreatorEdgeCollection : public EdgeCollection {
     Comments &comments;
-    Persons const &persons;
+    PersonsWithBirthdays const &persons;
 
-    HasCreatorEdgeCollection(Comments &comments, Persons const &persons)
+    HasCreatorEdgeCollection(Comments &comments, PersonsWithBirthdays const &persons)
             : EdgeCollection("", false), comments(comments), persons(persons) {}
 
     void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
@@ -154,7 +154,7 @@ struct QueryInput : public BaseQueryInput {
     Places places;
     Tags tags;
     Forums forums;
-    Persons persons;
+    PersonsWithBirthdays personsWithBirthdays;
     Comments comments;
 
     EdgeCollection knows;
@@ -169,35 +169,35 @@ struct QueryInput : public BaseQueryInput {
             places{parameters.CsvPath + "place.csv"},
             tags{parameters.CsvPath + "tag.csv"},
             forums{parameters.CsvPath + "forum.csv"},
-            persons{parameters.CsvPath + "person.csv"},
+            personsWithBirthdays{parameters.CsvPath + "person.csv"},
             comments{parameters.CsvPath + "comment_hasCreator_person.csv"},
 
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
-            hasCreator{comments, persons},
+            hasCreator{comments, personsWithBirthdays},
             hasCreatorTran{hasCreator},
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"} {
         switch (parameters.Query) {
             case 1:
-                vertexCollections = {comments, persons};
+                vertexCollections = {comments, personsWithBirthdays};
                 edgeCollections = {knows, hasCreator, hasCreatorTran, replyOf};
                 break;
             case 2:
-                vertexCollections = {tags, persons};
+                vertexCollections = {tags, personsWithBirthdays};
                 edgeCollections = {knows, hasInterestTran};
                 break;
             case 3:
-                vertexCollections = {places, tags, persons};
+                vertexCollections = {places, tags, personsWithBirthdays};
                 edgeCollections = {knows, hasInterestTran};
                 break;
             case 4:
-                vertexCollections = {tags, forums, persons};
+                vertexCollections = {tags, forums, personsWithBirthdays};
                 edgeCollections = {knows, hasTag, hasMember};
                 break;
             default:
-                vertexCollections = {places, tags, forums, persons, comments};
+                vertexCollections = {places, tags, forums, personsWithBirthdays, comments};
                 edgeCollections = {knows, hasInterestTran, hasCreator, hasCreatorTran, replyOf, hasTag, hasMember};
                 break;
         }

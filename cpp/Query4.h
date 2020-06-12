@@ -28,7 +28,7 @@ class Query4 : public Query<int, std::string> {
                            input.hasTag.matrix.get(), GrB_ALL, 0,
                            tag_index, GrB_NULL));
         // hasMember
-        GBxx_Object<GrB_Vector> relevant_persons = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
+        GBxx_Object<GrB_Vector> relevant_persons = GB(GrB_Vector_new, GrB_BOOL, input.personsWithBirthdays.size());
         ok(GrB_vxm(relevant_persons.get(), GrB_NULL, GrB_NULL,
                    GxB_LOR_LAND_BOOL, relevant_forums.get(), input.hasMember.matrix.get(), GrB_NULL));
 
@@ -90,7 +90,7 @@ class Query4 : public Query<int, std::string> {
             
             GrB_Index person_local_index = cc_indices[i];
             GrB_Index person_index = relevant_person_indices[person_local_index];
-            uint64_t person_id = input.persons.vertexIds[person_index];
+            uint64_t person_id = input.personsWithBirthdays.vertexIds[person_index];
             
             person_scores.add({score, person_id});
         }

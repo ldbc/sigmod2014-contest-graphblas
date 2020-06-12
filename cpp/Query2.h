@@ -27,11 +27,11 @@ class Query2 : public Query<int, std::string> {
         ok(GxB_Scalar_setElement_INT64(birthday_limit.get(), parseTimestamp(birthday_limit_str.c_str(), DateFormat)));
 
         // mask of persons based on their birthdays
-        GBxx_Object<GrB_Vector> birthday_person_mask = GB(GrB_Vector_new, GB_TIME_T, input.persons.size());
+        GBxx_Object<GrB_Vector> birthday_person_mask = GB(GrB_Vector_new, GB_TIME_T, input.personsWithBirthdays.size());
         ok(GrB_Vector_build_INT64(birthday_person_mask.get(),
-                                  array_of_indices(input.persons.size()).get(),
-                                  input.persons.birthdays.data(),
-                                  input.persons.birthdays.size(),
+                                  array_of_indices(input.personsWithBirthdays.size()).get(),
+                                  input.personsWithBirthdays.birthdays.data(),
+                                  input.personsWithBirthdays.birthdays.size(),
                                   GrB_PLUS_INT64));
 
         ok(GxB_Vector_select(birthday_person_mask.get(), GrB_NULL, GrB_NULL,
@@ -53,7 +53,7 @@ class Query2 : public Query<int, std::string> {
 #pragma omp parallel num_threads(GlobalNThreads)
         {
             auto tag_scores_local = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
-            GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
+            GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input.personsWithBirthdays.size());
 
 #pragma omp for schedule(dynamic)
             for (int tag_index = 0; tag_index < input.tags.size(); ++tag_index) {

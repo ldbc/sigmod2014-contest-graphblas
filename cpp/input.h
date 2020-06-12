@@ -30,16 +30,14 @@ public:
     bool parseLine(CsvReaderT &csv_reader, GrB_Index &id) override {
         using namespace std::literals;
 
-        std::string name;
-        char type_str[9 + 1];
-        char *type_str_ptr = type_str;
-        if (csv_reader.read_row(id, name, type_str_ptr)) {
+        std::string name, type_str;
+        if (csv_reader.read_row(id, name, type_str)) {
             names.push_back(std::move(name));
 
             Type type;
-            if (type_str == "Continent"sv)
+            if (type_str == "Continent")
                 type = Continent;
-            else if (type_str == "Country"sv)
+            else if (type_str == "Country")
                 type = Country;
             else
                 type = City;
@@ -55,6 +53,21 @@ public:
         return findIndexByAttributeValue(name, names, indicesSortedByNames);
     }
 };
+
+inline constexpr Places::Type &operator++(Places::Type &val) {
+    switch (val) {
+        case Places::Continent:
+            val = Places::Country;
+            break;
+        case Places::Country:
+            val = Places::City;
+            break;
+        case Places::City:
+        default:
+            throw std::runtime_error("There is no next place.");
+    }
+    return val;
+}
 
 struct Tags : public VertexCollection<1> {
     std::unique_ptr<GrB_Index[]> indicesSortedByNames;

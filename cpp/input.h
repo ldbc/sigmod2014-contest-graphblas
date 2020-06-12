@@ -164,9 +164,9 @@ struct Comments : public VertexCollection<1> {
 
 struct HasCreatorEdgeCollection : public EdgeCollection {
     Comments &comments;
-    PersonsWithBirthdays const &persons;
+    Persons const &persons;
 
-    HasCreatorEdgeCollection(Comments &comments, PersonsWithBirthdays const &persons)
+    HasCreatorEdgeCollection(Comments &comments, Persons const &persons)
             : EdgeCollection("", false), comments(comments), persons(persons) {}
 
     void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
@@ -222,14 +222,14 @@ struct QueryInput : public BaseQueryInput {
 
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
-            hasCreator{comments, personsWithBirthdays},
+            hasCreator{comments, persons},
             hasCreatorTran{hasCreator},
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"} {
         switch (parameters.Query) {
             case 1:
-                vertexCollections = {comments, personsWithBirthdays};
+                vertexCollections = {comments, persons};
                 edgeCollections = {knows, hasCreator, hasCreatorTran, replyOf};
                 break;
             case 2:
@@ -237,11 +237,11 @@ struct QueryInput : public BaseQueryInput {
                 edgeCollections = {knows, hasInterestTran};
                 break;
             case 3:
-                vertexCollections = {places, tags, personsWithBirthdays};
+                vertexCollections = {places, tags, persons};
                 edgeCollections = {knows, hasInterestTran};
                 break;
             case 4:
-                vertexCollections = {tags, forums, personsWithBirthdays};
+                vertexCollections = {tags, forums, persons};
                 edgeCollections = {knows, hasTag, hasMember};
                 break;
             default:

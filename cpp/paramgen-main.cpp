@@ -26,7 +26,7 @@ class Query1ParamGen : public QueryParamGen {
 public:
     Query1ParamGen(QueryInput const &input, std::mt19937_64 &random_engine)
             : QueryParamGen(input, random_engine),
-              personDist(0, input.personsWithBirthdays.size() - 1), commentLowerLimitDist(-1, 3) {}
+              personDist(0, input.persons.size() - 1), commentLowerLimitDist(-1, 3) {}
 
     std::tuple<uint64_t, uint64_t, int> operator()() {
         int comment_lower_limit = commentLowerLimitDist(randomEngine);
@@ -37,8 +37,8 @@ public:
             p2_index = personDist(randomEngine);
         } while (p1_index == p2_index);
 
-        uint64_t p1_id = input.personsWithBirthdays.vertexIds[p1_index];
-        uint64_t p2_id = input.personsWithBirthdays.vertexIds[p2_index];
+        uint64_t p1_id = input.persons.vertexIds[p1_index];
+        uint64_t p2_id = input.persons.vertexIds[p2_index];
 
         return {p1_id, p2_id, comment_lower_limit};
     }

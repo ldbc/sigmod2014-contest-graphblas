@@ -71,10 +71,105 @@ class Query3 : public Query<int, int, std::string> {
     std::tuple<std::string, std::string> initial_calculation() override {
         auto relevant_persons = getRelevantPersons();
 
-        ok(GxB_Vector_fprint(relevant_persons.get(), "relevant_persons", GxB_SHORT, stdout));
+        // extract person indices
+        GrB_Index relevant_persons_nvals;
+        ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
+        std::vector<GrB_Index> relevant_persons_indices(relevant_persons_nvals);
+        {
+            GrB_Index nvals = relevant_persons_nvals;
+            ok(GrB_Vector_extractTuples_BOOL(relevant_persons_indices.data(), GrB_NULL, &nvals,
+                                             relevant_persons.get()));
+            assert(relevant_persons_nvals == nvals);
+        }
 
-        std::string result_str, comment_str;
-        return {result_str, comment_str};
+        // build diagonal matrix of relevant persons
+        auto persons_diag_mx = GB(GrB_Matrix_new, GrB_BOOL, input.persons.size(), input.persons.size());
+        ok(GrB_Matrix_build_BOOL(persons_diag_mx.get(),
+                                 relevant_persons_indices.data(), relevant_persons_indices.data(),
+                                 array_of_true(relevant_persons_nvals).get(), relevant_persons_nvals, GxB_PAIR_BOOL));
+
+        auto next_mx = GB(GrB_Matrix_dup, persons_diag_mx.get());
+        auto seen_mx = GB(GrB_Matrix_dup, next_mx.get());
+
+        // MSBFS from relevant persons
+        for (int i = 0; i < maximumHopCount; ++i) {
+            ok(GrB_mxm(next_mx.get(), seen_mx.get(), GrB_NULL, GxB_ANY_PAIR_BOOL, next_mx.get(),
+                       input.knows.matrix.get(), GrB_DESC_C));
+
+            GrB_Index next_mx_nvals;
+            ok(GrB_Matrix_nvals(&next_mx_nvals, next_mx.get()));
+            // if emptied the component
+            if (next_mx_nvals == 0)
+                break;
+
+            ok(GrB_Matrix_eWiseAdd_BinaryOp(seen_mx.get(), GrB_NULL, GrB_NULL,
+                                            GxB_PAIR_BOOL, seen_mx.get(), next_mx.get(), GrB_NULL));
+        }
+
+        // strictly lower triangular matrix is enough for reachable persons
+        // source persons were filtered at the beginning
+        // drop friends in different place
+        ok(GxB_Matrix_select(seen_mx.get(), GrB_NULL, GrB_NULL, GxB_OFFDIAG, seen_mx.get(), GrB_NULL, GrB_NULL));
+        ok(GxB_Matrix_select(seen_mx.get(), GrB_NULL, GrB_NULL, GxB_TRIL, seen_mx.get(), GrB_NULL, GrB_NULL));
+        ok(GrB_mxm(seen_mx.get(), GrB_NULL, GrB_NULL, GxB_ANY_PAIR_BOOL, seen_mx.get(), persons_diag_mx.get(),
+                   GrB_NULL));
+        auto h_reachable_knows_tril = std::move(seen_mx);
+
+        // calculate common interests between persons in h hop distance
+        auto common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(), input.persons.size());
+        ok(GrB_mxm(common_interests.get(), h_reachable_knows_tril.get(), GrB_NULL, GxB_PLUS_TIMES_INT64,
+                   input.hasInterestTran.matrix.get(), input.hasInterestTran.matrix.get(), GrB_DESC_ST0));
+
+        // extract result from matrix
+        GrB_Index common_interests_nvals;
+        ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+        std::vector<GrB_Index> common_interests_rows(common_interests_nvals),
+                common_interests_cols(common_interests_nvals);
+        std::vector<int64_t> common_interests_vals(common_interests_nvals);
+        {
+            GrB_Index nvals = common_interests_nvals;
+            ok(GrB_Matrix_extractTuples_INT64(common_interests_rows.data(), common_interests_cols.data(),
+                                              common_interests_vals.data(), &nvals, common_interests.get()));
+            assert(common_interests_nvals == nvals);
+        }
+
+        // define comparator for top scores
+        using score_type = std::tuple<int64_t, uint64_t, uint64_t>;
+        auto person_scores = makeSmallestElementsContainer<score_type>(topKLimit);
+
+        // collect top scores
+        for (size_t i = 0; i < common_interests_vals.size(); ++i) {
+            GrB_Index p1_index = common_interests_rows[i],
+                    p2_index = common_interests_cols[i];
+            int64_t score = common_interests_vals[i];
+
+            uint64_t p1_id = input.persons.vertexIds[p1_index];
+            uint64_t p2_id = input.persons.vertexIds[p2_index];
+            // put the smallest ID first
+            if (p1_id > p2_id)
+                std::swap(p1_id, p2_id);
+
+            person_scores.add({-score, p1_id, p2_id});
+        }
+
+        std::string result, comment;
+        bool firstIter = true;
+        for (auto[neg_score, p1_id, p2_id]: person_scores.removeElements()) {
+            if (firstIter)
+                firstIter = false;
+            else {
+                result += ' ';
+                comment += ' ';
+            }
+
+            result += std::to_string(p1_id);
+            result += '|';
+            result += std::to_string(p2_id);
+
+            comment += std::to_string(-neg_score);
+        }
+
+        return {result, comment};
     }
 
 public:

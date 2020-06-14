@@ -85,6 +85,7 @@ void fun_sum_popcount(void *z, const void *x) {
 }
 
 GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
+
     GrB_Matrix frontier = NULL, next = NULL, seen = NULL, Seen_PopCount = NULL ;
 
     GrB_Matrix Next_PopCount;
@@ -133,6 +134,21 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
     // initialize
 
+
+    bool push = true; // TODO: add heuristic
+    //Heuristic
+    float threshold = 0.015;
+    GrB_Index frontier_nvals, matrix_nrows, source_nrows;
+    ok(GrB_Matrix_nvals(&frontier_nvals,frontier));
+    ok(GrB_Matrix_nrows(&matrix_nrows,A));
+    //This should be the amount of bfs traversals, but since we traverse from all
+    //nodes, this equals A.nrows
+    ok(GrB_Matrix_nrows(&source_nrows,A));
+    float r,r_before;
+    r_before = (float)frontier_nvals / (float)(matrix_nrows * source_nrows);
+
+
+
     // traversal
     for (GrB_Index level = 1; level < n; level++) {
 //        printf("========================= Level %2ld =========================\n\n", level);
@@ -140,7 +156,6 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
         ok(GrB_Vector_eWiseAdd_BinaryOp(level_v, NULL, NULL, GrB_PLUS_UINT64, level_v, ones, NULL));
 
         // next = frontier * A
-        bool push = true; // TODO: add heuristic
         if (push) {
             ok(GrB_vxm((GrB_Vector)next, NULL, NULL, BOR_FIRST, (GrB_Vector)frontier, A, NULL)); // TODO: remove incorrect pointer casts
         } else {
@@ -174,10 +189,12 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
          */
 
         ok(GrB_Matrix_apply(next, next, GrB_BAND_UINT64, GrB_BNOT_UINT64, seen, NULL));
-
+        ok(GxB_Matrix_select(next, GrB_NULL, GrB_NULL, GxB_NONZERO, next, GrB_NULL, GrB_NULL));
         GrB_Index next_nvals;
         ok(GrB_Matrix_nvals(&next_nvals, next));
-        if (next == 0) {
+
+
+        if (next_nvals == 0) {
 //            printf("no new vertices found\n");
             break;
         }
@@ -198,6 +215,20 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
         // frontier = next
         ok(GrB_Matrix_dup(&frontier, next));
+
+        //Heuristic
+        ok(GrB_Matrix_nvals(&frontier_nvals,frontier));
+        r = (float)frontier_nvals / (float)(matrix_nrows * source_nrows);
+        
+        if(r > r_before && r > threshold){
+            push = false;
+        }
+
+        if(r < r_before && r < threshold){
+            push = true;
+        }
+
+        r_before = r;
     }
     // compsize = reduce(seen, row -> popcount(row))
     ok(GrB_Matrix_apply(Seen_PopCount, NULL, NULL, op_popcount, seen, NULL));

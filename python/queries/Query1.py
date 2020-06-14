@@ -83,6 +83,104 @@ class Query1(QueryBase):
         log.info(f'Query took: {query_end - query_start} second')
         return result
 
+    # Optimized version: do not create overlay graph but investigate investigate KNOWS edges on-the-fly.
+    def step_frontier(self, frontier, seen, numpersons):
+        frontierPersonIndices = frontier.to_lists()[0]
+        hasCreatorTransposed = self.hasCreator.transpose()
+        replyOfTransposed = self.replyOf.transpose()
+
+        # # bad and ugly
+        # sel = Matrix.from_lists(frontierPersonIndices, frontierPersonIndices, [1]*len(frontierPersonIndices), numpersons, numpersons)
+        # if num_of_interactions >= 0:
+        #     FreqComm1 = sel.mxm(knows).mxm(hasCreatorTransposed).mxm(replyOf          ).mxm(hasCreator, mask=knows).select(lib.GxB_GT_THUNK, num_of_interactions)
+        #     FreqComm2 = sel.mxm(knows).mxm(hasCreatorTransposed).mxm(replyOfTransposed).mxm(hasCreator, mask=knows).select(lib.GxB_GT_THUNK, num_of_interactions)
+        #     FreqComm = FreqComm1*FreqComm2
+        #     FreqComm = FreqComm.transpose()
+        #     next = FreqComm.reduce_vector().pattern()
+        # else:
+        #     next = frontier.vxm(knows)
+
+        # good
+        sel = Matrix.from_lists(frontierPersonIndices, frontierPersonIndices, [1] * len(frontierPersonIndices),
+                                numpersons, numpersons)
+        if self.num_of_interactions >= 0:
+            FreqComm1 = sel.mxm(hasCreatorTransposed).mxm(self.replyOf).mxm(self.hasCreator, mask=self.knows).select(lib.GxB_GT_THUNK,
+                                                                                                      self.num_of_interactions)
+            FreqComm2 = sel.mxm(hasCreatorTransposed).mxm(replyOfTransposed).mxm(self.hasCreator, mask=self.knows).select(
+                lib.GxB_GT_THUNK, self.num_of_interactions)
+            FreqComm = FreqComm1 * FreqComm2
+            FreqComm = FreqComm.transpose()
+            next = FreqComm.reduce_vector().pattern()
+        else:
+            next = frontier.vxm(self.knows)
+
+        # print(next, next.type)
+        # print(next.to_string())
+
+        return next
+
+    def shortest_distance_over_frequent_communication_paths_opt(self, params):
+
+        self.person1_id = params[0]
+        self.person2_id = params[1]
+        self.num_of_interactions = params[2]
+
+        if self.person is None:
+            # Load vertices and edges
+            load_start = timer()
+            self.person = self.loader.load_vertex('person')
+            self.comment = self.loader.load_vertex('comment')
+            self.replyOf = self.loader.load_edge('replyOf', self.comment, self.comment)
+            self.knows = self.loader.load_edge('knows', self.person, self.person)
+            self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
+            load_end = timer()
+            self.load_time = load_end - load_start
+            log.info(f'Loading took: {self.load_time} seconds')
+
+        # Run query
+        query_start = timer()
+        person1_id_remapped = self.person.id2index[self.person1_id]
+        person2_id_remapped = self.person.id2index[self.person2_id]
+
+        numpersons = len(self.person.id2index)
+        frontier1 = Vector.from_lists([person1_id_remapped], [True], numpersons)
+        frontier2 = Vector.from_lists([person2_id_remapped], [True], numpersons)
+        seen1 = frontier1
+        seen2 = frontier2
+
+        for level in range(1, numpersons // 2):
+            # print("===== " + str(level) + " =====")
+            # print("frontier persons: " + str(frontierPersonIndices))
+
+            # frontier 1
+            next1 = self.step_frontier(frontier1, seen1, numpersons)
+
+            # emptied the component of person1
+            if next1.nvals == 0:
+                return -1
+            # has frontier1 intersected frontier2's previous state?
+            intersection1 = next1 * seen2
+            if intersection1.nvals > 0:
+                return level * 2 - 1
+
+            # frontier 2
+            next2 = self.step_frontier(frontier2, seen2, numpersons)
+
+            # emptied the component of person2
+            if next2.nvals == 0:
+                return -1
+            # do frontier1 and frontier2's current states intersect?
+            intersection2 = next1 * next2
+            if intersection2.nvals > 0:
+                return level * 2
+
+            # step the frontiers
+            seen1 = seen1 + next1
+            frontier1 = next1
+
+            seen2 = seen2 + next2
+            frontier2 = next2
+
     def format_result_string(self, result):
         return int(result.split('%')[0])
 

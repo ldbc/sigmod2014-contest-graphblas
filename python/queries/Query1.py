@@ -157,10 +157,17 @@ class Query1(QueryBase):
 
             # emptied the component of person1
             if next1.nvals == 0:
+                query_end = timer()
+                self.test_execution_times.append(query_end - query_start)
+                log.info(f'Query took: {query_end - query_start} second')
                 return -1
             # has frontier1 intersected frontier2's previous state?
-            intersection1 = next1 * seen2
+            #intersection1 = next1 * seen2
+            intersection1 = next1 * frontier2
             if intersection1.nvals > 0:
+                query_end = timer()
+                self.test_execution_times.append(query_end - query_start)
+                log.info(f'Query took: {query_end - query_start} second')
                 return level * 2 - 1
 
             # frontier 2
@@ -168,10 +175,16 @@ class Query1(QueryBase):
 
             # emptied the component of person2
             if next2.nvals == 0:
+                query_end = timer()
+                self.test_execution_times.append(query_end - query_start)
+                log.info(f'Query took: {query_end - query_start} second')
                 return -1
             # do frontier1 and frontier2's current states intersect?
             intersection2 = next1 * next2
             if intersection2.nvals > 0:
+                query_end = timer()
+                self.test_execution_times.append(query_end - query_start)
+                log.info(f'Query took: {query_end - query_start} second')
                 return level * 2
 
             # step the frontiers

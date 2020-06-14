@@ -28,13 +28,13 @@ class QueryBase(ABC):
     def format_result_string(self, result):
         pass
 
-    def run_tests(self):
+    def run_tests(self, query_implementation):
         # To run the tests of Q1 and Q4 with different search methods,
         # change the default parameter in their execute_query function
         all_tests = 0
         failed_tests = 0
         for test in self.tests:
-            result = self.execute_query(test.inputs)
+            result = query_implementation(test.inputs)
             test = test._replace(expected_result=self.format_result_string(test.expected_result))
             if result == test.expected_result:
                 log.info(f'Result: {result}')

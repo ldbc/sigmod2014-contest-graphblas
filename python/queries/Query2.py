@@ -35,22 +35,24 @@ class Query2(QueryBase):
         self.personBirthdays = None
         self.tagNames = None
 
+    def load_data(self):
+        load_start = timer()
+        self.person = self.loader.load_vertex('person')
+        self.tag = self.loader.load_vertex('tag')
+        self.hasInterest = self.loader.load_edge('hasInterest', self.person, self.tag)
+        self.knows = self.loader.load_edge('knows', self.person, self.person)
+        self.hasInterest_tran_mx = self.hasInterest.transpose()
+        self.personBirthdays = self.loader.load_extra_columns('person', ['birthday'])
+        self.tagNames = self.loader.load_extra_columns('tag', ['name'])
+        load_end = timer()
+        self.load_time = load_end - load_start
+
     def execute_query(self, params):
         self.top_k = params[0]
         self.birthday_limit = params[1]
 
         if self.person is None:
-            # Load vertices and edges
-            load_start = timer()
-            self.person = self.loader.load_vertex('person')
-            self.tag = self.loader.load_vertex('tag')
-            self.hasInterest = self.loader.load_edge('hasInterest', self.person, self.tag)
-            self.knows = self.loader.load_edge('knows', self.person, self.person)
-            self.hasInterest_tran_mx = self.hasInterest.transpose()
-            self.personBirthdays = self.loader.load_extra_columns('person', ['birthday'])
-            self.tagNames = self.loader.load_extra_columns('tag', ['name'])
-            load_end = timer()
-            self.load_time = load_end - load_start
+            self.load_data()
 
         # Run query
         query_start = timer()

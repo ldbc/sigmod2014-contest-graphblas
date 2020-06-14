@@ -25,6 +25,10 @@ class QueryBase(ABC):
         pass
 
     @abstractmethod
+    def load_data(self):
+        pass
+
+    @abstractmethod
     def format_result_string(self, result):
         pass
 

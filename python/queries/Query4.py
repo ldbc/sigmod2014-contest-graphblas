@@ -33,23 +33,25 @@ class Query4(QueryBase):
         self.hasTag = None
         self.hasMember = None
 
+    def load_data(self):
+        load_start = timer()
+        self.person = self.loader.load_vertex('person')
+        self.forum = self.loader.load_vertex('forum')
+        self.tag = self.loader.load_vertex('tag')
+        self.tagNames = self.loader.load_extra_columns('tag', ['name'])
+        self.knows = self.loader.load_edge('knows', self.person, self.person)
+        self.hasTag = self.loader.load_edge('hasTag', self.forum, self.tag)
+        self.hasMember = self.loader.load_edge('hasMember', self.forum, self.person)
+
+        load_end = timer()
+        self.load_time = load_end - load_start
+        log.info(f'Loading took {self.load_time} seconds')
+
     def execute_query(self, params, search_method=push_pull_msbfs_levels):
         self.k = params[0]
         self.t = params[1]
         if self.person is None:
-            # Load vertices and edges
-            load_start = timer()
-            self.person = self.loader.load_vertex('person')
-            self.forum = self.loader.load_vertex('forum')
-            self.tag = self.loader.load_vertex('tag')
-            self.tagNames = self.loader.load_extra_columns('tag', ['name'])
-            self.knows = self.loader.load_edge('knows', self.person, self.person)
-            self.hasTag = self.loader.load_edge('hasTag', self.forum, self.tag)
-            self.hasMember = self.loader.load_edge('hasMember', self.forum, self.person)
-
-            load_end = timer()
-            self.load_time = load_end - load_start
-            log.info(f'Loading took {self.load_time} seconds')
+            self.load_data()
 
         # Run query
         query_start = timer()

@@ -38,32 +38,34 @@ class Query3(QueryBase):
         self.knows = None
         self.hasInterest = None
 
+    def load_data(self):
+        load_start = timer()
+        self.person = self.loader.load_vertex('person')
+        self.place = self.loader.load_vertex('place')
+        self.organisation = self.loader.load_vertex('organisation')
+        self.tag = self.loader.load_vertex('tag')
+
+        self.placeNames = self.loader.load_extra_columns('place', ['name'])
+
+        self.isPartOf = self.loader.load_edge('isPartOf', self.place, self.place)
+        self.personIsLocatedIn = self.loader.load_edge('isLocatedIn', self.person, self.place)
+        self.organisationIsLocatedIn = self.loader.load_edge('isLocatedIn', self.organisation, self.place)
+        self.workAt = self.loader.load_edge('workAt', self.person, self.organisation)
+        self.studyAt = self.loader.load_edge('studyAt', self.person, self.organisation)
+        self.knows = self.loader.load_edge('knows', self.person, self.person)
+        self.hasInterest = self.loader.load_edge('hasInterest', self.person, self.tag)
+
+        load_end = timer()
+        self.load_time = load_end - load_start
+        log.info(f'Loading took {self.load_time} seconds')
+
     def execute_query(self, params):
         self.k = params[0]
         self.h = params[1]
         self.p = params[2]
 
         if self.person is None:
-            # Load vertices and edges
-            load_start = timer()
-            self.person = self.loader.load_vertex('person')
-            self.place = self.loader.load_vertex('place')
-            self.organisation = self.loader.load_vertex('organisation')
-            self.tag = self.loader.load_vertex('tag')
-
-            self.placeNames = self.loader.load_extra_columns('place', ['name'])
-
-            self.isPartOf = self.loader.load_edge('isPartOf', self.place, self.place)
-            self.personIsLocatedIn = self.loader.load_edge('isLocatedIn', self.person, self.place)
-            self.organisationIsLocatedIn = self.loader.load_edge('isLocatedIn', self.organisation, self.place)
-            self.workAt = self.loader.load_edge('workAt', self.person, self.organisation)
-            self.studyAt = self.loader.load_edge('studyAt', self.person, self.organisation)
-            self.knows = self.loader.load_edge('knows', self.person, self.person)
-            self.hasInterest = self.loader.load_edge('hasInterest', self.person, self.tag)
-
-            load_end = timer()
-            self.load_time = load_end - load_start
-            log.info(f'Loading took {self.load_time} seconds')
+            self.load_data()
 
         # Run query
         query_start = timer()

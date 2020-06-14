@@ -30,6 +30,17 @@ class Query1(QueryBase):
         self.knows = None
         self.hasCreator = None
 
+    def load_data(self):
+        load_start = timer()
+        self.person = self.loader.load_vertex('person')
+        self.comment = self.loader.load_vertex('comment')
+        self.replyOf = self.loader.load_edge('replyOf', self.comment, self.comment)
+        self.knows = self.loader.load_edge('knows', self.person, self.person)
+        self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
+        load_end = timer()
+        self.load_time = load_end - load_start
+        log.info(f'Loading took: {self.load_time} seconds')
+
     def execute_query(self, params, search_method=push_pull_bfs_levels):
 
         self.person1_id = params[0]
@@ -37,16 +48,7 @@ class Query1(QueryBase):
         self.num_of_interactions = params[2]
 
         if self.person is None:
-            # Load vertices and edges
-            load_start = timer()
-            self.person = self.loader.load_vertex('person')
-            self.comment = self.loader.load_vertex('comment')
-            self.replyOf = self.loader.load_edge('replyOf', self.comment, self.comment)
-            self.knows = self.loader.load_edge('knows', self.person, self.person)
-            self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
-            load_end = timer()
-            self.load_time = load_end - load_start
-            log.info(f'Loading took: {self.load_time} seconds')
+            self.load_data()
 
         # Run query
         query_start = timer()

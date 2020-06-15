@@ -1,5 +1,6 @@
 .idea
 *.zip
+/results-*/
 
 # https://github.com/github/gitignore/blob/80587386dd48334c304819abcc4a09877cf99e21/Global/JetBrains.gitignore
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider

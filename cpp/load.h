@@ -19,13 +19,22 @@ std::tuple<std::ifstream, std::vector<std::string>, std::string> openFileWithHea
 
 std::string parseHeaderField(std::string const &field, char const *prefix, char const *postfix);
 
-struct BaseVertexCollection {
+class BaseVertexCollection {
+protected:
+    GBxx_Object<GrB_Vector> idToIndexVec;
+
+public:
     std::string vertexName;
     std::vector<GrB_Index> vertexIds;
-    GBxx_Object<GrB_Vector> idToIndex;
 
     GrB_Index size() const {
         return vertexIds.size();
+    }
+
+    GrB_Index idToIndex(GrB_Index id) const {
+        GrB_Index index;
+        ok(GrB_Vector_extractElement_UINT64(&index, idToIndexVec.get(), id));
+        return index;
     }
 
     virtual void importFile() = 0;
@@ -125,7 +134,7 @@ public:
 
         GrB_Vector id_to_index_ptr = nullptr;
         ok(LAGraph_dense_relabel(GrB_NULL, GrB_NULL, &id_to_index_ptr, vertexIds.data(), size(), GrB_NULL));
-        idToIndex.reset(id_to_index_ptr);
+        idToIndexVec.reset(id_to_index_ptr);
     }
 };
 
@@ -165,9 +174,8 @@ struct EdgeCollection {
         std::vector<GrB_Index> src_indices, trg_indices;
         uint64_t src_id, trg_id;
         while (csv_reader.read_row(src_id, trg_id)) {
-            GrB_Index src_index, trg_index;
-            ok(GrB_Vector_extractElement_UINT64(&src_index, src->idToIndex.get(), src_id));
-            ok(GrB_Vector_extractElement_UINT64(&trg_index, trg->idToIndex.get(), trg_id));
+            GrB_Index src_index = src->idToIndex(src_id),
+                    trg_index = trg->idToIndex(trg_id);
 
             src_indices.push_back(src_index);
             trg_indices.push_back(trg_index);

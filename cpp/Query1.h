@@ -79,7 +79,7 @@ public:
 
         std::tie(p1_id, p2_id, comment_lower_limit) = queryParams;
 
-        ok(GrB_Vector_extractElement_UINT64(&p1, input.persons.idToIndex.get(), p1_id));
-        ok(GrB_Vector_extractElement_UINT64(&p2, input.persons.idToIndex.get(), p2_id));
+        p1 = input.persons.idToIndex(p1_id);
+        p2 = input.persons.idToIndex(p2_id);
     }
 };

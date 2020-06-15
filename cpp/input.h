@@ -142,8 +142,8 @@ struct PersonIsLocatedInCityTranEdgeCollection : public EdgeCollection {
 
         // convert city IDs to indices in persons
         for (int person_index = 0; person_index < persons.size(); ++person_index) {
-            ok(GrB_Vector_extractElement_UINT64(&persons.cityIndices[person_index], places.idToIndex.get(),
-                                                persons.cityIndices[person_index]));
+            GrB_Index &city_index = persons.cityIndices[person_index];
+            city_index = places.idToIndex(city_index);
         }
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
@@ -215,8 +215,8 @@ struct HasCreatorEdgeCollection : public EdgeCollection {
 
         // convert person IDs to indices in comments
         for (int comment_index = 0; comment_index < comments.size(); ++comment_index) {
-            ok(GrB_Vector_extractElement_UINT64(&comments.creatorPersonIndices[comment_index], persons.idToIndex.get(),
-                                                comments.creatorPersonIndices[comment_index]));
+            GrB_Index &person_index = comments.creatorPersonIndices[comment_index];
+            person_index = persons.idToIndex(person_index);
         }
 
         matrix = GB(GrB_Matrix_new, GrB_BOOL, src->size(), trg->size());
@@ -289,7 +289,7 @@ struct OrganizationIsLocatedInPlaceTranEdgeCollection : public EdgeCollection {
         // convert place IDs to indices in organizations
         for (int organization_index = 0; organization_index < organizations.size(); ++organization_index) {
             GrB_Index &place_index = organizations.placeIndices[organization_index];
-            ok(GrB_Vector_extractElement_UINT64(&place_index, places.idToIndex.get(), place_index));
+            place_index = places.idToIndex(place_index);
 
             // set Organization.type
             Organizations::Type type;

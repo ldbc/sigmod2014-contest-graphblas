@@ -65,3 +65,17 @@ To generate query parameters, set `$ParamsPath`, then run:
 # running it with default values is the same as:
 CsvPath=../../csvs/o1k/ ParamsPath=../../params/o1k/ ./paramgen
 ```
+
+Generate all:
+```bash
+export CSVS_BASE_FOLDER=csvs/
+export PARAMS_BASE_FOLDER=params/
+
+CsvPath=$CSVS_BASE_FOLDER/o1k/ ParamsPath=$PARAMS_BASE_FOLDER/o1k/ cpp/cmake-build-release/paramgen
+CsvPath=$CSVS_BASE_FOLDER/o10k/ ParamsPath=$PARAMS_BASE_FOLDER/o10k/ cpp/cmake-build-release/paramgen
+
+CsvPath=$CSVS_BASE_FOLDER/p1k/ ParamsPath=$PARAMS_BASE_FOLDER/p1k/ cpp/cmake-build-release/paramgen
+CsvPath=$CSVS_BASE_FOLDER/p10k/ ParamsPath=$PARAMS_BASE_FOLDER/p10k/ cpp/cmake-build-release/paramgen
+CsvPath=$CSVS_BASE_FOLDER/p100k/ ParamsPath=$PARAMS_BASE_FOLDER/p100k/ cpp/cmake-build-release/paramgen
+CsvPath=$CSVS_BASE_FOLDER/p1000k/ ParamsPath=$PARAMS_BASE_FOLDER/p1000k/ cpp/cmake-build-release/paramgen
+```

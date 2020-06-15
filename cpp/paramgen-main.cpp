@@ -139,6 +139,7 @@ int main(int argc, char **argv) {
     const std::string file_prefix = "query";
     const std::string csv_extension = ".csv";
     const std::string txt_extension = ".txt";
+    const std::string csv_separator = "|";
     const std::string txt_separator = ", ";
 
     std::vector<std::unique_ptr<QueryParamGen>> param_generators;
@@ -155,8 +156,8 @@ int main(int argc, char **argv) {
 
         std::vector<std::unique_ptr<Printer>> printers;
         printers.reserve(2);
-        printers.emplace_back(std::make_unique<Printer>(common_path + csv_extension));
-        printers.emplace_back(std::make_unique<Printer>(common_path + txt_extension, "query" + query_number + "(", ")", txt_separator));        
+        printers.emplace_back(std::make_unique<Printer>(common_path + csv_extension, "", "", csv_separator));
+        printers.emplace_back(std::make_unique<Printer>(common_path + txt_extension, "query" + query_number + "(", ")", txt_separator));
 
         for (int i = 0; i < 100; ++i) {
             param_generators[generator_idx]->printTo(printers);

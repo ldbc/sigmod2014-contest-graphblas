@@ -59,7 +59,7 @@ do
 
   head -n $PARAMS_NUMBER "$PARAMS_PATH" | while IFS= read -r line
   do
-    PARAMS="${line//,/ }"
+    PARAMS="${line//|/ }"
     COMMAND=("$TOOL" "$CSVS_BASE_FOLDER/$SIZE/" PARAM $i $PARAMS)
 
     echo Run query$i: "${COMMAND[@]}" | tee -a "$LOG_PATH"

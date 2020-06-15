@@ -78,6 +78,12 @@ ITERATION_COUNT=1 QUERIES=1,2,3,4 scripts/run.sh "«TOOL1_PATH» «TOOL2_PATH».
 
 Parameters: paths of tools, sizes, CSVs folder.
 
+### Archive results before new measurements
+
+```bash
+cp -r results/* results-old/ && rm -rf results/*k
+```
+
 ## Experiments with Neo4j
 
 See [instructions on how to experiment with Neo4j](neo4j.md).

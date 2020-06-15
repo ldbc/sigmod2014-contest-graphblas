@@ -135,11 +135,11 @@ class Query3(QueryBase):
         return -triple[2], person1_id, person2_id
 
     def RelevantPeopleInPlaceMatrix(self, placeName):
-        placeID = self.placeNames.index(placeName)
+        placeIndex = self.placeNames.index(placeName)
         # Relevant places
         isPartOfTransposed = self.isPartOf.transpose()
         placeVector = Vector.from_type(BOOL, isPartOfTransposed.nrows)
-        placeVector[placeID] = True
+        placeVector[placeIndex] = True
         relevantPlacesVector = placeVector + placeVector.vxm(isPartOfTransposed) + placeVector.vxm(
             isPartOfTransposed).vxm(isPartOfTransposed)
         # People located in the given place

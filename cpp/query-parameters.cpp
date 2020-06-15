@@ -129,6 +129,9 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
             query3(7, 6, "Ankara", R"(891|898 890|891 890|895 890|898 890|902 891|895 891|902 % common interest counts 1 0 0 0 0 0 0)"),
             query3(3, 2, "Luoyang", R"(565|625 653|726 565|653 % common interest counts 2 1 0)"),
             query3(4, 3, "Taiwan", R"(795|798 797|798 567|795 567|796 % common interest counts 1 1 0 0)"),
+            query3(4, 3, "Brazil", R"(29|31 29|38 29|39 29|59 % common interest counts 1 1 1 1)"),
+            query3(9, 8, "Vietnam", R"(404|978 404|979 404|980 404|983 404|984 404|985 404|987 404|990 404|992 % common interest counts 1 1 1 1 1 1 1 1 1)"),
+            query3(5, 4, "Australia", R"(8|16 8|17 8|18 8|19 8|163 % common interest counts 0 0 0 0 0)"),
 
             query4(3, "Bill_Clinton", R"(385 492 819 % centrality values 0.5290135396518375 0.5259615384615384 0.5249520153550864)"),
             query4(4, "Napoleon", R"(722 530 366 316 % centrality values 0.5411255411255411 0.5405405405405406 0.5387931034482758 0.5382131324004306)"),

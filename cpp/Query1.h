@@ -25,8 +25,8 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
         GBxx_Object<GrB_Matrix> personAToComment2 = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),
                                                        input.comments.size());
 
-        ok(GrB_mxm(personAToComment2.get(), GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, input.hasCreatorTran.matrix.get(),
-                   input.replyOf.matrix.get(), GrB_NULL));
+        ok(GrB_mxm(personAToComment2.get(), GrB_NULL, GrB_NULL, GxB_PLUS_TIMES_INT64, input.hasCreator.matrix.get(),
+                   input.replyOf.matrix.get(), GrB_DESC_T0));
         // ok(GxB_Matrix_fprint(personAToComment2.get(), "personAToComment2", GxB_SUMMARY, stdout));
 
         GBxx_Object<GrB_Matrix> personToPerson = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),

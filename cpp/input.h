@@ -320,7 +320,6 @@ struct QueryInput : public BaseQueryInput {
     EdgeCollection knows;
     EdgeCollection hasInterestTran;
     HasCreatorEdgeCollection hasCreator;
-    TransposedEdgeCollection hasCreatorTran;
     EdgeCollection replyOf;
     EdgeCollection hasTag;
     EdgeCollection hasMember;
@@ -342,7 +341,6 @@ struct QueryInput : public BaseQueryInput {
             knows{parameters.CsvPath + "person_knows_person.csv"},
             hasInterestTran{parameters.CsvPath + "person_hasInterest_tag.csv", true},
             hasCreator{comments, persons},
-            hasCreatorTran{hasCreator},
             replyOf{parameters.CsvPath + "comment_replyOf_comment.csv"},
             hasTag{parameters.CsvPath + "forum_hasTag_tag.csv"},
             hasMember{parameters.CsvPath + "forum_hasMember_person.csv"},
@@ -354,7 +352,7 @@ struct QueryInput : public BaseQueryInput {
         switch (parameters.Query) {
             case 1:
                 vertexCollections = {comments, persons};
-                edgeCollections = {knows, hasCreator, hasCreatorTran, replyOf};
+                edgeCollections = {knows, hasCreator, replyOf};
                 break;
             case 2:
                 vertexCollections = {tags, personsWithBirthdays};
@@ -371,7 +369,7 @@ struct QueryInput : public BaseQueryInput {
                 break;
             default:
                 vertexCollections = {places, tags, forums, persons, personsWithBirthdays, comments, organizations};
-                edgeCollections = {knows, hasInterestTran, hasCreator, hasCreatorTran, replyOf, hasTag, hasMember,
+                edgeCollections = {knows, hasInterestTran, hasCreator, replyOf, hasTag, hasMember,
                                    personIsLocatedInCityTran, organizationIsLocatedInPlaceTran,
                                    isPartOfTran, workAtTran, studyAtTran};
                 break;

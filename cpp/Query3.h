@@ -74,6 +74,9 @@ class Query3 : public Query<int, int, std::string> {
         // extract person indices
         GrB_Index relevant_persons_nvals;
         ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
+        if(relevant_persons_nvals == 0)
+            return {"", "Nobody lives/studies/works there."};
+
         std::vector<GrB_Index> relevant_persons_indices(relevant_persons_nvals);
         {
             GrB_Index nvals = relevant_persons_nvals;

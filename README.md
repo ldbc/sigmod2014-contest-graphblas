@@ -78,10 +78,20 @@ ITERATION_COUNT=1 QUERIES=1,2,3,4 scripts/run.sh "«TOOL1_PATH» «TOOL2_PATH».
 
 Parameters: paths of tools, sizes, CSVs folder.
 
-### Archive results before new measurements
+### Useful commands
+
+#### Archive results before new measurements
 
 ```bash
 cp -r results/* results-old/ && rm -rf results/*k
+```
+
+#### Shutdown machine if process finishes
+
+Replace `«PID»` and remove `#` before running.
+
+```bash
+sudo bash -c 'while [[ -d /proc/«PID» ]]; do date; sleep 60; done; echo SHUTDOWN!; #poweroff'
 ```
 
 ## Experiments with Neo4j

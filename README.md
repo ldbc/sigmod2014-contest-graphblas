@@ -99,7 +99,7 @@ sudo bash -c 'while [[ -d /proc/«PID» ]]; do date; sleep 60; done; echo SHUTDO
 Having only a single measurement per tool (compiled with `-DPRINT_RESULTS=1`), run the following:
 
 ```bash
-SIZE=p1k TOOL1=blxlrsmb TOOL2=AWFY bash -c 'diff <(cut -d, -f6 results/$SIZE/$TOOL1/*.csv) <(cut -d, -f6 results/$SIZE/$TOOL2/*.csv)'
+SIZE=p1k TOOL1=blxlrsmb TOOL2=AWFY bash -c 'diff <(cut -d, -f3,6 results/$SIZE/$TOOL1/*.csv) <(cut -d, -f3,6 results/$SIZE/$TOOL2/*.csv)'
 ```
 
 ## Experiments with Neo4j

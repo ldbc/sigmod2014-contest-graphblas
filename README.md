@@ -94,6 +94,14 @@ Replace `«PID»` and remove `#` before running.
 sudo bash -c 'while [[ -d /proc/«PID» ]]; do date; sleep 60; done; echo SHUTDOWN!; #poweroff'
 ```
 
+#### Compare results
+
+Having only a single measurement per tool (compiled with `-DPRINT_RESULTS=1`), run the following:
+
+```bash
+SIZE=p1k TOOL1=blxlrsmb TOOL2=AWFY bash -c 'diff <(cut -d, -f6 results/$SIZE/$TOOL1/*.csv) <(cut -d, -f6 results/$SIZE/$TOOL2/*.csv)'
+```
+
 ## Experiments with Neo4j
 
 See [instructions on how to experiment with Neo4j](neo4j.md).

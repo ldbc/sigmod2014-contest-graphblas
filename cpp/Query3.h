@@ -97,7 +97,7 @@ class Query3 : public Query<int, int, std::string> {
         // MSBFS from relevant persons
         for (int i = 0; i < maximumHopCount; ++i) {
             ok(GrB_mxm(next_mx.get(), seen_mx.get(), GrB_NULL, GxB_ANY_PAIR_BOOL, next_mx.get(),
-                       input.knows.matrix.get(), GrB_DESC_C));
+                       input.knows.matrix.get(), GrB_DESC_SC));
 
             GrB_Index next_mx_nvals;
             ok(GrB_Matrix_nvals(&next_mx_nvals, next_mx.get()));

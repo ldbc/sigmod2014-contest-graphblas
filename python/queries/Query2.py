@@ -37,12 +37,14 @@ class Query2(QueryBase):
 
     def load_data(self):
         load_start = timer()
-        self.person = self.loader.load_vertex('person')
-        self.tag = self.loader.load_vertex('tag')
+        self.person, extra_cols = self.loader.load_vertex('person', column_names=['birthday'])
+        self.personBirthdays = extra_cols[0]
+        self.tag, extra_cols = self.loader.load_vertex('tag', column_names=['name'])
+        self.tagNames = extra_cols[0]
         self.hasInterest = self.loader.load_edge('hasInterest', self.person, self.tag)
         self.knows = self.loader.load_edge('knows', self.person, self.person)
         self.hasInterest_tran_mx = self.hasInterest.transpose()
-        self.personBirthdays = self.loader.load_extra_columns('person', ['birthday'])
+        #self.personBirthdays = self.loader.load_extra_columns('person', ['birthday'])
         self.tagNames = self.loader.load_extra_columns('tag', ['name'])
         load_end = timer()
         self.load_time = load_end - load_start

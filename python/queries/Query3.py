@@ -40,13 +40,11 @@ class Query3(QueryBase):
 
     def load_data(self):
         load_start = timer()
-        self.person = self.loader.load_vertex('person')
-        self.place = self.loader.load_vertex('place')
-        self.organisation = self.loader.load_vertex('organisation')
-        self.tag = self.loader.load_vertex('tag')
-
-        self.placeNames = self.loader.load_extra_columns('place', ['name'])
-
+        self.person, _ = self.loader.load_vertex('person')
+        self.place, extra_cols = self.loader.load_vertex('place', column_names=['name'])
+        self.placeNames = extra_cols[0]
+        self.organisation, _ = self.loader.load_vertex('organisation')
+        self.tag, _ = self.loader.load_vertex('tag')
         self.isPartOf = self.loader.load_edge('isPartOf', self.place, self.place)
         self.personIsLocatedIn = self.loader.load_edge('isLocatedIn', self.person, self.place)
         self.organisationIsLocatedIn = self.loader.load_edge('isLocatedIn', self.organisation, self.place)

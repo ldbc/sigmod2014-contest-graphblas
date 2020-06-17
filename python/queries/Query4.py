@@ -35,10 +35,10 @@ class Query4(QueryBase):
 
     def load_data(self):
         load_start = timer()
-        self.person = self.loader.load_vertex('person')
-        self.forum = self.loader.load_vertex('forum')
-        self.tag = self.loader.load_vertex('tag')
-        self.tagNames = self.loader.load_extra_columns('tag', ['name'])
+        self.person, _ = self.loader.load_vertex('person')
+        self.forum, _ = self.loader.load_vertex('forum')
+        self.tag, extra_cols = self.loader.load_vertex('tag', column_names=['name'])
+        self.tagNames = extra_cols[0]
         self.knows = self.loader.load_edge('knows', self.person, self.person)
         self.hasTag = self.loader.load_edge('hasTag', self.forum, self.tag)
         self.hasMember = self.loader.load_edge('hasMember', self.forum, self.person)

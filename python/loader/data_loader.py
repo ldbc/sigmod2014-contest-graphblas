@@ -28,22 +28,33 @@ class DataLoader:
         else:
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), data_dir)
         
-    def load_vertex(self, vertex):
+    def load_vertex(self, vertex, column_names=None):
         filename = self.data_dir + vertex + self.data_format
         original_ids = []
+        extra_cols = None
         first_line = True
         with open(filename) as csvfile:
             reader = csv.reader(csvfile, delimiter='|', quotechar='"')
-            for idx, row in enumerate(reader):
-                if first_line:
+            if column_names is not None:
+                extra_cols = [[] for col in range(len(column_names))]
+                headers = next(reader)
+                full_column_names = []
+                for column_name in column_names:
+                    full_column_name = [fullName for fullName in headers if fullName.split(':')[0] == column_name]
+                    full_column_names += full_column_name
+            for row in reader:
+                if first_line and not column_names:
                     first_line = False
                     continue
                 original_ids.append(int(row[0]))
+                if column_names is not None:
+                    for idx, full_col_name in enumerate(full_column_names):
+                        extra_cols[idx].append(row[headers.index(full_col_name)])
             id_mapping = {}
             for index in range(len(original_ids)):
                 id_mapping[original_ids[index]] = index
 
-        return Vertex(vertex, original_ids, id_mapping)
+        return Vertex(vertex, original_ids, id_mapping), extra_cols
 
     def load_vertex_mem_map(self, vertex, skip_header=True):
         filename = self.data_dir + vertex + self.data_format
@@ -84,24 +95,25 @@ class DataLoader:
 
         return Vertex(vertex, original_ids, id_mapping)
 
+    @DeprecationWarning
     def load_extra_columns(self, vertex, column_names):
         # TODO: merge this into load_vertex
         filename = self.data_dir + vertex + self.data_format
         with open(filename, newline='') as csv_file:
-            reader = csv.DictReader(csv_file, delimiter='|', quotechar='"')
-
+            reader = csv.reader(csv_file, delimiter='|', quotechar='"')
             full_column_names = []
+            headers = next(reader)
             for columnName in column_names:
                 # find full column name with type info after ':'
-                full_column_name, = [fullName for fullName in reader.fieldnames
+                full_column_name, = [fullName for fullName in headers
                                    if fullName.split(':')[0]==columnName]
                 full_column_names.append(full_column_name)
 
             if len(full_column_names) == 1:
                 full_column_name = full_column_names[0]
-                result = [row[full_column_name] for row in reader]
+                result = [row[headers.index(full_column_name)] for row in reader]
             else:
-                result = [[row[fullColumnName] for fullColumnName in full_column_names] for row in reader]
+                result = [[row[headers.index(fullColumnName)] for fullColumnName in full_column_names] for row in reader]
 
             return result
         
@@ -134,6 +146,7 @@ class DataLoader:
                                             typ=typ)
             return edge_matrix
 
+    @DeprecationWarning
     def load_all_csvs(self):
         '''
         Loads all .csv files in the data directory defined in the DataLoader class

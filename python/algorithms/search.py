@@ -96,7 +96,7 @@ def push_pull_bfs_levels(matrix, source):
     return result_vector
 
 
-def msbfs_levels(matrix,sourceVertices):
+def msbfs_levels(matrix, sourceVertices):
     frontier = sourceVertices
     resultMatrix = Matrix.from_type(UINT64,sourceVertices.nrows,sourceVertices.ncols)
     level = 0

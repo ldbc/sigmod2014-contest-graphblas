@@ -32,8 +32,8 @@ class Query1(QueryBase):
 
     def load_data(self):
         load_start = timer()
-        self.person = self.loader.load_vertex('person')
-        self.comment = self.loader.load_vertex('comment')
+        self.person, _ = self.loader.load_vertex('person')
+        self.comment, _ = self.loader.load_vertex('comment')
         self.replyOf = self.loader.load_edge('replyOf', self.comment, self.comment)
         self.knows = self.loader.load_edge('knows', self.person, self.person)
         self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)

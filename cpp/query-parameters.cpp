@@ -30,7 +30,7 @@ auto getQueryWrapper(BenchmarkParameters benchmark_parameters, QueryInput const 
 
                 if (result != expected_result_value) {
                     std::ostringstream params_stream;
-                    ((params_stream << query_parameters << ", "), ...);
+//                    ((params_stream << query_parameters << ", "), ...);
                     std::string params = params_stream.str();
                     // remove comma
                     if (params.length() >= 2)

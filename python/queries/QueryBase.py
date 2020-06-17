@@ -14,9 +14,10 @@ log.setLevel(logging.INFO)
 
 
 class QueryBase(ABC):
-    def __init__(self, data_dir, data_format, tests):
+    def __init__(self, data_dir, data_format, tests, benchmark_inputs):
         self.loader = DataLoader(data_dir, data_format)
         self.tests = tests
+        self.benchmark_inputs = benchmark_inputs
         self.load_time = None
         self.test_execution_times = []
 
@@ -58,4 +59,8 @@ class QueryBase(ABC):
 
     @abstractmethod
     def init_tests(self):
+        pass
+
+    @abstractmethod
+    def init_benchmark_inputs(self):
         pass

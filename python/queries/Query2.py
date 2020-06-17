@@ -24,7 +24,8 @@ class Query2(QueryBase):
 
     def __init__(self, data_dir, data_format):
         self.tests = self.init_tests()
-        super().__init__(data_dir, data_format, self.tests)
+        self.benchmark_inputs = self.init_benchmark_inputs()
+        super().__init__(data_dir, data_format, self.tests, self.benchmark_inputs)
         self.top_k = None
         self.birthday_limit = None
         self.person = None
@@ -122,3 +123,6 @@ class Query2(QueryBase):
                  'Arthur_Conan_Doyle Ashoka Barack_Obama Benito_Mussolini % component sizes 1 1 1 1')
         ]
         return tests
+
+    def init_benchmark_inputs(self):
+        pass

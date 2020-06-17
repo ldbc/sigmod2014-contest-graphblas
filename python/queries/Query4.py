@@ -22,7 +22,8 @@ class Query4(QueryBase):
 
     def __init__(self, data_dir, data_format):
         self.tests = self.init_tests()
-        super().__init__(data_dir, data_format, self.tests)
+        self.benchmark_inputs = self.init_benchmark_inputs()
+        super().__init__(data_dir, data_format, self.tests, self.benchmark_inputs)
         self.k = None
         self.t = None
         self.person = None
@@ -150,4 +151,6 @@ class Query4(QueryBase):
         ]
         return tests
 
+    def init_benchmark_inputs(self):
+        pass
 

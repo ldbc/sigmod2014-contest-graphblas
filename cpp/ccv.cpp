@@ -38,7 +38,8 @@ void print_bit_matrix(const GrB_Matrix A) {
     printf("\n");
 }
 
-void print_bit_matrices(const GrB_Matrix frontier, const GrB_Matrix next, const GrB_Matrix seen, const GrB_Vector next_popcount, const GrB_Vector sp) {
+void print_bit_matrices(const GrB_Matrix frontier, const GrB_Matrix next, const GrB_Matrix seen,
+                        const GrB_Vector next_popcount, const GrB_Vector sp) {
     GrB_Index nrows, ncols;
     ok(GrB_Matrix_nrows(&nrows, frontier));
     ok(GrB_Matrix_ncols(&ncols, frontier));
@@ -48,7 +49,8 @@ void print_bit_matrices(const GrB_Matrix frontier, const GrB_Matrix next, const 
         for (GrB_Index j = 0; j < ncols; j++) {
             printf(
                     " %016lx   %016lx   %016lx   %13ld   %3ld",
-                    extract(frontier, i, j), extract(next, i, j), extract(seen, i, j), extract_v(next_popcount, i), extract_v(sp, i));
+                    extract(frontier, i, j), extract(next, i, j), extract(seen, i, j), extract_v(next_popcount, i),
+                    extract_v(sp, i));
         }
         printf("\n");
     }
@@ -66,13 +68,13 @@ GrB_Info create_diagonal_bit_matrix(GrB_Matrix D) {
 //    X = repeat {b100..., b010..., b001..., ..., b...001} until we have n elements
     GrB_Index *I = (GrB_Index *) LAGraph_malloc(n, sizeof(GrB_Index));
     GrB_Index *J = (GrB_Index *) LAGraph_malloc(n, sizeof(GrB_Index));
-    uint64_t  *X = (uint64_t *)  LAGraph_malloc(n, sizeof(uint64_t));
+    uint64_t *X = (uint64_t *) LAGraph_malloc(n, sizeof(uint64_t));
 
     // TODO: parallelize this
     for (GrB_Index k = 0; k < n; k++) {
         I[k] = k;
-        J[k] = k/64;
-        X[k] = 0x8000000000000000L >> (k%64);
+        J[k] = k / 64;
+        X[k] = 0x8000000000000000L >> (k % 64);
     }
     ok(GrB_Matrix_build_UINT64(D, I, J, X, n, GrB_BOR_UINT64));
 
@@ -86,7 +88,7 @@ void fun_sum_popcount(void *z, const void *x) {
 
 GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
-    GrB_Matrix frontier = NULL, next = NULL, seen = NULL, Seen_PopCount = NULL ;
+    GrB_Matrix frontier = NULL, next = NULL, seen = NULL, Seen_PopCount = NULL;
 
     GrB_Matrix Next_PopCount;
     GrB_Vector next_popcount;
@@ -94,9 +96,9 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
     GrB_Vector ones, n_minus_one, level_v, sp, compsize;
 
     // initializing unary operator for next_popcount
-    GrB_UnaryOp op_popcount = NULL ;
+    GrB_UnaryOp op_popcount = NULL;
     ok(GrB_UnaryOp_new(&op_popcount, fun_sum_popcount, GrB_UINT64, GrB_UINT64));
-    GrB_Semiring BOR_FIRST = NULL, BOR_SECOND = NULL ;
+    GrB_Semiring BOR_FIRST = NULL, BOR_SECOND = NULL;
     ok(GrB_Semiring_new(&BOR_FIRST, GxB_BOR_UINT64_MONOID, GrB_FIRST_UINT64));
     ok(GrB_Semiring_new(&BOR_SECOND, GxB_BOR_UINT64_MONOID, GrB_SECOND_UINT64));
 
@@ -108,7 +110,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
         assert(n == ncols); // TODO replace with proper input check
     }
 
-    const GrB_Index bit_matrix_ncols = (n+63)/64;
+    const GrB_Index bit_matrix_ncols = (n + 63) / 64;
 
     ok(GrB_Matrix_new(&frontier, GrB_UINT64, n, bit_matrix_ncols));
     ok(GrB_Matrix_new(&next, GrB_UINT64, n, bit_matrix_ncols));
@@ -130,7 +132,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
     // initialize vectors
     ok(GrB_Vector_assign_UINT64(ones, NULL, NULL, 1, GrB_ALL, n, NULL));
-    ok(GrB_Vector_assign_UINT64(n_minus_one, NULL, NULL, n-1, GrB_ALL, n, NULL));
+    ok(GrB_Vector_assign_UINT64(n_minus_one, NULL, NULL, n - 1, GrB_ALL, n, NULL));
 
     // initialize
 
@@ -139,13 +141,13 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
     //Heuristic
     float threshold = 0.015;
     GrB_Index frontier_nvals, matrix_nrows, source_nrows;
-    ok(GrB_Matrix_nvals(&frontier_nvals,frontier));
-    ok(GrB_Matrix_nrows(&matrix_nrows,A));
+    ok(GrB_Matrix_nvals(&frontier_nvals, frontier));
+    ok(GrB_Matrix_nrows(&matrix_nrows, A));
     //This should be the amount of bfs traversals, but since we traverse from all
     //nodes, this equals A.nrows
-    ok(GrB_Matrix_nrows(&source_nrows,A));
-    float r,r_before;
-    r_before = (float)frontier_nvals / (float)(matrix_nrows * source_nrows);
+    ok(GrB_Matrix_nrows(&source_nrows, A));
+    float r, r_before;
+    r_before = (float) frontier_nvals / (float) (matrix_nrows * source_nrows);
 
 
 
@@ -157,9 +159,11 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
 
         // next = frontier * A
         if (push) {
-            ok(GrB_vxm((GrB_Vector)next, NULL, NULL, BOR_FIRST, (GrB_Vector)frontier, A, NULL)); // TODO: remove incorrect pointer casts
+            ok(GrB_vxm((GrB_Vector) next, NULL, NULL, BOR_FIRST, (GrB_Vector) frontier, A,
+                       NULL)); // TODO: remove incorrect pointer casts
         } else {
-            ok(GrB_mxv((GrB_Vector)next, NULL, NULL, BOR_SECOND, A, (GrB_Vector)frontier, NULL)); // TODO: remove incorrect pointer casts
+            ok(GrB_mxv((GrB_Vector) next, NULL, NULL, BOR_SECOND, A, (GrB_Vector) frontier,
+                       NULL)); // TODO: remove incorrect pointer casts
         }
 
         // next = next & ~seen
@@ -217,14 +221,14 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
         ok(GrB_Matrix_dup(&frontier, next));
 
         //Heuristic
-        ok(GrB_Matrix_nvals(&frontier_nvals,frontier));
-        r = (float)frontier_nvals / (float)(matrix_nrows * source_nrows);
-        
-        if(r > r_before && r > threshold){
+        ok(GrB_Matrix_nvals(&frontier_nvals, frontier));
+        r = (float) frontier_nvals / (float) (matrix_nrows * source_nrows);
+
+        if (r > r_before && r > threshold) {
             push = false;
         }
 
-        if(r < r_before && r < threshold){
+        if (r < r_before && r < threshold) {
             push = true;
         }
 

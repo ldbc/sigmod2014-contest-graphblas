@@ -14,10 +14,10 @@ log.setLevel(logging.INFO)
 
 
 class QueryBase(ABC):
-    def __init__(self, data_dir, data_format, tests, benchmark_inputs):
+    def __init__(self, data_dir, data_format, tests):
         self.loader = DataLoader(data_dir, data_format)
         self.tests = tests
-        self.benchmark_inputs = benchmark_inputs
+        self.benchmark_tests = None
         self.load_time = None
         self.test_execution_times = []
 
@@ -33,12 +33,19 @@ class QueryBase(ABC):
     def format_result_string(self, result):
         pass
 
-    def run_tests(self, query_implementation):
+    def run_tests(self, query_implementation, mode='testing'):
         # To run the tests of Q1 and Q4 with different search methods,
         # change the default parameter in their execute_query function
         all_tests = 0
         failed_tests = 0
-        for test in self.tests:
+        if mode is 'testing':
+            tests = self.tests
+        elif mode is 'benchmark':
+            tests = self.benchmark_inputs
+        else:
+            raise Exception('Invalid mode for executing tests. Valid options are: [testing, benchmark]')
+        log.info(f'Running tests in {mode} mode')
+        for test in tests:
             result = query_implementation(test.inputs)
             test = test._replace(expected_result=self.format_result_string(test.expected_result))
             if result == test.expected_result:
@@ -61,6 +68,5 @@ class QueryBase(ABC):
     def init_tests(self):
         pass
 
-    @abstractmethod
-    def init_benchmark_inputs(self):
-        pass
+    def init_benchmark_inputs(self, benchmark_tests):
+        self.benchmark_inputs = benchmark_tests

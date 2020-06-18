@@ -20,8 +20,7 @@ class Query1(QueryBase):
 
     def __init__(self, data_dir, data_format):
         self.tests = self.init_tests()
-        self.benchmark_inputs = self.init_benchmark_inputs()
-        super().__init__(data_dir, data_format, self.tests, self.benchmark_inputs)
+        super().__init__(data_dir, data_format, self.tests)
         self.person1_id = None
         self.person2_id = None
         self.num_of_interactions = None
@@ -214,6 +213,3 @@ class Query1(QueryBase):
             Test([814, 641, 0], '3 % path 814-109-557-641 (other shortest paths may exist)')
         ]
         return tests
-
-    def init_benchmark_inputs(self):
-        pass

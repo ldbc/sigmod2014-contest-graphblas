@@ -22,8 +22,7 @@ class Query4(QueryBase):
 
     def __init__(self, data_dir, data_format):
         self.tests = self.init_tests()
-        self.benchmark_inputs = self.init_benchmark_inputs()
-        super().__init__(data_dir, data_format, self.tests, self.benchmark_inputs)
+        super().__init__(data_dir, data_format, self.tests)
         self.k = None
         self.t = None
         self.person = None
@@ -150,7 +149,4 @@ class Query4(QueryBase):
             Test([4, 'Augustine_of_Hippo'], '385 562 659 323 % centrality values 0.5506329113924051 0.54375 0.54375 0.5291970802919708')
         ]
         return tests
-
-    def init_benchmark_inputs(self):
-        pass
 

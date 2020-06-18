@@ -73,6 +73,7 @@ class Query2(QueryBase):
         for res in result:
             res_string += res[0] + ' '
         res_string = res_string.replace('\\', '')
+        #log.info(res_string)
         return res_string
 
     def get_score_for_tag(self, tag_index, birthday_person_mask):

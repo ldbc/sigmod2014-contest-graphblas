@@ -75,14 +75,9 @@ if __name__ == '__main__':
     q3 = Query3(data_dir, data_format)
     q4 = Query4(data_dir, data_format)
 
-    if args.mode is 'from_file':
+    if args.mode == 'from_file':
 
         q1_params, q2_params, q3_params, q4_params = load_query_params(args.query_args_path)
-        print(q3_params)
-        exit(1)
-
-
-
         q1.init_benchmark_inputs(q1_params)
         #q2.init_benchmark_input(q2_params)
         q3.init_benchmark_inputs(q3_params)
@@ -104,7 +99,7 @@ if __name__ == '__main__':
         else:
             print('\nTESTS FAILED')
 
-    if args.mode is 'with_param':
+    if args.mode == 'with_param':
         if args.queries_to_run == '1':
             person1id = int(args.query_args[0])
             person2id = int(args.query_args[1])

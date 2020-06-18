@@ -81,6 +81,7 @@ class Query4(QueryBase):
             result_string = ''
             for res in resultList[:self.k]:
                 result_string += str(res[0]) + ' '
+            #log.info(result_string)
             return result_string
 
         else:  # search method is naive_msbfs or push_pull_msbfs

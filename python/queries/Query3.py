@@ -118,6 +118,7 @@ class Query3(QueryBase):
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)
         log.info(f'Query took: {query_end - query_start} second')
+        #log.info(result_string)
         return result_string
 
     def format_result_string(self, result):

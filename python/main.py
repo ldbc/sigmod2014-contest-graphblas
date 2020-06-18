@@ -24,13 +24,13 @@ def load_query_params(path):
                 query_result = line.split(')')[1].strip()
                 extracted_params_str = line[line.find("(")+1:line.find(")")]
                 extracted_params_list = extracted_params_str.split(',')
-                if query_num is '1':
+                if query_num == '1':
                     person1_id = int(extracted_params_list[0])
                     person2_id = int(extracted_params_list[1])
                     freq_comm_th = int(extracted_params_list[2])
                     test_case = Test([person1_id, person2_id, freq_comm_th], query_result)
                     query1_benchmark_tests.append(test_case)
-                elif query_num is '2':
+                elif query_num == '2':
                     top_k = int(extracted_params_list[0])
                     birthday_limit = extracted_params_list[1]
                     test_case = Test([top_k, birthday_limit], query_result)
@@ -41,7 +41,7 @@ def load_query_params(path):
                     p = extracted_params_list[2].strip()
                     test_case = Test([k, h, p], query_result)
                     query3_benchmark_tests.append(test_case)
-                elif query_num is '4':
+                elif query_num == '4':
                     k = int(extracted_params_list[0])
                     t = extracted_params_list[1].strip()
                     test_case = Test([k , t], query_result)

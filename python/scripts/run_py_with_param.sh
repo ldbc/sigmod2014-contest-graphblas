@@ -5,8 +5,7 @@ set -e
 DATA_PATH=$(realpath "$1")/
 
 # https://stackoverflow.com/a/9057392
-# https://github.com/koalaman/shellcheck/wiki/SC2124#correct-code
-PARAMS=( "${@:4}" )
+PARAMS="${@:4}"
 
 PYTHON_DIR=$(dirname "$0")/..
 

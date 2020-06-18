@@ -86,7 +86,7 @@ void fun_sum_popcount(void *z, const void *x) {
     *((uint64_t *) z) = __builtin_popcountll(*((uint64_t *) x));
 }
 
-GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
+GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
 
     GrB_Matrix frontier = NULL, next = NULL, seen = NULL, Seen_PopCount = NULL;
 
@@ -124,7 +124,7 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
     ok(GrB_Vector_new(&level_v, GrB_UINT64, n));
     ok(GrB_Vector_new(&sp, GrB_UINT64, n));
     ok(GrB_Vector_new(&compsize, GrB_UINT64, n));
-    ok(GrB_Vector_new(ccv_handle, GrB_FP64, n));
+    GBxx_Object<GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
 
     // initialize frontier and seen matrices: to compute closeness centrality, start off with a diagonal
     create_diagonal_bit_matrix(frontier);
@@ -251,10 +251,10 @@ GrB_Info compute_ccv(GrB_Vector *ccv_handle, GrB_Matrix A) {
     ok(GrB_Vector_eWiseMult_BinaryOp(compsize, NULL, NULL, GrB_TIMES_UINT64, compsize, compsize, NULL));
 
     ok(GrB_Vector_eWiseMult_BinaryOp(sp, NULL, NULL, GrB_TIMES_UINT64, n_minus_one, sp, NULL));
-    ok(GrB_Vector_eWiseMult_BinaryOp(*ccv_handle, NULL, NULL, GrB_DIV_FP64, compsize, sp, NULL));
+    ok(GrB_Vector_eWiseMult_BinaryOp(ccv_result.get(), NULL, NULL, GrB_DIV_FP64, compsize, sp, NULL));
 
 //    ok(GxB_print(compsize, GxB_SHORT));
 //    ok(GxB_print(sp, GxB_SHORT));
 
-    return GrB_SUCCESS;
+    return ccv_result;
 }

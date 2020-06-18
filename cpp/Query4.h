@@ -59,9 +59,7 @@ class Query4 : public Query<int, std::string> {
 //                                 relevant_persons_nvals, GrB_SECOND_BOOL));
 
         // call MSBFS-based closeness centrality value computation
-        GrB_Vector ccv_ptr = nullptr;
-        ok(compute_ccv(&ccv_ptr, member_friends.get()));
-        GBxx_Object<GrB_Vector> ccv{ccv_ptr};
+        GBxx_Object<GrB_Vector> ccv = compute_ccv(member_friends.get());
 
         // extract tuples from ccv result
         GrB_Index ccv_nvals;

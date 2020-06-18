@@ -80,9 +80,9 @@ class Query1(QueryBase):
 
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)
-        #log.info(f'Query took: {query_end - query_start} second')
-        print(f'q1,{self.load_time*10**6},{(query_end - query_start)*10**6},{result}')
-        #log.info(result)
+        # log.info(f'Query took: {query_end - query_start} second')
+        print(f'q1,{int(self.load_time*10**6)},{int((query_end - query_start)*10**6)},{result}')
+        # log.info(result)
         return result
 
     # Optimized version: do not create overlay graph but investigate investigate KNOWS edges on-the-fly.

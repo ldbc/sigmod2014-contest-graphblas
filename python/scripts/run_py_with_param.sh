@@ -8,7 +8,7 @@ DATA_PATH=$(realpath "$1")/
 # https://github.com/koalaman/shellcheck/wiki/SC2124#correct-code
 PARAMS=( "${@:4}" )
 
-PYTHON_DIR=$(dirname "$0")
+PYTHON_DIR=$(dirname "$0")/..
 
 # run Python script from python/ folder
 cd "$PYTHON_DIR"

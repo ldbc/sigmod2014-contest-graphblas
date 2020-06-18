@@ -39,7 +39,7 @@ def load_query_params(path):
                     k = int(extracted_params_list[0])
                     h = int(extracted_params_list[1])
                     p = extracted_params_list[2].strip()
-                    test_case = Test([k, h , p], query_result)
+                    test_case = Test([k, h, p], query_result)
                     query3_benchmark_tests.append(test_case)
                 elif query_num is '4':
                     k = int(extracted_params_list[0])
@@ -62,34 +62,64 @@ if __name__ == '__main__':
 
     parser.add_argument('--data_path', default='../csvs/o1k/', help='[REQUIRED] Data to use (vertices and edges)')
     parser.add_argument('--query_args_path', default='/Users/attilanagy/Work/paper-hpec2020/docs/sf1k/1k.txt', help='Input parameters for the queries')
-    parser.add_argument('--queryies_to_run', default='all', choices=['1', '2', '3', '4', 'all'], help='[REQUIRED] Query to run')
+    parser.add_argument('--queries_to_run', default='all', help='[REQUIRED] Queries to run. Possible values are 1,2,3,4')
+    parser.add_argument('--mode', default='with_param', choices=['with_param', 'from_file'], help='[REQUIRED] Run a query with CLI args params or read params from file ')
+    parser.add_argument('--query_args', help='Parameters to run query with')
 
     args = parser.parse_args()
 
     data_dir = args.data_path
     data_format = 'csv'
-
-    q1_params, q2_params, q3_params, q4_params = load_query_params(args.query_args_path)
-    print(q1_params)
     q1 = Query1(data_dir, data_format)
-    #q2 = Query2(data_dir, data_format)
+    # q2 = Query2(data_dir, data_format)
     q3 = Query3(data_dir, data_format)
     q4 = Query4(data_dir, data_format)
 
-    q1.init_benchmark_inputs(q1_params)
-    #q2.init_benchmark_input(q2_params)
-    q3.init_benchmark_inputs(q3_params)
-    q4.init_benchmark_inputs(q4_params)
+    if args.mode is 'from_file':
+
+        q1_params, q2_params, q3_params, q4_params = load_query_params(args.query_args_path)
+        print(q3_params)
+        exit(1)
 
 
-    tests_passed = True
 
-    tests_passed = q1.run_tests(q1.execute_query, mode='benchmark') and tests_passed
-    #tests_passed = q2.run_tests(q2.execute_query) and tests_passed
-    tests_passed = q3.run_tests(q3.execute_query) and tests_passed
-    tests_passed = q4.run_tests(q4.execute_query) and tests_passed
+        q1.init_benchmark_inputs(q1_params)
+        #q2.init_benchmark_input(q2_params)
+        q3.init_benchmark_inputs(q3_params)
+        q4.init_benchmark_inputs(q4_params)
 
-    if tests_passed:
-        print('\nALL TESTS PASSED')
-    else:
-        print('\nTESTS FAILED')
+        tests_passed = True
+        if '1' in args.queries_to_run:
+            tests_passed = q1.run_tests(q1.execute_query, mode='benchmark') and tests_passed
+        if '2' in args.queries_to_run:
+            #tests_passed = q2.run_tests(q2.execute_query) and tests_passed
+            pass
+        if '3' in args.queries_to_run:
+            tests_passed = q3.run_tests(q3.execute_query) and tests_passed
+        if '4' in args.queries_to_run:
+            tests_passed = q4.run_tests(q4.execute_query) and tests_passed
+
+        if tests_passed:
+            print('\nALL TESTS PASSED')
+        else:
+            print('\nTESTS FAILED')
+
+    if args.mode is 'with_param':
+        if args.queries_to_run == '1':
+            person1id = int(args.query_args[0])
+            person2id = int(args.query_args[1])
+            freq_comm_th = int(args.query_args[2])
+            q1.execute_query([person1id, person2id, freq_comm_th])
+        if args.queries_to_run == '2':
+            top_k = int(args.query_args[0])
+            birthday_limit = args.query_args[1]
+            #q2.execute_query([top_k, birthday_limit])
+        if args.queries_to_run == '3':
+            k = int(args.query_args[0])
+            h = int(args.query_args[1])
+            p = args.query_args[1].strip()
+            q3.execute_query([k, h, p])
+        if args.queries_to_run == '4':
+            k = int(args.query_args[0])
+            t = args.query_args[1]
+            q4.execute_query()

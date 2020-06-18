@@ -82,6 +82,7 @@ class Query4(QueryBase):
             for res in resultList[:self.k]:
                 result_string += str(res[0]) + ' '
             #log.info(result_string)
+            print(f'q4,{self.load_time*10**6},{(query_end - query_start)*10**6},{result_string}')
             return result_string
 
         else:  # search method is naive_msbfs or push_pull_msbfs
@@ -108,11 +109,12 @@ class Query4(QueryBase):
 
             query_end = timer()
             self.test_execution_times.append(query_end - query_start)
-            log.info(f'Query took: {query_end - query_start} second')
+            #log.info(f'Query took: {query_end - query_start} second')
 
             result_string = ''
             for res in resultList[:self.k]:
                 result_string += str(res[0]) + ' '
+            print(f'q4,{self.load_time*10**6},{(query_end - query_start)*10**6},{result_string}')
             return result_string
 
     def MemberFriends(self, t):

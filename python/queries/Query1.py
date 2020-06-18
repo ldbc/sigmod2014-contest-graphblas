@@ -39,7 +39,7 @@ class Query1(QueryBase):
         self.hasCreator = self.loader.load_edge('hasCreator', self.comment, self.person)
         load_end = timer()
         self.load_time = load_end - load_start
-        log.info(f'Loading took: {self.load_time} seconds')
+        #log.info(f'Loading took: {self.load_time} seconds')
 
     def execute_query(self, params, search_method=push_pull_bfs_levels):
 
@@ -80,7 +80,8 @@ class Query1(QueryBase):
 
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)
-        log.info(f'Query took: {query_end - query_start} second')
+        #log.info(f'Query took: {query_end - query_start} second')
+        print(f'q1,{self.load_time*10**6},{(query_end - query_start)*10**6},{result}')
         #log.info(result)
         return result
 

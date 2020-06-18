@@ -74,6 +74,7 @@ class Query2(QueryBase):
             res_string += res[0] + ' '
         res_string = res_string.replace('\\', '')
         #log.info(res_string)
+        print(f'q2,{self.load_time*10**6},{(query_end - query_start)*10**6},{result}')
         return res_string
 
     def get_score_for_tag(self, tag_index, birthday_person_mask):

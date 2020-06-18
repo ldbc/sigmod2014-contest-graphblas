@@ -82,7 +82,6 @@ GrB_Info create_diagonal_bit_matrix(GrB_Matrix D) {
 }
 
 void fun_sum_popcount(void *z, const void *x) {
-    static_assert(sizeof(uint64_t) == sizeof(unsigned long long));
     *((uint64_t *) z) = __builtin_popcountll(*((uint64_t *) x));
 }
 

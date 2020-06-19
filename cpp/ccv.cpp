@@ -52,25 +52,31 @@ void print_bit_matrices(const GrB_Matrix frontier, const GrB_Matrix next, const 
     printf("\n");
 }
 
-GrB_Info create_diagonal_bit_matrix(GrB_Matrix D) {
-    GrB_Index n;
+inline __attribute__((always_inline))
+void create_diagonal_bit_matrix(GrB_Matrix D) {
+    GrB_Index n, ncols;
     ok(GrB_Matrix_nrows(&n, D));
+#ifndef NDEBUG
+    ok(GrB_Matrix_ncols(&ncols, D));
+    assert(ncols == (n + 63) / 64);
+#endif
 
 //    I = 0, 1, ..., n
 //    J = 0, 0, ..., 0 [64], 1, 1, ..., 1 [64], ..., ceil(n/64)
 //    X = repeat {b100..., b010..., b001..., ..., b...001} until we have n elements
-    std::vector<GrB_Index> I(n), J(n);
-    std::vector<uint64_t> X(n);
+    std::unique_ptr<GrB_Index[]> I{new GrB_Index[n]}, J{new GrB_Index[n]};
+    std::unique_ptr<uint64_t[]> X{new uint64_t[n]};
 
-    // TODO: parallelize this
+    int nthreads = GlobalNThreads;
+    nthreads = std::min<size_t>(n / 4096, nthreads);
+    nthreads = std::max(nthreads, 1);
+#pragma omp parallel for num_threads(nthreads) schedule(static)
     for (GrB_Index k = 0; k < n; k++) {
         I[k] = k;
         J[k] = k / 64;
-        X[k] = 0x8000000000000000L >> (k % 64);
+        X[k] = 1L << (k % 64);
     }
-    ok(GrB_Matrix_build_UINT64(D, I.data(), J.data(), X.data(), n, GrB_BOR_UINT64));
-
-    return GrB_SUCCESS;
+    ok(GrB_Matrix_build_UINT64(D, I.get(), J.get(), X.get(), n, GrB_BOR_UINT64));
 }
 
 void fun_sum_popcount(void *z, const void *x) {
@@ -116,7 +122,7 @@ GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
     GBxx_Object<GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
 
     // initialize frontier and seen matrices: to compute closeness centrality, start off with a diagonal
-    ok(create_diagonal_bit_matrix(frontier.get()));
+    create_diagonal_bit_matrix(frontier.get());
     seen = GB(GrB_Matrix_dup, frontier.get());
 
     // initialize vectors

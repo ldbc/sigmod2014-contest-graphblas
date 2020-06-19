@@ -84,14 +84,6 @@ void fun_sum_popcount(void *z, const void *x) {
 }
 
 GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
-
-    GBxx_Object<GrB_Matrix> frontier, next, seen, Seen_PopCount;
-
-    GBxx_Object<GrB_Matrix> Next_PopCount;
-    GBxx_Object<GrB_Vector> next_popcount;
-
-    GBxx_Object<GrB_Vector> ones, n_minus_one, level_v, sp, compsize;
-
     // initializing unary operator for next_popcount
     GBxx_Object<GrB_UnaryOp> op_popcount = GB(GrB_UnaryOp_new, fun_sum_popcount, GrB_UINT64, GrB_UINT64);
     GBxx_Object<GrB_Semiring> BOR_FIRST, BOR_SECOND;
@@ -108,22 +100,22 @@ GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
 
     const GrB_Index bit_matrix_ncols = (n + 63) / 64;
 
-    frontier = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
-    next = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
-    Next_PopCount = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
-    Seen_PopCount = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
+    GBxx_Object<GrB_Matrix> frontier = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
+    GBxx_Object<GrB_Matrix> next = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
+    GBxx_Object<GrB_Matrix> Next_PopCount = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
+    GBxx_Object<GrB_Matrix> Seen_PopCount = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
 
-    next_popcount = GB(GrB_Vector_new, GrB_UINT64, n);
-    ones = GB(GrB_Vector_new, GrB_UINT64, n);
-    n_minus_one = GB(GrB_Vector_new, GrB_UINT64, n);
-    level_v = GB(GrB_Vector_new, GrB_UINT64, n);
-    sp = GB(GrB_Vector_new, GrB_UINT64, n);
-    compsize = GB(GrB_Vector_new, GrB_UINT64, n);
+    GBxx_Object<GrB_Vector> next_popcount = GB(GrB_Vector_new, GrB_UINT64, n);
+    GBxx_Object<GrB_Vector> ones = GB(GrB_Vector_new, GrB_UINT64, n);
+    GBxx_Object<GrB_Vector> n_minus_one = GB(GrB_Vector_new, GrB_UINT64, n);
+    GBxx_Object<GrB_Vector> level_v = GB(GrB_Vector_new, GrB_UINT64, n);
+    GBxx_Object<GrB_Vector> sp = GB(GrB_Vector_new, GrB_UINT64, n);
+    GBxx_Object<GrB_Vector> compsize = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
 
     // initialize frontier and seen matrices: to compute closeness centrality, start off with a diagonal
     create_diagonal_bit_matrix(frontier.get());
-    seen = GB(GrB_Matrix_dup, frontier.get());
+    GBxx_Object<GrB_Matrix> seen = GB(GrB_Matrix_dup, frontier.get());
 
     // initialize vectors
     ok(GrB_Vector_assign_UINT64(ones.get(), NULL, NULL, 1, GrB_ALL, n, NULL));

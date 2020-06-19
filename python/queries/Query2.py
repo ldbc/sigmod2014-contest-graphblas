@@ -68,7 +68,7 @@ class Query2(QueryBase):
 
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)
-        log.info(f'Loading took: {self.load_time} seconds, Query took: {query_end - query_start} second')
+        #log.info(f'Loading took: {self.load_time} seconds, Query took: {query_end - query_start} second')
         res_string = ''
         for res in result:
             res_string += res[0] + ' '

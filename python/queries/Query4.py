@@ -45,7 +45,7 @@ class Query4(QueryBase):
 
         load_end = timer()
         self.load_time = load_end - load_start
-        log.info(f'Loading took {self.load_time} seconds')
+       # log.info(f'Loading took {self.load_time} seconds')
 
     def execute_query(self, params, search_method=push_pull_msbfs_levels):
         self.k = params[0]
@@ -76,7 +76,7 @@ class Query4(QueryBase):
 
             query_end = timer()
             self.test_execution_times.append(query_end - query_start)
-            log.info(f'Query took: {query_end - query_start} second')
+           # log.info(f'Query took: {query_end - query_start} second')
 
             result_string = ''
             for res in resultList[:self.k]:

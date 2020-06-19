@@ -1,10 +1,5 @@
 #include "ccv.h"
-
 #include "assert.h"
-
-#define LAGRAPH_FREE_ALL                            \
-{                                                   \
-}
 
 uint64_t extract(const GrB_Matrix A, const GrB_Index i, const GrB_Index j) {
     uint64_t x;
@@ -82,18 +77,18 @@ void fun_sum_popcount(void *z, const void *x) {
     *((uint64_t *) z) = __builtin_popcountll(*((uint64_t *) x));
 }
 
-GBxx_Object <GrB_Vector> compute_ccv(GrB_Matrix A) {
+GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
 
-    GBxx_Object <GrB_Matrix> frontier, next, seen, Seen_PopCount;
+    GBxx_Object<GrB_Matrix> frontier, next, seen, Seen_PopCount;
 
-    GBxx_Object <GrB_Matrix> Next_PopCount;
-    GBxx_Object <GrB_Vector> next_popcount;
+    GBxx_Object<GrB_Matrix> Next_PopCount;
+    GBxx_Object<GrB_Vector> next_popcount;
 
-    GBxx_Object <GrB_Vector> ones, n_minus_one, level_v, sp, compsize;
+    GBxx_Object<GrB_Vector> ones, n_minus_one, level_v, sp, compsize;
 
     // initializing unary operator for next_popcount
-    GBxx_Object <GrB_UnaryOp> op_popcount = GB(GrB_UnaryOp_new, fun_sum_popcount, GrB_UINT64, GrB_UINT64);
-    GBxx_Object <GrB_Semiring> BOR_FIRST, BOR_SECOND;
+    GBxx_Object<GrB_UnaryOp> op_popcount = GB(GrB_UnaryOp_new, fun_sum_popcount, GrB_UINT64, GrB_UINT64);
+    GBxx_Object<GrB_Semiring> BOR_FIRST, BOR_SECOND;
     BOR_FIRST = GB(GrB_Semiring_new, GxB_BOR_UINT64_MONOID, GrB_FIRST_UINT64);
     BOR_SECOND = GB(GrB_Semiring_new, GxB_BOR_UINT64_MONOID, GrB_SECOND_UINT64);
 
@@ -118,7 +113,7 @@ GBxx_Object <GrB_Vector> compute_ccv(GrB_Matrix A) {
     level_v = GB(GrB_Vector_new, GrB_UINT64, n);
     sp = GB(GrB_Vector_new, GrB_UINT64, n);
     compsize = GB(GrB_Vector_new, GrB_UINT64, n);
-    GBxx_Object <GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
+    GBxx_Object<GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
 
     // initialize frontier and seen matrices: to compute closeness centrality, start off with a diagonal
     ok(create_diagonal_bit_matrix(frontier.get()));

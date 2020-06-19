@@ -68,23 +68,11 @@ class Query3 : public Query<int, int, std::string> {
         return relevant_persons;
     }
 
-    std::tuple<std::string, std::string> initial_calculation() override {
-        auto relevant_persons = getRelevantPersons();
+    using score_type = std::tuple<int64_t, uint64_t, uint64_t>;
 
-        // extract person indices
-        GrB_Index relevant_persons_nvals;
-        ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
-        if(relevant_persons_nvals == 0)
-            return {"", "Nobody lives/studies/works there."};
-
-        std::vector<GrB_Index> relevant_persons_indices(relevant_persons_nvals);
-        {
-            GrB_Index nvals = relevant_persons_nvals;
-            ok(GrB_Vector_extractTuples_BOOL(relevant_persons_indices.data(), GrB_NULL, &nvals,
-                                             relevant_persons.get()));
-            assert(relevant_persons_nvals == nvals);
-        }
-
+    void reachable_count_tags_strategy(const std::vector<GrB_Index> &relevant_persons_indices,
+                                       GrB_Index relevant_persons_nvals,
+                                       SmallestElementsContainer<score_type, std::less<score_type>> &person_scores) {
         // build diagonal matrix of relevant persons
         auto persons_diag_mx = GB(GrB_Matrix_new, GrB_BOOL, input.persons.size(), input.persons.size());
         ok(GrB_Matrix_build_BOOL(persons_diag_mx.get(),
@@ -150,10 +138,6 @@ class Query3 : public Query<int, int, std::string> {
             assert(common_interests_nvals == nvals);
         }
 
-        // define comparator for top scores
-        using score_type = std::tuple<int64_t, uint64_t, uint64_t>;
-        auto person_scores = makeSmallestElementsContainer<score_type>(topKLimit);
-
         // collect top scores
         for (size_t i = 0; i < common_interests_vals.size(); ++i) {
             GrB_Index p1_index = common_interests_rows[i],
@@ -166,8 +150,31 @@ class Query3 : public Query<int, int, std::string> {
             if (p1_id > p2_id)
                 std::swap(p1_id, p2_id);
 
+            // DESC score
             person_scores.add({-score, p1_id, p2_id});
         }
+    }
+
+    std::tuple<std::string, std::string> initial_calculation() override {
+        auto relevant_persons = getRelevantPersons();
+
+        // extract person indices
+        GrB_Index relevant_persons_nvals;
+        ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
+        if (relevant_persons_nvals == 0)
+            return {"", "Nobody lives/studies/works there."};
+
+        std::vector<GrB_Index> relevant_persons_indices(relevant_persons_nvals);
+        {
+            GrB_Index nvals = relevant_persons_nvals;
+            ok(GrB_Vector_extractTuples_BOOL(relevant_persons_indices.data(), GrB_NULL, &nvals,
+                                             relevant_persons.get()));
+            assert(relevant_persons_nvals == nvals);
+        }
+
+        auto person_scores = makeSmallestElementsContainer<score_type>(topKLimit);
+
+        reachable_count_tags_strategy(relevant_persons_indices, relevant_persons_nvals, person_scores);
 
         std::string result, comment;
         bool firstIter = true;

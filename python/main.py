@@ -100,25 +100,22 @@ if __name__ == '__main__':
             print('\nTESTS FAILED')
 
     if args.mode == 'with_param':
+        query_args = args.query_args.split(' ')
         if args.queries_to_run == '1':
-            query_args = args.query_args.split(' ')
             person1id = int(query_args[0])
             person2id = int(query_args[1])
             freq_comm_th = int(query_args[2])
             q1.execute_query([person1id, person2id, freq_comm_th])
         if args.queries_to_run == '2':
-            query_args = args.query_args.split(' ')
             top_k = int(query_args[0])
             birthday_limit = query_args[1]
             q2.execute_query([top_k, birthday_limit])
         if args.queries_to_run == '3':
-            query_args = args.query_args.split(' ')
             k = int(query_args[0])
             h = int(query_args[1])
             p = query_args[2]
             q3.execute_query([k, h, p])
         if args.queries_to_run == '4':
-            query_args = args.query_args.split(' ')
             k = int(query_args[0])
             t = query_args[1]
             q4.execute_query([k, t])

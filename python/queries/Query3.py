@@ -70,6 +70,10 @@ class Query3(QueryBase):
 
         persons_diag_mx = self.RelevantPeopleInPlaceMatrix(self.p)
 
+        # nobody lives at the selected place
+        if persons_diag_mx.nvals == 0:
+            return ''
+
         next_mx = persons_diag_mx
         seen_mx = next_mx.dup()
 
@@ -155,7 +159,7 @@ class Query3(QueryBase):
 
             # Creating a diagonal matrix from the people ids
         diagMtx = Matrix.from_lists(relevantPeopleVector.to_lists()[0], relevantPeopleVector.to_lists()[0],
-                                    relevantPeopleVector.to_lists()[1], self.knows.nrows, self.knows.ncols)
+                                    relevantPeopleVector.to_lists()[1], self.knows.nrows, self.knows.ncols, typ=BOOL)
         return diagMtx
 
     def init_tests(self):

@@ -121,4 +121,4 @@ if __name__ == '__main__':
             query_args = args.query_args.split(' ')
             k = int(query_args[0])
             t = query_args[1]
-            q4.execute_query()
+            q4.execute_query([k, t])

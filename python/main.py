@@ -61,8 +61,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse_formatter, description='Run tool to benchmark queries')
 
     parser.add_argument('--data_path', default='../csvs/o1k/', help='[REQUIRED] Data to use (vertices and edges)')
-    parser.add_argument('--query_args_path', default='/Users/attilanagy/Work/paper-hpec2020/docs/sf1k/1k.txt', help='Input parameters for the queries')
-    parser.add_argument('--queries_to_run', default='all', help='[REQUIRED] Queries to run. Possible values are 1,2,3,4')
+    parser.add_argument('--query_args_path', default='../o1k-queries-py.txt', help='Input parameters for the queries')
+    parser.add_argument('--queries_to_run', default='1,2,3,4', help='[REQUIRED] Queries to run. Possible values are 1,2,3,4')
     parser.add_argument('--mode', default='with_param', choices=['with_param', 'from_file'], help='[REQUIRED] Run a query with CLI args params or read params from file ')
     parser.add_argument('--query_args', help='Parameters to run query with')
 
@@ -83,15 +83,16 @@ if __name__ == '__main__':
         q3.init_benchmark_inputs(q3_params)
         q4.init_benchmark_inputs(q4_params)
 
+        queries_to_run = args.queries_to_run.split(',')
+
         tests_passed = True
-        if '1' in args.queries_to_run:
+        if '1' in queries_to_run:
             tests_passed = q1.run_tests(q1.execute_query, mode='benchmark') and tests_passed
-        if '2' in args.queries_to_run:
+        if '2' in queries_to_run:
             tests_passed = q2.run_tests(q2.execute_query) and tests_passed
-            pass
-        if '3' in args.queries_to_run:
+        if '3' in queries_to_run:
             tests_passed = q3.run_tests(q3.execute_query) and tests_passed
-        if '4' in args.queries_to_run:
+        if '4' in queries_to_run:
             tests_passed = q4.run_tests(q4.execute_query) and tests_passed
 
         if tests_passed:

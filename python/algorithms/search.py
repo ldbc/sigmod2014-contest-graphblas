@@ -144,25 +144,34 @@ def push_pull_msbfs_levels(matrix, sourceVertices):
     return resultMatrix
 
 
-def bidirectional_bfs(matrix, sourceVertices):
-    frontier = sourceVertices
-    resultMatrix = Matrix.from_type(UINT64, sourceVertices.nrows, sourceVertices.ncols)
-    level = 0
-    while level < matrix.nrows:
-        resultMatrix.assign_scalar(level, mask=frontier)
-        and_vector = resultMatrix.transpose().reduce_vector()
-        if and_vector.nvals > 0:
-            print('breaking...')
-            break
-        with semiring.ANY_PAIR:
-                frontier = frontier.mxm(matrix, mask=resultMatrix.pattern(), desc=descriptor.ooco)
-        print(level)
-        level += 1
-    print(and_vector)
-    print(frontier)
-    return 1
-   # col_index = need index where the wavefronts met
-   # shortest_path = resultMatrix[0][col_index] + resultMatrix[1][col_index] - 1
-    #return shortest_path
+def bidirectional_bfs(matrix, frontier1, frontier2):
+    seen1 = frontier1
+    seen2 = frontier2
+    person_count = matrix.ncols
+    for level in range(1, person_count // 2):
+        # frontier 1
+        next1 = seen1.vxm(matrix, mask=seen1, desc=descriptor.ooco)
+        # emptied the component of person1
+        if next1.nvals == 0:
+            return -1
+
+        # has frontier1 intersected frontier2's previous state?
+        intersection1 = next1 * seen2
+        if intersection1.nvals > 0:
+            return level * 2 - 1
+
+        # frontier 2
+        next2 = seen2.vxm(matrix, mask=seen2, desc=descriptor.ooco)
+        # emptied the component of person2
+        if next2.nvals == 0:
+            return -1
+
+        # do frontier1 and frontier2's current states intersect?
+        intersection2 = next1 * next2
+        if intersection2.nvals > 0:
+            return level * 2
+
+        seen1 = seen1 + next1
+        seen2 = seen2 + next2
 
 

@@ -41,7 +41,7 @@ class Query1(QueryBase):
         self.load_time = load_end - load_start
         #log.info(f'Loading took: {self.load_time} seconds')
 
-    def execute_query(self, params, search_method=push_pull_bfs_levels):
+    def execute_query(self, params, search_method=bidirectional_bfs):
 
         self.person1_id = params[0]
         self.person2_id = params[1]
@@ -73,10 +73,10 @@ class Query1(QueryBase):
 
         if search_method == bidirectional_bfs:
             # Experimenting with bidir bfs here
-            source = Matrix.from_type(BOOL, 2, overlay_graph.ncols)
-            source[0, person1_id_remapped] = True
-            source[1, person2_id_remapped] = True
-            result = search_method(overlay_graph, source)
+            numpersons = len(self.person.id2index)
+            frontier1 = Vector.from_lists([person1_id_remapped], [True], numpersons)
+            frontier2 = Vector.from_lists([person2_id_remapped], [True], numpersons)
+            result = search_method(overlay_graph, frontier1, frontier2)
 
         else:
             levels = search_method(overlay_graph, person1_id_remapped)

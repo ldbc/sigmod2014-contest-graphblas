@@ -3,7 +3,7 @@ from timeit import default_timer as timer
 import logging
 
 from queries.QueryBase import QueryBase
-from algorithms.search import naive_bfs_levels, push_pull_bfs_levels, msbfs_levels, push_pull_msbfs_levels
+from algorithms.search import naive_bfs_levels, push_pull_bfs_levels, msbfs_levels, push_pull_msbfs_levels, bidirectional_bfs
 from pygraphblas import *
 
 Test = namedtuple('Test', ['inputs', 'expected_result'])
@@ -71,12 +71,20 @@ class Query1(QueryBase):
 
             overlay_graph = person_to_person_filtered.pattern()
 
-        levels = search_method(overlay_graph, person1_id_remapped)
-        try:
-            result = levels[person2_id_remapped] - 1  # Get hop count
-        except:
-            # There is no path
-            result = -1
+        if search_method == bidirectional_bfs:
+            # Experimenting with bidir bfs here
+            source = Matrix.from_type(BOOL, 2, overlay_graph.ncols)
+            source[0, person1_id_remapped] = True
+            source[1, person2_id_remapped] = True
+            result = search_method(overlay_graph, source)
+
+        else:
+            levels = search_method(overlay_graph, person1_id_remapped)
+            try:
+                result = levels[person2_id_remapped] - 1  # Get hop count
+            except:
+                # There is no path
+                result = -1
 
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)

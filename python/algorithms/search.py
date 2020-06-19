@@ -144,3 +144,25 @@ def push_pull_msbfs_levels(matrix, sourceVertices):
     return resultMatrix
 
 
+def bidirectional_bfs(matrix, sourceVertices):
+    frontier = sourceVertices
+    resultMatrix = Matrix.from_type(UINT64, sourceVertices.nrows, sourceVertices.ncols)
+    level = 0
+    while level < matrix.nrows:
+        resultMatrix.assign_scalar(level, mask=frontier)
+        and_vector = resultMatrix.transpose().reduce_vector()
+        if and_vector.nvals > 0:
+            print('breaking...')
+            break
+        with semiring.ANY_PAIR:
+                frontier = frontier.mxm(matrix, mask=resultMatrix.pattern(), desc=descriptor.ooco)
+        print(level)
+        level += 1
+    print(and_vector)
+    print(frontier)
+    return 1
+   # col_index = need index where the wavefronts met
+   # shortest_path = resultMatrix[0][col_index] + resultMatrix[1][col_index] - 1
+    #return shortest_path
+
+

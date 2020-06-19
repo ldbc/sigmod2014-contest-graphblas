@@ -2,7 +2,7 @@ import argparse
 from collections import namedtuple
 import re
 from queries.Query1 import Query1
-#from queries.Query2 import Query2
+from queries.Query2 import Query2
 from queries.Query3 import Query3
 from queries.Query4 import Query4
 
@@ -71,7 +71,7 @@ if __name__ == '__main__':
     data_dir = args.data_path
     data_format = 'csv'
     q1 = Query1(data_dir, data_format)
-    # q2 = Query2(data_dir, data_format)
+    q2 = Query2(data_dir, data_format)
     q3 = Query3(data_dir, data_format)
     q4 = Query4(data_dir, data_format)
 
@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
         q1_params, q2_params, q3_params, q4_params = load_query_params(args.query_args_path)
         q1.init_benchmark_inputs(q1_params)
-        #q2.init_benchmark_input(q2_params)
+        q2.init_benchmark_inputs(q2_params)
         q3.init_benchmark_inputs(q3_params)
         q4.init_benchmark_inputs(q4_params)
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         if '1' in args.queries_to_run:
             tests_passed = q1.run_tests(q1.execute_query, mode='benchmark') and tests_passed
         if '2' in args.queries_to_run:
-            #tests_passed = q2.run_tests(q2.execute_query) and tests_passed
+            tests_passed = q2.run_tests(q2.execute_query) and tests_passed
             pass
         if '3' in args.queries_to_run:
             tests_passed = q3.run_tests(q3.execute_query) and tests_passed
@@ -110,7 +110,7 @@ if __name__ == '__main__':
             query_args = args.query_args.split(' ')
             top_k = int(query_args[0])
             birthday_limit = query_args[1]
-            #q2.execute_query([top_k, birthday_limit])
+            q2.execute_query([top_k, birthday_limit])
         if args.queries_to_run == '3':
             query_args = args.query_args.split(' ')
             k = int(query_args[0])

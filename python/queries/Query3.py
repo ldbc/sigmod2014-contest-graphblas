@@ -102,7 +102,7 @@ class Query3(QueryBase):
         if len(result) < self.k:
             result_zeros = heapq.nsmallest(self.k, h_reachable_knows_tril, key=self.sortTriples)
             remaining = self.k - len(result)
-            while remaining > 0:
+            while remaining > 0 and len(result_zeros) != 0:
                 res = result_zeros.pop(0)
                 if resultMatrix.get(res[0], res[1]) is None:
                     person1_id = self.person.index2id[res[0]]
@@ -118,7 +118,7 @@ class Query3(QueryBase):
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)
         #log.info(f'Query took: {query_end - query_start} second')
-        print(f'q3,{int(self.load_time*10**6)},{int((query_end - query_start)*10**6)},{result}')
+        print(f'q3,{int(self.load_time*10**6)},{int((query_end - query_start)*10**6)},{result_string}')
         #log.info(result_string)
         return result_string
 

@@ -1,3 +1,4 @@
+query1(868, 868, -1)	0 % path 868 (other shortest paths may exist)
 query1(576, 400, -1)	3 % path 576-618-951-400 (other shortest paths may exist)
 query1(58, 402, 0)	3 % path 58-935-808-402 (other shortest paths may exist)
 query1(266, 106, -1)	3 % path 266-23-592-106 (other shortest paths may exist)
@@ -4891,7 +4892,6 @@ query1(846, 341, -1)	3 % path 846-385-366-341 (other shortest paths may exist)
 query1(81, 434, 2)	3 % path 81-838-119-434 (other shortest paths may exist)
 query1(353, 167, -1)	2 % path 353-271-167 (other shortest paths may exist)
 query1(34, 989, 2)	-1 % path none
-query1(868, 868, -1)	0 % path 868 (other shortest paths may exist)
 query1(663, 953, -1)	2 % path 663-592-953 (other shortest paths may exist)
 query1(610, 642, -1)	2 % path 610-557-642 (other shortest paths may exist)
 query1(397, 887, 1)	-1 % path none

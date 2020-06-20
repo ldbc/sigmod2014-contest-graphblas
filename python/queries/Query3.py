@@ -155,14 +155,14 @@ class Query3(QueryBase):
         peopleInThePlaceVector = self.personIsLocatedIn.mxv(relevantPlacesVector)
         # People working at a Company or studying at a University located in the given place
         organisationsVector = self.organisationIsLocatedIn.mxv(relevantPlacesVector)
-        with semiring.LOR_LAND_BOOL:
-            peopleWorkAtVector = self.workAt.mxv(organisationsVector)
-            peopleStudyAtVector = self.studyAt.mxv(organisationsVector)
-            # All the relevant people in the given place
-        with binaryop.PLUS_BOOL:
-            relevantPeopleVector = peopleWorkAtVector + peopleStudyAtVector + peopleInThePlaceVector
 
-            # Creating a diagonal matrix from the people ids
+        peopleWorkAtVector = self.workAt.mxv(organisationsVector)
+        peopleStudyAtVector = self.studyAt.mxv(organisationsVector)
+
+        # All the relevant people in the given place
+        relevantPeopleVector = peopleWorkAtVector + peopleStudyAtVector + peopleInThePlaceVector
+
+        # Creating a diagonal matrix from the people ids
         diagMtx = Matrix.from_lists(relevantPeopleVector.to_lists()[0], relevantPeopleVector.to_lists()[0],
                                     relevantPeopleVector.to_lists()[1], self.knows.nrows, self.knows.ncols, typ=BOOL)
         return diagMtx

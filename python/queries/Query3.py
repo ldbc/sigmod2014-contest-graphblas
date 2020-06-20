@@ -74,6 +74,16 @@ class Query3(QueryBase):
         if persons_diag_mx.nvals == 0:
             return ''
 
+        result_string = self.reachable_countTags_strategy(persons_diag_mx)
+
+        query_end = timer()
+        self.test_execution_times.append(query_end - query_start)
+        #log.info(f'Query took: {query_end - query_start} second')
+        print(f'q3,{int(self.load_time*10**6)},{int((query_end - query_start)*10**6)},{result_string}')
+        #log.info(result_string)
+        return result_string
+
+    def reachable_countTags_strategy(self, persons_diag_mx):
         next_mx = persons_diag_mx
         seen_mx = next_mx.dup()
 
@@ -119,11 +129,6 @@ class Query3(QueryBase):
 
                     remaining -= 1
 
-        query_end = timer()
-        self.test_execution_times.append(query_end - query_start)
-        #log.info(f'Query took: {query_end - query_start} second')
-        print(f'q3,{int(self.load_time*10**6)},{int((query_end - query_start)*10**6)},{result_string}')
-        #log.info(result_string)
         return result_string
 
     def format_result_string(self, result):

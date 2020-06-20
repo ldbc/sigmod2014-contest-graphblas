@@ -6,7 +6,6 @@ import logging
 import heapq
 from pygraphblas import *
 
-
 Test = namedtuple('Test', ['inputs', 'expected_result'])
 
 handler = logging.StreamHandler()
@@ -68,22 +67,27 @@ class Query3(QueryBase):
         # Run query
         query_start = timer()
 
-        persons_diag_mx = self.RelevantPeopleInPlaceMatrix(self.p)
+        selected_persons = self.RelevantPeopleInPlace(self.p)
 
         # nobody lives at the selected place
-        if persons_diag_mx.nvals == 0:
+        if selected_persons.nvals == 0:
             return ''
 
-        result_string = self.reachable_countTags_strategy(persons_diag_mx)
+        result_string = self.reachable_countTags_strategy(selected_persons)
 
         query_end = timer()
         self.test_execution_times.append(query_end - query_start)
-        #log.info(f'Query took: {query_end - query_start} second')
-        print(f'q3,{int(self.load_time*10**6)},{int((query_end - query_start)*10**6)},{result_string}')
-        #log.info(result_string)
+        # log.info(f'Query took: {query_end - query_start} second')
+        print(f'q3,{int(self.load_time * 10 ** 6)},{int((query_end - query_start) * 10 ** 6)},{result_string}')
+        # log.info(result_string)
         return result_string
 
-    def reachable_countTags_strategy(self, persons_diag_mx):
+    def reachable_countTags_strategy(self, selected_persons):
+        # Creating a diagonal matrix from the people ids
+        selected_persons_lists = selected_persons.to_lists()
+        persons_diag_mx = Matrix.from_lists(selected_persons_lists[0], selected_persons_lists[0],
+                                    selected_persons_lists[1], self.knows.nrows, self.knows.ncols, typ=BOOL)
+
         next_mx = persons_diag_mx
         seen_mx = next_mx.dup()
 
@@ -143,7 +147,7 @@ class Query3(QueryBase):
 
         return -triple[2], person1_id, person2_id
 
-    def RelevantPeopleInPlaceMatrix(self, placeName):
+    def RelevantPeopleInPlace(self, placeName):
         placeIndex = self.placeNames.index(placeName)
         # Relevant places
         isPartOfTransposed = self.isPartOf.transpose()
@@ -162,10 +166,7 @@ class Query3(QueryBase):
         # All the relevant people in the given place
         relevantPeopleVector = peopleWorkAtVector + peopleStudyAtVector + peopleInThePlaceVector
 
-        # Creating a diagonal matrix from the people ids
-        diagMtx = Matrix.from_lists(relevantPeopleVector.to_lists()[0], relevantPeopleVector.to_lists()[0],
-                                    relevantPeopleVector.to_lists()[1], self.knows.nrows, self.knows.ncols, typ=BOOL)
-        return diagMtx
+        return relevantPeopleVector
 
     def init_tests(self):
         tests = [

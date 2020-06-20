@@ -82,11 +82,33 @@ class Query3(QueryBase):
         # log.info(result_string)
         return result_string
 
+    def strat2(self, local_persons):
+        # maximum value: 10 -> UINT8
+        tag_count_per_person = Vector.from_type(UINT8, local_persons.size)
+        # TODO: we need zero values too
+        # tag_count_per_person.assign_scalar(0, mask=selected_persons)
+
+        self.hasInterest.reduce_vector(UINT8.PLUS_MONOID, mask=local_persons, out=tag_count_per_person)
+
+        print(tag_count_per_person, tag_count_per_person.type)
+        # print(tag_count_per_person.to_string())
+
+        max_tag_count = tag_count_per_person.reduce_int(tag_count_per_person.type.MAX_MONOID)
+        print(f'max_tag_count: {max_tag_count}')
+
+
+
+
+
+        result_string = ''
+
+        return result_string
+
     def reachable_countTags_strategy(self, selected_persons):
         # Creating a diagonal matrix from the people ids
         selected_persons_lists = selected_persons.to_lists()
         persons_diag_mx = Matrix.from_lists(selected_persons_lists[0], selected_persons_lists[0],
-                                    selected_persons_lists[1], self.knows.nrows, self.knows.ncols, typ=BOOL)
+                                            selected_persons_lists[1], self.knows.nrows, self.knows.ncols, typ=BOOL)
 
         next_mx = persons_diag_mx
         seen_mx = next_mx.dup()

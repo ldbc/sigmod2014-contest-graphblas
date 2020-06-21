@@ -144,14 +144,20 @@ def push_pull_msbfs_levels(matrix, sourceVertices):
     return resultMatrix
 
 
-def bidirectional_bfs(matrix, frontier1, frontier2):
+def bidirectional_bfs(matrix, src_idx1, src_idx2):
+    # If we want to start the BFS from the same two nodes, the length of path is 0
+    if src_idx1 == src_idx2:
+        return 0
+
+    node_count = matrix.ncols
+    frontier1 = Vector.from_lists([src_idx1], [True], node_count)
+    frontier2 = Vector.from_lists([src_idx2], [True], node_count)
     seen1 = frontier1
     seen2 = frontier2
-    person_count = matrix.ncols
-    for level in range(1, person_count // 2):
+    for level in range(1, node_count // 2):
         # frontier 1
         next1 = seen1.vxm(matrix, mask=seen1, desc=descriptor.ooco)
-        # emptied the component of person1
+        # emptied the component of src1
         if next1.nvals == 0:
             return -1
 
@@ -162,7 +168,7 @@ def bidirectional_bfs(matrix, frontier1, frontier2):
 
         # frontier 2
         next2 = seen2.vxm(matrix, mask=seen2, desc=descriptor.ooco)
-        # emptied the component of person2
+        # emptied the component of src2
         if next2.nvals == 0:
             return -1
 

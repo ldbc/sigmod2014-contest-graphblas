@@ -72,11 +72,7 @@ class Query1(QueryBase):
             overlay_graph = person_to_person_filtered.pattern()
 
         if search_method == bidirectional_bfs:
-            # Experimenting with bidir bfs here
-            numpersons = len(self.person.id2index)
-            frontier1 = Vector.from_lists([person1_id_remapped], [True], numpersons)
-            frontier2 = Vector.from_lists([person2_id_remapped], [True], numpersons)
-            result = search_method(overlay_graph, frontier1, frontier2)
+            result = search_method(overlay_graph, person1_id_remapped, person2_id_remapped)
 
         else:
             levels = search_method(overlay_graph, person1_id_remapped)

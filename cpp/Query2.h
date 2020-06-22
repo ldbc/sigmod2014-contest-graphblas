@@ -50,6 +50,7 @@ class Query2 : public Query<int, std::string> {
 
         auto tag_scores = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
 
+        LAGraph_set_nthreads(1);
 #pragma omp parallel num_threads(GlobalNThreads)
         {
             auto tag_scores_local = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);

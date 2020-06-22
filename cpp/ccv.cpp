@@ -54,11 +54,11 @@ void print_bit_matrices(const GrB_Matrix frontier, const GrB_Matrix next, const 
 
 inline __attribute__((always_inline))
 void create_diagonal_bit_matrix(GrB_Matrix D) {
-    GrB_Index n, ncols;
-    ok(GrB_Matrix_nrows(&n, D));
+    GrB_Index n, nrows;
+    ok(GrB_Matrix_ncols(&n, D));
 #ifndef NDEBUG
-    ok(GrB_Matrix_ncols(&ncols, D));
-    assert(ncols == (n + 63) / 64);
+    ok(GrB_Matrix_nrows(&nrows, D));
+    assert(nrows == (n + 63) / 64);
 #endif
 
 //    I = 0, 1, ..., n
@@ -72,8 +72,8 @@ void create_diagonal_bit_matrix(GrB_Matrix D) {
     nthreads = std::max(nthreads, 1);
 #pragma omp parallel for num_threads(nthreads) schedule(static)
     for (GrB_Index k = 0; k < n; k++) {
-        I[k] = k;
-        J[k] = k / 64;
+        I[k] = k / 64;
+        J[k] = k;
         X[k] = 1L << (k % 64);
     }
     ok(GrB_Matrix_build_UINT64(D, I.get(), J.get(), X.get(), n, GrB_BOR_UINT64));
@@ -100,10 +100,10 @@ GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
 
     const GrB_Index bit_matrix_ncols = (n + 63) / 64;
 
-    GBxx_Object<GrB_Matrix> frontier = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
-    GBxx_Object<GrB_Matrix> next = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
-    GBxx_Object<GrB_Matrix> Next_PopCount = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
-    GBxx_Object<GrB_Matrix> Seen_PopCount = GB(GrB_Matrix_new, GrB_UINT64, n, bit_matrix_ncols);
+    GBxx_Object<GrB_Matrix> frontier = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
+    GBxx_Object<GrB_Matrix> next = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
+    GBxx_Object<GrB_Matrix> Next_PopCount = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
+    GBxx_Object<GrB_Matrix> Seen_PopCount = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
 
     GBxx_Object<GrB_Vector> next_popcount = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> ones = GB(GrB_Vector_new, GrB_UINT64, n);
@@ -145,8 +145,8 @@ GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
         ok(GrB_Vector_eWiseAdd_BinaryOp(level_v.get(), NULL, NULL, GrB_PLUS_UINT64, level_v.get(), ones.get(), NULL));
 
         // next = A * frontier
-        //ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), A, frontier.get(), NULL));
-        ok(GrB_mxm(next.get(), NULL, NULL, BOR_SECOND.get(), A, frontier.get(), NULL));
+        ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), frontier.get(), A, NULL));
+//        ok(GrB_mxm(next.get(), NULL, NULL, BOR_SECOND.get(), A, frontier.get(), NULL));
 
         // next = next & ~seen
         // We need to use eWiseAdd to see the union of value but mask with next so that
@@ -187,7 +187,7 @@ GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
         // next_popCount = reduce(apply(popcount, next))
         ok(GrB_Matrix_apply(Next_PopCount.get(), NULL, NULL, op_popcount.get(), next.get(), NULL));
         ok(GrB_Matrix_reduce_Monoid(next_popcount.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, Next_PopCount.get(),
-                                    NULL));
+                GrB_DESC_T0));
 
         // seen = seen | next
         ok(GrB_Matrix_eWiseAdd_BinaryOp(seen.get(), NULL, NULL, GrB_BOR_UINT64, seen.get(), next.get(), NULL));
@@ -220,7 +220,7 @@ GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
     }
     // compsize = reduce(seen, row -> popcount(row))
     ok(GrB_Matrix_apply(Seen_PopCount.get(), NULL, NULL, op_popcount.get(), seen.get(), NULL));
-    ok(GrB_Matrix_reduce_Monoid(compsize.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, Seen_PopCount.get(), NULL));
+    ok(GrB_Matrix_reduce_Monoid(compsize.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, Seen_PopCount.get(), GrB_DESC_T0));
 
     // compute the closeness centrality value:
     //

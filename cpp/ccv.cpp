@@ -144,14 +144,9 @@ GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
         // level_v += 1
         ok(GrB_Vector_eWiseAdd_BinaryOp(level_v.get(), NULL, NULL, GrB_PLUS_UINT64, level_v.get(), ones.get(), NULL));
 
-        // next = frontier * A
-        if (push) {
-            ok(GrB_vxm((GrB_Vector) next.get(), NULL, NULL, BOR_FIRST.get(), (GrB_Vector) frontier.get(), A,
-                       NULL)); // TODO: remove incorrect pointer casts
-        } else {
-            ok(GrB_mxv((GrB_Vector) next.get(), NULL, NULL, BOR_SECOND.get(), A, (GrB_Vector) frontier.get(),
-                       NULL)); // TODO: remove incorrect pointer casts
-        }
+        // next = A * frontier
+        //ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), A, frontier.get(), NULL));
+        ok(GrB_mxm(next.get(), NULL, NULL, BOR_SECOND.get(), A, frontier.get(), NULL));
 
         // next = next & ~seen
         // We need to use eWiseAdd to see the union of value but mask with next so that

@@ -83,8 +83,7 @@ void fun_sum_popcount(void *z, const void *x) {
     *((uint64_t *) z) = __builtin_popcountll(*((uint64_t *) x));
 }
 
-// TODO: mapping comes from LAGraph (C code) and needs to be freed
-std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(GrB_Matrix A) {
+GBxx_Object<GrB_Vector> compute_ccv(GrB_Matrix A) {
     // initializing unary operator for next_popcount
     GBxx_Object<GrB_UnaryOp> op_popcount = GB(GrB_UnaryOp_new, fun_sum_popcount, GrB_UINT64, GrB_UINT64);
     GBxx_Object<GrB_Semiring> BOR_FIRST, BOR_SECOND;
@@ -137,10 +136,6 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
     float r, r_before;
     r_before = (float) frontier_nvals / (float) (matrix_nrows * source_nrows);
 
-    GrB_Matrix C = NULL;
-    GrB_Index* mapping = NULL;
-    LAGraph_reorder_vertices(&C, &mapping, A, false);
-    A = C;
 
 
     // traversal
@@ -246,5 +241,5 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 //    ok(GxB_print(compsize, GxB_SHORT));
 //    ok(GxB_print(sp, GxB_SHORT));
 
-    return std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>>{std::move(ccv_result), mapping};
+    return ccv_result;
 }

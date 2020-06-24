@@ -150,7 +150,7 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
         ok(GrB_Vector_eWiseAdd_BinaryOp(level_v.get(), NULL, NULL, GrB_PLUS_UINT64, level_v.get(), ones.get(), NULL));
 
         // next = A * frontier
-        ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), frontier.get(), A, NULL));
+        ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), frontier.get(), A, GrB_DESC_R));
 //        ok(GrB_mxm(next.get(), NULL, NULL, BOR_SECOND.get(), A, frontier.get(), NULL));
 
         // next = next & ~seen

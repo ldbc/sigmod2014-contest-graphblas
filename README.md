@@ -80,9 +80,10 @@ Parameters: paths of tools, sizes, CSVs folder.
 
 ### Useful commands
 
-#### Archive results before new measurements
+#### Archive results and delete old code before new measurements
 
 ```bash
+cpp/cmake-build-release
 cp -r results/* results-old/ && rm -rf results/*k
 ```
 

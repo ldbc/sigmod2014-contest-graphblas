@@ -20,7 +20,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
 
     std::tuple<std::string, std::string> initial_calculation() override {
 
-        GrB_Matrix filtered_matrix_ptr;
+        GrB_Matrix A;
 
         GBxx_Object<GrB_Matrix> personAToComment2 = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),
                                                        input.comments.size());
@@ -37,38 +37,96 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
         // ok(GxB_Matrix_fprint(personToPerson.get(), "personToPerson", GxB_SUMMARY, stdout));
 
         if (comment_lower_limit == -1) {
-            filtered_matrix_ptr = input.knows.matrix.get();
+            A = input.knows.matrix.get();
 
         } else {
             auto limit = GB(GxB_Scalar_new, GrB_INT32);
             ok(GxB_Scalar_setElement_INT32(limit.get(), comment_lower_limit));
             ok(GxB_Matrix_select(personToPerson.get(), GrB_NULL, GrB_NULL, GxB_GT_THUNK, personToPerson.get(),
                                  limit.get(), GrB_NULL));
-            // make symmetric by removing one-directional freqComm relationships
+            // make symmetric
             ok(GrB_eWiseMult_Matrix_BinaryOp(personToPerson.get(), GrB_NULL, GrB_NULL,
                                              GxB_PAIR_UINT64, personToPerson.get(), personToPerson.get(), GrB_DESC_T0));
 
-            filtered_matrix_ptr = personToPerson.get();
+            A = personToPerson.get();
         }
 
 #ifndef NDEBUG
-        ok(GxB_Matrix_fprint(filtered_matrix_ptr, "personToPersonFiltered", GxB_SUMMARY, stdout));
+        ok(GxB_Matrix_fprint(A, "personToPersonFiltered", GxB_SUMMARY, stdout));
 #endif
 
-        //Person to person is symmtetric, so no need to transpose
-        GBxx_Object<GrB_Vector> v_output = GB(LAGraph_bfs_pushpull, nullptr, filtered_matrix_ptr, filtered_matrix_ptr,
-                                              p1, GrB_NULL, false);
+
+
+        GrB_Index n;
+        ok(GrB_Matrix_nrows(&n, A));
+
+        GBxx_Object<GrB_Vector> frontier1 = GB(GrB_Vector_new, GrB_BOOL, n);
+        GBxx_Object<GrB_Vector> frontier2 = GB(GrB_Vector_new, GrB_BOOL, n);
+        GBxx_Object<GrB_Vector> next1 = GB(GrB_Vector_new, GrB_BOOL, n);
+        GBxx_Object<GrB_Vector> next2 = GB(GrB_Vector_new, GrB_BOOL, n);
+        GBxx_Object<GrB_Vector> intersection1 = GB(GrB_Vector_new, GrB_BOOL, n);
+        GBxx_Object<GrB_Vector> intersection2 = GB(GrB_Vector_new, GrB_BOOL, n);
+
+        ok(GrB_Vector_setElement_BOOL(frontier1.get(), true, p1));
+        ok(GrB_Vector_setElement_BOOL(frontier2.get(), true, p2));
+        GBxx_Object<GrB_Vector> seen1 = GB(GrB_Vector_dup, frontier1.get());
+        GBxx_Object<GrB_Vector> seen2 = GB(GrB_Vector_dup, frontier2.get());
+
+        int distance;
+        if (p1 == p2) {
+            distance = 0;
+        } else {
+            // use two "push" frontiers
+            for (GrB_Index level = 1; level < n / 2 + 1; level++) {
+                ok(GrB_vxm(next1.get(), seen1.get(), NULL, GxB_ANY_PAIR_BOOL, frontier1.get(), A, GrB_DESC_RC));
+
+                GrB_Index next1nvals;
+                ok(GrB_Vector_nvals(&next1nvals, next1.get()));
+                if (next1nvals == 0) {
+                    distance = -1;
+                    break;
+                }
+
+                ok(GrB_Vector_eWiseMult_BinaryOp(intersection1.get(), NULL, NULL, GrB_LAND, next1.get(), frontier2.get(), NULL));
+
+                GrB_Index intersection1_nvals;
+                ok(GrB_Vector_nvals(&intersection1_nvals, intersection1.get()));
+                if (intersection1_nvals > 0) {
+                    distance = level * 2 - 1;
+                    break;
+                }
+
+                ok(GrB_vxm(next2.get(), seen2.get(), NULL, GxB_ANY_PAIR_BOOL, frontier2.get(), A, GrB_DESC_RC));
+                ok(GrB_Vector_eWiseMult_BinaryOp(intersection2.get(), NULL, NULL, GrB_LAND, next1.get(), next2.get(), NULL));
+
+                GrB_Index intersection2_nvals;
+                ok(GrB_Vector_nvals(&intersection2_nvals, intersection2.get()));
+                if (intersection2_nvals > 0) {
+                    distance = level * 2;
+                    break;
+                }
+
+                GrB_Index next2nvals;
+                ok(GrB_Vector_nvals(&next2nvals, next2.get()));
+                if (next2nvals == 0) {
+                    distance = -1;
+                    break;
+                }
+
+                ok(GrB_eWiseAdd_Vector_BinaryOp(seen1.get(), NULL, NULL, GrB_LOR, seen1.get(), next1.get(), NULL));
+                ok(GrB_eWiseAdd_Vector_BinaryOp(seen2.get(), NULL, NULL, GrB_LOR, seen2.get(), next2.get(), NULL));
+
+                frontier1 = GB(GrB_Vector_dup, next1.get());
+                frontier2 = GB(GrB_Vector_dup, next2.get());
+            }
+        }
+
 #ifndef NDEBUG
-        ok(GxB_Vector_fprint(v_output.get(), "output_vec", GxB_SUMMARY, stdout));
+//        ok(GxB_Vector_fprint(v_output.get(), "output_vec", GxB_SUMMARY, stdout));
 #endif
 
-        int result;
-        ok(GrB_Vector_extractElement_INT32(&result, v_output.get(), p2));
-        //Decrementing result, because levels in BFS start at 1
-        result--;
         std::string result_str, comment_str;
-
-        result_str = std::to_string(result);
+        result_str = std::to_string(distance);
         return {result_str, comment_str};
     }
 

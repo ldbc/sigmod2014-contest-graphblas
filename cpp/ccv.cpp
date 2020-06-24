@@ -207,7 +207,7 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 //        print_bit_matrices(frontier, next, seen, next_popcount, sp);
 
         // frontier = next
-        frontier = GB(GrB_Matrix_dup, next.get());
+        std::swap(frontier, next);
 
         //Heuristic
         ok(GrB_Matrix_nvals(&frontier_nvals, frontier.get()));

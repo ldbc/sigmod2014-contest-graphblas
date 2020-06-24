@@ -158,7 +158,8 @@ class Query3(QueryBase):
         return result_string
 
     def format_result_string(self, result):
-        return result.split('%')[0]
+        if result != 'not available':
+            return result.split('%')[0]
 
     def sortTriples(self, triple):
         person1_id = self.person.index2id[triple[0]]

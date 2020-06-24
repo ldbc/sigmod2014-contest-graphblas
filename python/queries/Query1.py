@@ -201,7 +201,8 @@ class Query1(QueryBase):
             frontier2 = next2
 
     def format_result_string(self, result):
-        return int(result.split('%')[0])
+        if result != 'not available':
+            return int(result.split('%')[0])
 
     def init_tests(self):
         tests = [

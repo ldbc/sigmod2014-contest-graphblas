@@ -98,7 +98,8 @@ class Query2(QueryBase):
         return max_component_size
 
     def format_result_string(self, result):
-        return result.split('%')[0]
+        if result != 'not available':
+            return result.split('%')[0]
 
     def init_tests(self):
         tests = [

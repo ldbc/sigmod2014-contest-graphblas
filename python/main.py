@@ -22,6 +22,8 @@ def load_query_params(path):
             if search_query_num is not None:
                 query_num = search_query_num.group()[0]
                 query_result = line.split(')')[1].strip()
+                if query_result == '':
+                    query_result = 'not available'
                 extracted_params_str = line[line.find("(")+1:line.find(")")]
                 extracted_params_list = extracted_params_str.split(',')
                 if query_num == '1':
@@ -89,11 +91,11 @@ if __name__ == '__main__':
         if '1' in queries_to_run:
             tests_passed = q1.run_tests(q1.execute_query, mode='benchmark') and tests_passed
         if '2' in queries_to_run:
-            tests_passed = q2.run_tests(q2.execute_query) and tests_passed
+            tests_passed = q2.run_tests(q2.execute_query, mode='benchmark') and tests_passed
         if '3' in queries_to_run:
-            tests_passed = q3.run_tests(q3.execute_query) and tests_passed
+            tests_passed = q3.run_tests(q3.execute_query, mode='benchmark') and tests_passed
         if '4' in queries_to_run:
-            tests_passed = q4.run_tests(q4.execute_query) and tests_passed
+            tests_passed = q4.run_tests(q4.execute_query, mode='benchmark') and tests_passed
 
         if tests_passed:
             print('\nALL TESTS PASSED')

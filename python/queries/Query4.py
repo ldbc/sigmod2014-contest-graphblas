@@ -136,7 +136,8 @@ class Query4(QueryBase):
         return resultMatrix, idList
 
     def format_result_string(self, result):
-        return result.split('%')[0]
+        if result != 'not available':
+            return result.split('%')[0]
 
     def init_tests(self):
         tests = [

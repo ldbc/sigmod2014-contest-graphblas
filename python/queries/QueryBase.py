@@ -17,7 +17,7 @@ class QueryBase(ABC):
     def __init__(self, data_dir, data_format, tests):
         self.loader = DataLoader(data_dir, data_format)
         self.tests = tests
-        self.benchmark_tests = None
+        self.benchmark_inputs = None
         self.load_time = None
         self.test_execution_times = []
 
@@ -44,24 +44,25 @@ class QueryBase(ABC):
             tests = self.benchmark_inputs
         else:
             raise Exception('Invalid mode for executing tests. Valid options are: [testing, benchmark]')
-        log.info(f'Running tests in {mode} mode')
+        # log.info(f'Running tests in {mode} mode')
         for test in tests:
             result = query_implementation(test.inputs)
             test = test._replace(expected_result=self.format_result_string(test.expected_result))
             if result == test.expected_result:
-                log.info(f'Result: {result}')
-                log.info(f'TEST PASSED')
-                log.info('----------------------')
+                # log.info(f'Result: {result}')
+                # log.info(f'TEST PASSED')
+                # log.info('----------------------')
+                pass
             else:
                 failed_tests += 1
-                log.error(f'TEST FAILED: result: {result}  expected result: {test.expected_result}')
+                # log.error(f'TEST FAILED: result: {result}  expected result: {test.expected_result}')
             all_tests += 1
 
         if failed_tests == 0:
-            log.info(f'ALL TESTS PASSED: {all_tests}')
+            # log.info(f'ALL TESTS PASSED: {all_tests}')
             return True
         else:
-            log.error(f'TESTS FAILED: {failed_tests}/{all_tests}')
+            # log.error(f'TESTS FAILED: {failed_tests}/{all_tests}')
             return False
 
     @abstractmethod

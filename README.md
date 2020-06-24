@@ -63,7 +63,7 @@ After downloading data and generating query parameters, build the tool to be mea
 Run measurements using `scripts/run-tool.sh`. Running it without parameters is the same as the following. (More details [here](scripts/run-tool.sh).)
 
 ```bash
-QUERIES=1,2,3,4 scripts/run-tool.sh cpp/cmake-build-release/sigmod2014pc_cpp o1k csvs
+PARAMS_NUMBER=100 QUERIES=1,2,3,4 scripts/run-tool.sh cpp/cmake-build-release/sigmod2014pc_cpp o1k csvs
 ```
 
 Log file and measurement results in CSV are saved to `results/$SIZE/$TOOL_NAME`. Look for the latest timestamp.
@@ -73,7 +73,7 @@ Log file and measurement results in CSV are saved to `results/$SIZE/$TOOL_NAME`.
 Run the following:
 
 ```bash
-ITERATION_COUNT=1 QUERIES=1,2,3,4 scripts/run.sh "«TOOL1_PATH» «TOOL2_PATH»..." 1,10,100,1000 csvs
+PARAMS_NUMBER=100 ITERATION_COUNT=1 QUERIES=1,2,3,4 scripts/run.sh "«TOOL1_PATH» «TOOL2_PATH»..." 1,10,100,1000 csvs
 ```
 
 Parameters: paths of tools, sizes, CSVs folder.

@@ -101,7 +101,7 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 
     const GrB_Index bit_matrix_ncols = (n + 63) / 64;
 
-    GBxx_Object<GrB_Matrix> next = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
+    GBxx_Object<GrB_Matrix> Next = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
     GBxx_Object<GrB_Matrix> Next_PopCount = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
     GBxx_Object<GrB_Matrix> Seen_PopCount = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
 
@@ -110,22 +110,28 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
     GBxx_Object<GrB_Vector> compsize = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
 
-    // initialize next and seen matrices: to compute closeness centrality, start off with a diagonal
-    create_diagonal_bit_matrix(next.get());
-    GBxx_Object<GrB_Matrix> seen = GB(GrB_Matrix_dup, next.get());
+    // initialize Next and Seen matrices: to compute closeness centrality, start off with a diagonal
+    create_diagonal_bit_matrix(Next.get());
+    GBxx_Object<GrB_Matrix> Seen = GB(GrB_Matrix_dup, Next.get());
+    GBxx_Object<GrB_Matrix> AllSeen = GB(GrB_Matrix_new, GrB_BOOL, bit_matrix_ncols, n); // hack: only use pattern
+
+    GxB_Scalar allOnes;
+    ok(GxB_Scalar_new(&allOnes, GrB_UINT64));
+    ok(GxB_Scalar_setElement_UINT64(allOnes, 0xFFFFFFFFFFFFFFFF));
 
     // traversal
     for (GrB_Index level = 1; level < n; level++) {
 //        printf("========================= Level %2ld =========================\n\n", level);
+        ok(GxB_Matrix_select(AllSeen.get(), NULL, NULL, GxB_EQ_THUNK, Seen.get(), allOnes, NULL));
 
-        // next = A * next
-        ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), next.get(), A, GrB_DESC_R));
+        // Next = A * Next
+        ok(GrB_mxm(Next.get(), AllSeen.get(), NULL, BOR_FIRST.get(), Next.get(), A, GrB_DESC_RSC));
 
-        // next = next & ~seen
-        // We need to use eWiseAdd to see the union of value but mask with next so that
-        // zero elements do not get the value from ~seen.
+        // Next = Next & ~Seen
+        // We need to use eWiseAdd to see the union of value but mask with Next so that
+        // zero elements do not get the value from ~Seen.
         // The code previously dropped zero elements. DO NOT do that as it will render
-        // seen[i] = 0000 (implicit value) and seen[j] = 1111 equivalent in not_seen
+        // Seen[i] = 0000 (implicit value) and Seen[j] = 1111 equivalent in not_seen
         /*
              (Next)&& ! Seen  =  Next
               1100      1010     0100
@@ -140,30 +146,30 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
             neg: apply f(a)=~a on explicit values
             GrB_apply: C<Mask> = accum (C, op(A))
             mask: Next
-            desc: default (do not replace) to keep values which don't have corresponding seen values
+            desc: default (do not replace) to keep values which don't have corresponding Seen values
             accum: &
             op: ~
             Next<Next> &= ~Seen
             (Seen = Next)
          */
 
-        ok(GrB_Matrix_apply(next.get(), next.get(), GrB_BAND_UINT64, GrB_BNOT_UINT64, seen.get(), NULL));
-        ok(GxB_Matrix_select(next.get(), GrB_NULL, GrB_NULL, GxB_NONZERO, next.get(), GrB_NULL, GrB_NULL));
+        ok(GrB_Matrix_apply(Next.get(), Next.get(), GrB_BAND_UINT64, GrB_BNOT_UINT64, Seen.get(), NULL));
+        ok(GxB_Matrix_select(Next.get(), GrB_NULL, GrB_NULL, GxB_NONZERO, Next.get(), GrB_NULL, GrB_NULL));
         GrB_Index next_nvals;
-        ok(GrB_Matrix_nvals(&next_nvals, next.get()));
+        ok(GrB_Matrix_nvals(&next_nvals, Next.get()));
 
 
         if (next_nvals == 0) {
 //            printf("no new vertices found\n");
             break;
         }
-        // next_popCount = reduce(apply(popcount, next))
-        ok(GrB_Matrix_apply(Next_PopCount.get(), NULL, NULL, op_popcount.get(), next.get(), NULL));
+        // next_popCount = reduce(apply(popcount, Next))
+        ok(GrB_Matrix_apply(Next_PopCount.get(), NULL, NULL, op_popcount.get(), Next.get(), NULL));
         ok(GrB_Matrix_reduce_Monoid(next_popcount.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, Next_PopCount.get(),
                 GrB_DESC_T0));
 
-        // seen = seen | next
-        ok(GrB_Matrix_eWiseAdd_BinaryOp(seen.get(), NULL, NULL, GrB_BOR_UINT64, seen.get(), next.get(), NULL));
+        // Seen = Seen | Next
+        ok(GrB_Matrix_eWiseAdd_BinaryOp(Seen.get(), NULL, NULL, GrB_BOR_UINT64, Seen.get(), Next.get(), NULL));
 
         // sp += (next_popcount * level)
         //   next_popcount * level is expressed as next_popcount *= level_v
@@ -171,8 +177,8 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 
         ok(GrB_Vector_eWiseAdd_BinaryOp(sp.get(), NULL, NULL, GrB_PLUS_UINT64, sp.get(), next_popcount.get(), NULL));
     }
-    // compsize = reduce(seen, row -> popcount(row))
-    ok(GrB_Matrix_apply(Seen_PopCount.get(), NULL, NULL, op_popcount.get(), seen.get(), NULL));
+    // compsize = reduce(Seen, row -> popcount(row))
+    ok(GrB_Matrix_apply(Seen_PopCount.get(), NULL, NULL, op_popcount.get(), Seen.get(), NULL));
     ok(GrB_Matrix_reduce_Monoid(compsize.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, Seen_PopCount.get(), GrB_DESC_T0));
 
     // compute the closeness centrality value:

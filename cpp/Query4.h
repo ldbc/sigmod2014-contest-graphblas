@@ -53,8 +53,8 @@ class Query4 : public Query<int, std::string> {
 
         // call MSBFS-based closeness centrality value computation
         // TODO: free mapping
-//        auto [ccv, mapping] = compute_ccv(member_friends.get());
-        auto [ccv, mapping] = compute_ccv_bool(member_friends.get());
+        auto [ccv, mapping] = compute_ccv(member_friends.get());
+//        auto [ccv, mapping] = compute_ccv_bool(member_friends.get());
 
         // extract tuples from ccv result
         GrB_Index ccv_nvals;

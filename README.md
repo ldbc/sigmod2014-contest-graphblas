@@ -83,7 +83,7 @@ Parameters: paths of tools, sizes, CSVs folder.
 #### Archive results and delete old code before new measurements
 
 ```bash
-cpp/cmake-build-release
+rm -rf cpp/cmake-build-release
 cp -r results/* results-old/ && rm -rf results/*k
 ```
 

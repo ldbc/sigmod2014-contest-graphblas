@@ -101,57 +101,25 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 
     const GrB_Index bit_matrix_ncols = (n + 63) / 64;
 
-    GBxx_Object<GrB_Matrix> frontier = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
     GBxx_Object<GrB_Matrix> next = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
     GBxx_Object<GrB_Matrix> Next_PopCount = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
     GBxx_Object<GrB_Matrix> Seen_PopCount = GB(GrB_Matrix_new, GrB_UINT64, bit_matrix_ncols, n);
 
     GBxx_Object<GrB_Vector> next_popcount = GB(GrB_Vector_new, GrB_UINT64, n);
-    GBxx_Object<GrB_Vector> ones = GB(GrB_Vector_new, GrB_UINT64, n);
-    GBxx_Object<GrB_Vector> n_minus_one = GB(GrB_Vector_new, GrB_UINT64, n);
-    GBxx_Object<GrB_Vector> level_v = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> sp = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> compsize = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
 
-    // initialize frontier and seen matrices: to compute closeness centrality, start off with a diagonal
-    create_diagonal_bit_matrix(frontier.get());
-    GBxx_Object<GrB_Matrix> seen = GB(GrB_Matrix_dup, frontier.get());
-
-    // initialize vectors
-    ok(GrB_Vector_assign_UINT64(ones.get(), NULL, NULL, 1, GrB_ALL, n, NULL));
-    ok(GrB_Vector_assign_UINT64(n_minus_one.get(), NULL, NULL, n - 1, GrB_ALL, n, NULL));
-
-    // initialize
-
-
-    bool push = true; // TODO: add heuristic
-    //Heuristic
-    float threshold = 0.015;
-    GrB_Index frontier_nvals, matrix_nrows, source_nrows;
-    ok(GrB_Matrix_nvals(&frontier_nvals, frontier.get()));
-    ok(GrB_Matrix_nrows(&matrix_nrows, A));
-    //This should be the amount of bfs traversals, but since we traverse from all
-    //nodes, this equals A.nrows
-    ok(GrB_Matrix_nrows(&source_nrows, A));
-    float r, r_before;
-    r_before = (float) frontier_nvals / (float) (matrix_nrows * source_nrows);
-
-    GrB_Matrix C = NULL;
-    GrB_Index* mapping = NULL;
-    LAGraph_reorder_vertices(&C, &mapping, A, false);
-    A = C;
-
+    // initialize next and seen matrices: to compute closeness centrality, start off with a diagonal
+    create_diagonal_bit_matrix(next.get());
+    GBxx_Object<GrB_Matrix> seen = GB(GrB_Matrix_dup, next.get());
 
     // traversal
     for (GrB_Index level = 1; level < n; level++) {
 //        printf("========================= Level %2ld =========================\n\n", level);
-        // level_v += 1
-        ok(GrB_Vector_eWiseAdd_BinaryOp(level_v.get(), NULL, NULL, GrB_PLUS_UINT64, level_v.get(), ones.get(), NULL));
 
-        // next = A * frontier
-        ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), frontier.get(), A, GrB_DESC_R));
-//        ok(GrB_mxm(next.get(), NULL, NULL, BOR_SECOND.get(), A, frontier.get(), NULL));
+        // next = A * next
+        ok(GrB_mxm(next.get(), NULL, NULL, BOR_FIRST.get(), next.get(), A, GrB_DESC_R));
 
         // next = next & ~seen
         // We need to use eWiseAdd to see the union of value but mask with next so that
@@ -199,29 +167,9 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 
         // sp += (next_popcount * level)
         //   next_popcount * level is expressed as next_popcount *= level_v
-        ok(GxB_Vector_subassign_UINT64(level_v.get(), next_popcount.get(), NULL, level, GrB_ALL, n, GrB_DESC_S));
-        ok(GrB_Vector_eWiseMult_BinaryOp(next_popcount.get(), NULL, NULL, GrB_TIMES_UINT64, next_popcount.get(),
-                                         level_v.get(), NULL));
+        ok(GrB_Vector_apply_BinaryOp1st_UINT64(next_popcount.get(), NULL, NULL, GrB_TIMES_UINT64, level, next_popcount.get(), NULL));
+
         ok(GrB_Vector_eWiseAdd_BinaryOp(sp.get(), NULL, NULL, GrB_PLUS_UINT64, sp.get(), next_popcount.get(), NULL));
-
-//        print_bit_matrices(frontier, next, seen, next_popcount, sp);
-
-        // frontier = next
-        std::swap(frontier, next);
-
-        //Heuristic
-        ok(GrB_Matrix_nvals(&frontier_nvals, frontier.get()));
-        r = (float) frontier_nvals / (float) (matrix_nrows * source_nrows);
-
-        if (r > r_before && r > threshold) {
-            push = false;
-        }
-
-        if (r < r_before && r < threshold) {
-            push = true;
-        }
-
-        r_before = r;
     }
     // compsize = reduce(seen, row -> popcount(row))
     ok(GrB_Matrix_apply(Seen_PopCount.get(), NULL, NULL, op_popcount.get(), seen.get(), NULL));
@@ -235,16 +183,12 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 
     // all vectors are dense therefore eWiseAdd and eWiseMult are the same
     // C(p)-1
-    ok(GrB_Vector_eWiseAdd_BinaryOp(compsize.get(), NULL, NULL, GrB_MINUS_UINT64, compsize.get(), ones.get(), NULL));
+    ok(GrB_Vector_apply_BinaryOp2nd_UINT64(compsize.get(), NULL, NULL, GrB_MINUS_UINT64, compsize.get(), 1, NULL));
     // (C(p)-1)^2
-    ok(GrB_Vector_eWiseMult_BinaryOp(compsize.get(), NULL, NULL, GrB_TIMES_UINT64, compsize.get(), compsize.get(),
-                                     NULL));
+    ok(GrB_Vector_eWiseMult_BinaryOp(compsize.get(), NULL, NULL, GrB_TIMES_UINT64, compsize.get(), compsize.get(), NULL));
 
-    ok(GrB_Vector_eWiseMult_BinaryOp(sp.get(), NULL, NULL, GrB_TIMES_UINT64, n_minus_one.get(), sp.get(), NULL));
+    ok(GrB_Vector_apply_BinaryOp1st_UINT64(sp.get(), NULL, NULL, GrB_TIMES_UINT64, n-1, sp.get(), NULL));
     ok(GrB_Vector_eWiseMult_BinaryOp(ccv_result.get(), NULL, NULL, GrB_DIV_FP64, compsize.get(), sp.get(), NULL));
 
-//    ok(GxB_print(compsize, GxB_SHORT));
-//    ok(GxB_print(sp, GxB_SHORT));
-
-    return std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>>{std::move(ccv_result), mapping};
+    return std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>>{std::move(ccv_result), nullptr};
 }

@@ -51,18 +51,10 @@ class Query4 : public Query<int, std::string> {
                               relevant_person_indices.data(), relevant_person_indices.size(),
                               relevant_person_indices.data(), relevant_person_indices.size(), GrB_NULL));
 
-//        // diagonal sources matrix
-//        GBxx_Object<GrB_Matrix> sources = GB(GrB_Matrix_new, GrB_BOOL,
-//                                             relevant_persons_nvals, relevant_persons_nvals);
-//        auto all_indices = array_of_indices(relevant_persons_nvals);
-//        ok(GrB_Matrix_build_BOOL(sources.get(),
-//                                 all_indices.get(), all_indices.get(), array_of_true(relevant_persons_nvals).get(),
-//                                 relevant_persons_nvals, GrB_SECOND_BOOL));
-
         // call MSBFS-based closeness centrality value computation
         // TODO: free mapping
-        auto [ccv, mapping] = compute_ccv(member_friends.get());
-//        auto [ccv, mapping] = compute_ccv_bool(member_friends.get());
+//        auto [ccv, mapping] = compute_ccv(member_friends.get());
+        auto [ccv, mapping] = compute_ccv_bool(member_friends.get());
 
         // extract tuples from ccv result
         GrB_Index ccv_nvals;
@@ -89,7 +81,7 @@ class Query4 : public Query<int, std::string> {
         for (size_t i = 0; i < cc_values.size(); ++i) {
             double score = cc_values[i];
             
-            GrB_Index person_local_index = mapping[cc_indices[i]];
+            GrB_Index person_local_index = cc_indices[i];
             GrB_Index person_index = relevant_person_indices[person_local_index];
             uint64_t person_id = input.persons.vertexIds[person_index];
             

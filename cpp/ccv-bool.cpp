@@ -33,24 +33,16 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv_bo
         assert(n == ncols); // TODO replace with proper input check
     }
 
-    GBxx_Object<GrB_Matrix> frontier = GB(GrB_Matrix_new, GrB_BOOL, n, n);
     GBxx_Object<GrB_Matrix> next = GB(GrB_Matrix_new, GrB_BOOL, n, n);
 
     GBxx_Object<GrB_Vector> nextCount = GB(GrB_Vector_new, GrB_UINT64, n);
-    GBxx_Object<GrB_Vector> ones = GB(GrB_Vector_new, GrB_UINT64, n);
-    GBxx_Object<GrB_Vector> n_minus_one = GB(GrB_Vector_new, GrB_UINT64, n);
-    GBxx_Object<GrB_Vector> level_v = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> sp = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> compsize = GB(GrB_Vector_new, GrB_UINT64, n);
     GBxx_Object<GrB_Vector> ccv_result = GB(GrB_Vector_new, GrB_FP64, n);
 
-    // initialize frontier and seen matrices: to compute closeness centrality, start off with a diagonal
-    create_diagonal_matrix(frontier.get());
-    GBxx_Object<GrB_Matrix> seen = GB(GrB_Matrix_dup, frontier.get());
-
-    // initialize vectors
-    ok(GrB_Vector_assign_UINT64(ones.get(), NULL, NULL, 1, GrB_ALL, n, NULL));
-    ok(GrB_Vector_assign_UINT64(n_minus_one.get(), NULL, NULL, n - 1, GrB_ALL, n, NULL));
+    // initialize next and seen matrices: to compute closeness centrality, start off with a diagonal
+    create_diagonal_matrix(next.get());
+    GBxx_Object<GrB_Matrix> seen = GB(GrB_Matrix_dup, next.get());
 
 //    // initialize
 //    bool push = true; // TODO: add heuristic
@@ -65,26 +57,19 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv_bo
 //    float r, r_before;
 //    r_before = (float) frontier_nvals / (float) (matrix_nrows * source_nrows);
 
-    GrB_Matrix C = NULL;
-    GrB_Index* mapping = NULL;
-    LAGraph_reorder_vertices(&C, &mapping, A, false);
-    A = C;
+//    GrB_Matrix C = NULL;
+//    GrB_Index* mapping = NULL;
+//    LAGraph_reorder_vertices(&C, &mapping, A, false);
+//    A = C;
 
     // traversal
     for (GrB_Index level = 1; level < n; level++) {
 //        printf("========================= Level %2ld =========================\n\n", level);
-        // level_v += 1
-        ok(GrB_Vector_eWiseAdd_BinaryOp(level_v.get(), NULL, NULL, GrB_PLUS_UINT64, level_v.get(), ones.get(), NULL));
-
-        // next<!seen> = frontier * A
-        ok(GrB_mxm(next.get(), seen.get(), NULL, GxB_ANY_PAIR_BOOL, frontier.get(), A, GrB_DESC_RC));
+        // next<!seen> = next * A
+        ok(GrB_mxm(next.get(), seen.get(), NULL, GxB_ANY_PAIR_BOOL, next.get(), A, GrB_DESC_RC));
 
         GrB_Index next_nvals;
         ok(GrB_Matrix_nvals(&next_nvals, next.get()));
-        GrB_Index frontiervals;
-        ok(GrB_Matrix_nvals(&frontiervals, frontier.get()));
-        GrB_Index seenvals;
-        ok(GrB_Matrix_nvals(&seenvals, seen.get()));
 
         if (next_nvals == 0) {
 //            printf("no new vertices found\n");
@@ -98,14 +83,8 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv_bo
 
         // sp += (nextCount * level)
         //   nextCount * level is expressed as nextCount *= level_v
-        ok(GxB_Vector_subassign_UINT64(level_v.get(), nextCount.get(), NULL, level, GrB_ALL, n, GrB_DESC_S));
-        ok(GrB_Vector_eWiseMult_BinaryOp(nextCount.get(), NULL, NULL, GrB_TIMES_UINT64, nextCount.get(),
-                                         level_v.get(), NULL));
+        ok(GrB_Vector_apply_BinaryOp1st_UINT64(nextCount.get(), NULL, NULL, GrB_TIMES_UINT64, level, nextCount.get(), NULL));
         ok(GrB_Vector_eWiseAdd_BinaryOp(sp.get(), NULL, NULL, GrB_PLUS_UINT64, sp.get(), nextCount.get(), NULL));
-
-        // frontier = next
-        frontier = GB(GrB_Matrix_dup, next.get());
-
     }
     // compsize = reduce(seen, row)
     ok(GrB_Matrix_reduce_Monoid(compsize.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, seen.get(), GrB_DESC_T0));
@@ -118,13 +97,12 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv_bo
 
     // all vectors are dense therefore eWiseAdd and eWiseMult are the same
     // C(p)-1
-    ok(GrB_Vector_eWiseAdd_BinaryOp(compsize.get(), NULL, NULL, GrB_MINUS_UINT64, compsize.get(), ones.get(), NULL));
+    ok(GrB_Vector_apply_BinaryOp2nd_UINT64(compsize.get(), NULL, NULL, GrB_MINUS_UINT64, compsize.get(), 1, NULL));
     // (C(p)-1)^2
-    ok(GrB_Vector_eWiseMult_BinaryOp(compsize.get(), NULL, NULL, GrB_TIMES_UINT64, compsize.get(), compsize.get(),
-                                     NULL));
+    ok(GrB_Vector_eWiseMult_BinaryOp(compsize.get(), NULL, NULL, GrB_TIMES_UINT64, compsize.get(), compsize.get(), NULL));
 
-    ok(GrB_Vector_eWiseMult_BinaryOp(sp.get(), NULL, NULL, GrB_TIMES_UINT64, n_minus_one.get(), sp.get(), NULL));
+    ok(GrB_Vector_apply_BinaryOp2nd_UINT64(sp.get(), NULL, NULL, GrB_TIMES_UINT64, sp.get(), n-1, NULL));
     ok(GrB_Vector_eWiseMult_BinaryOp(ccv_result.get(), NULL, NULL, GrB_DIV_FP64, compsize.get(), sp.get(), NULL));
 
-    return std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>>{std::move(ccv_result), mapping};
+    return std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>>{std::move(ccv_result), nullptr};
 }

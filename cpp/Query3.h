@@ -71,41 +71,39 @@ class Query3 : public Query<int, int, std::string> {
     using score_type = std::tuple<int64_t, uint64_t, uint64_t>;
 
     void tagCount_filtered_reachable_count_tags_strategy(GrB_Vector const local_persons,
-                                                         GrB_Index relevant_persons_nvals,
                                                          SmallestElementsContainer<score_type, std::less<score_type>> &person_scores) {
         // maximum value: 10 -> UINT8
         auto tag_count_per_person = GB(GrB_Vector_new, GrB_UINT8, input.persons.size());
 
+        ok(GrB_Vector_assign_UINT8(tag_count_per_person.get(), local_persons, GrB_NULL, 0, GrB_ALL, 0, GrB_NULL));
         ok(GrB_Matrix_reduce_Monoid(tag_count_per_person.get(), local_persons, GrB_NULL, GrB_PLUS_MONOID_UINT8,
                                     input.hasInterestTran.matrix.get(), GrB_DESC_T0));
 
         uint8_t max_tag_count;
         ok(GrB_Vector_reduce_UINT8(&max_tag_count, GrB_NULL, GrB_MAX_MONOID_UINT8, tag_count_per_person.get(),
                                    GrB_NULL));
-//        std::cout << "max_tag_count: "<< (unsigned)max_tag_count << std::endl;
+#ifndef NDEBUG
+        std::cerr << "max_tag_count: "<< (unsigned)max_tag_count << std::endl;
+#endif
 
         GrB_Index common_interests_nvals;
         auto relevant_persons = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
-        GrB_Vector relevant_persons_ptr = relevant_persons.get();
         GBxx_Object<GrB_Matrix> common_interests;
 
         for (int lower_tag_count = max_tag_count;;) {
-            if (lower_tag_count == 0) {
-                // use all local persons
-                relevant_persons_ptr = local_persons;
-            } else {
-                // add persons with less tags
-                auto limit = GB(GxB_Scalar_new, GrB_UINT8);
-                ok(GxB_Scalar_setElement_INT32(limit.get(), lower_tag_count));
-                ok(GxB_Vector_select(relevant_persons.get(), GrB_NULL, GxB_PAIR_BOOL, GxB_GE_THUNK, local_persons,
-                                     limit.get(), GrB_NULL));
-            }
+            // add persons with less tags
+            auto limit = GB(GxB_Scalar_new, GrB_UINT8);
+            ok(GxB_Scalar_setElement_INT32(limit.get(), lower_tag_count));
+            ok(GxB_Vector_select(relevant_persons.get(), GrB_NULL, GxB_PAIR_BOOL, GxB_EQ_THUNK, tag_count_per_person.get(),
+                                 limit.get(), GrB_NULL));
+            GrB_Index relevant_persons_nvals;
+            ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
 
             std::vector<GrB_Index> relevant_persons_indices(relevant_persons_nvals);
             {
                 GrB_Index nvals = relevant_persons_nvals;
                 ok(GrB_Vector_extractTuples_BOOL(relevant_persons_indices.data(), GrB_NULL, &nvals,
-                                                 relevant_persons_ptr));
+                                                 relevant_persons.get()));
                 assert(relevant_persons_nvals == nvals);
             }
 
@@ -150,55 +148,63 @@ class Query3 : public Query<int, int, std::string> {
 
             // count tag scores per person pairs
             ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+            if (common_interests_nvals < topKLimit) {
+                // there are not enough non-zero scores
+                // add reachable persons with zero common tags
+                // assign 0 to every reachable person pair, but select non-zero score (first operand) if present
+                // common_interests <h_reachable_knows_tril> 1ST= 0
+                ok(GrB_Matrix_assign_INT64(common_interests.get(), h_reachable_knows_tril.get(), GrB_FIRST_INT64,
+                                           0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
+
+                // recount nvals
+                ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+            }
+
+            // extract result from matrix
+            std::vector<GrB_Index> common_interests_rows(common_interests_nvals),
+                    common_interests_cols(common_interests_nvals);
+            std::vector<int64_t> common_interests_vals(common_interests_nvals);
+            {
+                GrB_Index nvals = common_interests_nvals;
+                ok(GrB_Matrix_extractTuples_INT64(common_interests_rows.data(), common_interests_cols.data(),
+                                                  common_interests_vals.data(), &nvals, common_interests.get()));
+                assert(common_interests_nvals == nvals);
+            }
+
+            person_scores.removeElements();
+            // collect top scores
+            for (size_t i = 0; i < common_interests_vals.size(); ++i) {
+                GrB_Index p1_index = common_interests_rows[i],
+                        p2_index = common_interests_cols[i];
+                int64_t score = common_interests_vals[i];
+
+                uint64_t p1_id = input.persons.vertexIds[p1_index];
+                uint64_t p2_id = input.persons.vertexIds[p2_index];
+                // put the smallest ID first
+                if (p1_id > p2_id)
+                    std::swap(p1_id, p2_id);
+
+                // DESC score
+                person_scores.add({-score, p1_id, p2_id});
+            }
+
+            if(person_scores.size() == topKLimit && std::get<0>(person_scores.max()) == -lower_tag_count)
+            {
+#ifndef NDEBUG
+                std::cerr<< "stopped at min(top scores)="<< lower_tag_count <<std::endl;
+#endif
+                break;
+            }
 
             if (lower_tag_count != 0)
                 --lower_tag_count;
-            else {
-                if (common_interests_nvals < topKLimit) {
-                    // there are not enough non-zero scores
-                    // add reachable persons with zero common tags
-                    // assign 0 to every reachable person pair, but select non-zero score (first operand) if present
-                    // common_interests <h_reachable_knows_tril> 1ST= 0
-                    ok(GrB_Matrix_assign_INT64(common_interests.get(), h_reachable_knows_tril.get(), GrB_FIRST_INT64,
-                                               0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
-
-                    // recount nvals
-                    ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
-                }
+            else
                 break;
-            }
-        }
-
-        // extract result from matrix
-        std::vector<GrB_Index> common_interests_rows(common_interests_nvals),
-                common_interests_cols(common_interests_nvals);
-        std::vector<int64_t> common_interests_vals(common_interests_nvals);
-        {
-            GrB_Index nvals = common_interests_nvals;
-            ok(GrB_Matrix_extractTuples_INT64(common_interests_rows.data(), common_interests_cols.data(),
-                                              common_interests_vals.data(), &nvals, common_interests.get()));
-            assert(common_interests_nvals == nvals);
-        }
-
-        // collect top scores
-        for (size_t i = 0; i < common_interests_vals.size(); ++i) {
-            GrB_Index p1_index = common_interests_rows[i],
-                    p2_index = common_interests_cols[i];
-            int64_t score = common_interests_vals[i];
-
-            uint64_t p1_id = input.persons.vertexIds[p1_index];
-            uint64_t p2_id = input.persons.vertexIds[p2_index];
-            // put the smallest ID first
-            if (p1_id > p2_id)
-                std::swap(p1_id, p2_id);
-
-            // DESC score
-            person_scores.add({-score, p1_id, p2_id});
         }
     }
 
     void reachable_count_tags_strategy(GrB_Vector const local_persons,
-                                       GrB_Index local_persons_nvals,
+                                       GrB_Index const local_persons_nvals,
                                        SmallestElementsContainer<score_type, std::less<score_type>> &person_scores) {
         std::vector<GrB_Index> local_persons_indices(local_persons_nvals);
         {
@@ -301,8 +307,8 @@ class Query3 : public Query<int, int, std::string> {
 
         auto person_scores = makeSmallestElementsContainer<score_type>(topKLimit);
 
-//        tagCount_filtered_reachable_count_tags_strategy(local_persons.get(), relevant_persons_nvals, person_scores);
-        reachable_count_tags_strategy(local_persons.get(), relevant_persons_nvals, person_scores);
+        tagCount_filtered_reachable_count_tags_strategy(local_persons.get(), person_scores);
+//        reachable_count_tags_strategy(local_persons.get(), relevant_persons_nvals, person_scores);
 
         std::string result, comment;
         bool firstIter = true;

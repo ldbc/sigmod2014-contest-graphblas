@@ -34,6 +34,14 @@ public:
         }
     }
 
+    size_t size() const{
+        return elements.size();
+    }
+
+    ElementT const &max() const{
+        return elements.front();
+    }
+
     /// Return all elements of the container in ascending order. Afterwards the container is empty.
     /// \return a sorted std::vector containing the smallest elements from the elements inserted
     std::vector<ElementT> removeElements() {

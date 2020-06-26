@@ -93,7 +93,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
                 break;
             }
 
-            ok(GrB_vxm(next2.get(), seen2.get(), NULL, GxB_ANY_PAIR_BOOL, next2.get(), A, GrB_DESC_RC));
+            ok(GrB_vxm(next2.get(), seen2.get(), NULL, GxB_ANY_PAIR_BOOL, next2.get(), A, GrB_DESC_RSC));
             ok(GrB_Vector_eWiseMult_BinaryOp(intersection2.get(), NULL, NULL, GrB_LAND, next1.get(), next2.get() /*current next2*/, NULL));
 
             GrB_Index intersection2_nvals;

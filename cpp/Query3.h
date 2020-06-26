@@ -16,6 +16,8 @@ class Query3 : public Query<int, int, std::string> {
     int topKLimit, maximumHopCount;
     std::string placeName;
 
+    GBxx_Object<GrB_Matrix> hasInterest;
+
     GBxx_Object<GrB_Vector> getRelevantPersons() {
         GrB_Index place_index = input.places.findIndexByName(placeName);
 
@@ -77,7 +79,7 @@ class Query3 : public Query<int, int, std::string> {
 
         ok(GrB_Vector_assign_UINT8(tag_count_per_person.get(), local_persons, GrB_NULL, 0, GrB_ALL, 0, GrB_NULL));
         ok(GrB_Matrix_reduce_Monoid(tag_count_per_person.get(), local_persons, GrB_NULL, GrB_PLUS_MONOID_UINT8,
-                                    input.hasInterestTran.matrix.get(), GrB_DESC_T0));
+                                    hasInterest.get(), GrB_NULL));
 
         uint8_t max_tag_count;
         ok(GrB_Vector_reduce_UINT8(&max_tag_count, GrB_NULL, GrB_MAX_MONOID_UINT8, tag_count_per_person.get(),
@@ -145,7 +147,7 @@ class Query3 : public Query<int, int, std::string> {
             // calculate common interests between persons in h hop distance
             common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(), input.persons.size());
             ok(GrB_mxm(common_interests.get(), h_reachable_knows_tril.get(), GrB_NULL, GxB_PLUS_TIMES_INT64,
-                       input.hasInterestTran.matrix.get(), input.hasInterestTran.matrix.get(), GrB_DESC_ST0));
+                       hasInterest.get(), input.hasInterestTran.matrix.get(), GrB_DESC_S));
 
             // count tag scores per person pairs
             ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
@@ -220,9 +222,8 @@ class Query3 : public Query<int, int, std::string> {
         // every local person has at least 0 tags
         ok(GrB_Vector_assign_UINT8(tag_count_per_person.get(), local_persons, GrB_NULL, 0, GrB_ALL, 0, GrB_NULL));
         // count tags per person
-        // TODO: consider using the not transposed version
         ok(GrB_Matrix_reduce_Monoid(tag_count_per_person.get(), local_persons, GrB_NULL, GrB_PLUS_MONOID_UINT8,
-                                    input.hasInterestTran.matrix.get(), GrB_DESC_T0));
+                                    hasInterest.get(), GrB_NULL));
 
         uint8_t max_tag_count;
         ok(GrB_Vector_reduce_UINT8(&max_tag_count, GrB_NULL, GrB_MAX_MONOID_UINT8, tag_count_per_person.get(),
@@ -452,7 +453,7 @@ class Query3 : public Query<int, int, std::string> {
         // calculate common interests between persons in h hop distance
         auto common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(), input.persons.size());
         ok(GrB_mxm(common_interests.get(), h_reachable_knows_tril.get(), GrB_NULL, GxB_PLUS_TIMES_INT64,
-                   input.hasInterestTran.matrix.get(), input.hasInterestTran.matrix.get(), GrB_DESC_ST0));
+                   hasInterest.get(), input.hasInterestTran.matrix.get(), GrB_DESC_S));
 
         // count tag scores per person pairs
         GrB_Index common_interests_nvals;
@@ -499,6 +500,9 @@ class Query3 : public Query<int, int, std::string> {
     }
 
     std::tuple<std::string, std::string> initial_calculation() override {
+        hasInterest = GB(GrB_Matrix_new, GrB_BOOL, input.hasInterestTran.trg->size(), input.hasInterestTran.src->size());
+        ok(GrB_transpose(hasInterest.get(), GrB_NULL, GrB_NULL, input.hasInterestTran.matrix.get(), GrB_NULL));
+
         auto local_persons = getRelevantPersons();
 
         // extract person indices
@@ -529,6 +533,8 @@ class Query3 : public Query<int, int, std::string> {
 
             comment += std::to_string(-neg_score);
         }
+
+        hasInterest.reset();
 
         return {result, comment};
     }

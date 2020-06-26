@@ -359,6 +359,8 @@ class Query3 : public Query<int, int, std::string> {
             ok(GxB_Matrix_select(common_interests_global.get(), GrB_NULL, GrB_NULL,
                                  GxB_TRIL, common_interests_global.get(), GrB_NULL, GrB_NULL));
 
+            auto common_interests_pattern = GB(GrB_Matrix_dup, common_interests_global.get());
+
             ok(GrB_mxm(common_interests_global.get(), common_interests_global.get(), GrB_NULL, GxB_PLUS_TIMES_UINT64,
                        hasInterest.get(), input.hasInterestTran.matrix.get(), GrB_DESC_S));
 
@@ -369,17 +371,18 @@ class Query3 : public Query<int, int, std::string> {
             // count tag scores per person pairs
             GrB_Index common_interests_nvals;
             ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests_global.get()));
-//            if (common_interests_nvals < topKLimit) {
-//                // there are not enough non-zero scores
-//                // add reachable persons with zero common tags
-//                // assign 0 to every reachable person pair, but select non-zero score (first operand) if present
-//                // common_interests <h_reachable_knows_tril> 1ST= 0
-//                ok(GrB_Matrix_assign_INT64(common_interests.get(), h_reachable.get(), GrB_FIRST_INT64,
-//                                           0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
-//
-//                // recount nvals
-//                ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
-//            }
+            if (common_interests_nvals < topKLimit) {
+                // there are not enough non-zero scores
+                // add reachable persons with zero common tags
+                // assign 0 to every reachable person pair, but select non-zero score (first operand) if present
+                // common_interests <h_reachable_knows_tril> 1ST= 0
+                ok(GrB_Matrix_assign_INT64(common_interests_global.get(),
+                                           common_interests_pattern.get(), GrB_FIRST_INT64,
+                                           0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
+
+                // recount nvals
+                ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests_global.get()));
+            }
 
             // extract result from matrix
             std::vector<GrB_Index> common_interests_rows(common_interests_nvals),

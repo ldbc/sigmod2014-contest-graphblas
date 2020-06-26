@@ -308,13 +308,12 @@ class Query3 : public Query<int, int, std::string> {
 //#endif
 
             // calculate common interests between persons in h hop distance
-            GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(),
-                                                          input.persons.size());
+            GBxx_Object<GrB_Matrix> common_interests_global = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),
+                                                                 input.persons.size());
 
 #pragma omp parallel num_threads(GlobalNThreads)
             {
-
-                GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(),
+                GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),
                                                               input.persons.size());
 #pragma omp for schedule(static)
                 for (GrB_Index i = 0; i < columns_where_vertices_meet_nvals; ++i) {
@@ -334,35 +333,38 @@ class Query3 : public Query<int, int, std::string> {
                         assert(meeting_vertices_nvals == nvals);
                     }
 
-                    // diag to select meeting_vertices' tags
-                    auto meeting_vertices_diag = GB(GrB_Matrix_new, GrB_BOOL, input.persons.size(),
-                                                    input.persons.size());
-                    ok(GrB_Matrix_build_BOOL(meeting_vertices_diag.get(),
-                                             meeting_vertices_indices.data(), meeting_vertices_indices.data(),
-                                             array_of_true(meeting_vertices_nvals).get(), meeting_vertices_nvals,
-                                             GxB_PAIR_BOOL));
+                    for (GrB_Index p1_iter = 0; p1_iter < meeting_vertices_nvals; ++p1_iter) {
+                        for (GrB_Index p2_iter = 0; p2_iter < p1_iter; ++p2_iter) {
+                            GrB_Index p1 = meeting_vertices_indices[p1_iter];
+                            GrB_Index p2 = meeting_vertices_indices[p2_iter];
+                            ok(GrB_Matrix_setElement_UINT64(common_interests.get(), 0, p1, p2));
+                        }
+                    }
+                }
 
-                    auto filtered_hasInterestTran = GB(GrB_Matrix_new, GrB_BOOL,
-                                                       input.hasInterestTran.src->size(),
-                                                       input.hasInterestTran.trg->size());
-                    ok(GrB_mxm(filtered_hasInterestTran.get(), GrB_NULL, GrB_NULL, GxB_ANY_PAIR_BOOL,
-                               input.hasInterestTran.matrix.get(), meeting_vertices_diag.get(), GrB_NULL));
-
-                    ok(GrB_mxm(common_interests.get(), common_interests.get(), GrB_NULL, GxB_PLUS_TIMES_UINT64,
-                               filtered_hasInterestTran.get(), filtered_hasInterestTran.get(), GrB_DESC_SCT0));
+#pragma omp critical(Q3_merge_thread_local_matrices)
+                {
+                    ok(GrB_transpose(common_interests_global.get(), GrB_NULL, GxB_PAIR_UINT64, common_interests.get(),
+                                     GrB_DESC_T0));
+                    auto ptr = common_interests_global.release();
+                    ok(GrB_Matrix_wait(&ptr));
+                    common_interests_global.reset(ptr);
                 }
             }
 
-            ok(GxB_Matrix_select(common_interests.get(), GrB_NULL, GrB_NULL,
-                                 GxB_OFFDIAG, common_interests.get(), GrB_NULL, GrB_NULL));
-            ok(GxB_Matrix_select(common_interests.get(), GrB_NULL, GrB_NULL,
-                                 GxB_TRIL, common_interests.get(), GrB_NULL, GrB_NULL));
+            ok(GxB_Matrix_select(common_interests_global.get(), GrB_NULL, GrB_NULL,
+                                 GxB_OFFDIAG, common_interests_global.get(), GrB_NULL, GrB_NULL));
+            ok(GxB_Matrix_select(common_interests_global.get(), GrB_NULL, GrB_NULL,
+                                 GxB_TRIL, common_interests_global.get(), GrB_NULL, GrB_NULL));
 
-            ok(GxB_Matrix_fprint(common_interests.get(), "common_interests", GxB_SUMMARY, stdout));
+            ok(GrB_mxm(common_interests_global.get(), common_interests_global.get(), GrB_NULL, GxB_PLUS_TIMES_UINT64,
+                       hasInterest.get(), input.hasInterestTran.matrix.get(), GrB_DESC_S));
+
+            ok(GxB_Matrix_fprint(common_interests_global.get(), "common_interests", GxB_SUMMARY, stdout));
 
             // count tag scores per person pairs
             GrB_Index common_interests_nvals;
-            ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+            ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests_global.get()));
 //            if (common_interests_nvals < topKLimit) {
 //                // there are not enough non-zero scores
 //                // add reachable persons with zero common tags
@@ -382,7 +384,7 @@ class Query3 : public Query<int, int, std::string> {
             {
                 GrB_Index nvals = common_interests_nvals;
                 ok(GrB_Matrix_extractTuples_INT64(common_interests_rows.data(), common_interests_cols.data(),
-                                                  common_interests_vals.data(), &nvals, common_interests.get()));
+                                                  common_interests_vals.data(), &nvals, common_interests_global.get()));
                 assert(common_interests_nvals == nvals);
             }
 
@@ -511,7 +513,8 @@ class Query3 : public Query<int, int, std::string> {
     }
 
     std::tuple<std::string, std::string> initial_calculation() override {
-        hasInterest = GB(GrB_Matrix_new, GrB_BOOL, input.hasInterestTran.trg->size(), input.hasInterestTran.src->size());
+        hasInterest = GB(GrB_Matrix_new, GrB_BOOL, input.hasInterestTran.trg->size(),
+                         input.hasInterestTran.src->size());
         ok(GrB_transpose(hasInterest.get(), GrB_NULL, GrB_NULL, input.hasInterestTran.matrix.get(), GrB_NULL));
 
         auto local_persons = getRelevantPersons();
@@ -524,9 +527,9 @@ class Query3 : public Query<int, int, std::string> {
 
         auto person_scores = makeSmallestElementsContainer<score_type>(topKLimit);
 
-        reachable_count_tags_strategy(local_persons.get(), relevant_persons_nvals, person_scores);
+//        reachable_count_tags_strategy(local_persons.get(), relevant_persons_nvals, person_scores);
 //        tagCount_filtered_reachable_count_tags_strategy(local_persons.get(), person_scores);
-//        tagCount_msbfs_strategy(local_persons.get(), person_scores);
+        tagCount_msbfs_strategy(local_persons.get(), person_scores);
 
         std::string result, comment;
         bool firstIter = true;

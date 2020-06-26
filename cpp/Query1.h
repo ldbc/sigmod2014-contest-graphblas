@@ -40,7 +40,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
                                                         input.persons.size());
 
             ok(GrB_mxm(personToPerson.get(), input.knows.matrix.get(), GrB_NULL, GxB_PLUS_TIMES_INT64,
-                       personAToComment2.get(), input.hasCreator.matrix.get(), GrB_NULL));
+                       personAToComment2.get(), input.hasCreator.matrix.get(), GrB_DESC_S));
             // ok(GxB_Matrix_fprint(personToPerson.get(), "personToPerson", GxB_SUMMARY, stdout));
 
             auto limit = GB(GxB_Scalar_new, GrB_INT32);

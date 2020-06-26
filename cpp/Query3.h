@@ -235,6 +235,7 @@ class Query3 : public Query<int, int, std::string> {
         // persons with 10 tags, persons with 9..10 tags, ...
         auto relevant_persons = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
         for (int lower_tag_count = max_tag_count;;) {
+            std::cerr << "Loop:" << lower_tag_count << std::endl;
             // add persons with less tags
             auto limit = GB(GxB_Scalar_new, GrB_UINT8);
             ok(GxB_Scalar_setElement_INT32(limit.get(), lower_tag_count));
@@ -301,10 +302,10 @@ class Query3 : public Query<int, int, std::string> {
                 assert(columns_where_vertices_meet_nvals == nvals);
             }
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
             std::cerr << "columns_where_vertices_meet_nvals after select:" << columns_where_vertices_meet_nvals
                       << std::endl;
-#endif
+//#endif
 
             // calculate common interests between persons in h hop distance
             GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(),
@@ -348,6 +349,8 @@ class Query3 : public Query<int, int, std::string> {
                                  GxB_OFFDIAG, common_interests.get(), GrB_NULL, GrB_NULL));
             ok(GxB_Matrix_select(common_interests.get(), GrB_NULL, GrB_NULL,
                                  GxB_TRIL, common_interests.get(), GrB_NULL, GrB_NULL));
+
+            ok(GxB_Matrix_fprint(common_interests.get(), "common_interests", GxB_SUMMARY, stdout));
 
             // count tag scores per person pairs
             GrB_Index common_interests_nvals;

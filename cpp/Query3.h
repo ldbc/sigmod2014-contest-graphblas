@@ -310,39 +310,47 @@ class Query3 : public Query<int, int, std::string> {
             // calculate common interests between persons in h hop distance
             GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(),
                                                           input.persons.size());
-            // TODO: parallel
-            for (GrB_Index i = 0; i < columns_where_vertices_meet_nvals; ++i) {
-                GrB_Index meet_column = columns_where_vertices_meet_indices[i];
 
-                // get persons who meet at vertex meet_column
-                auto meeting_vertices = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
-                ok(GrB_Col_extract(meeting_vertices.get(), GrB_NULL, GrB_NULL, half_reachable.get(), GrB_ALL,
-                                   0, meet_column, GrB_NULL));
-                GrB_Index meeting_vertices_nvals;
-                ok(GrB_Vector_nvals(&meeting_vertices_nvals, meeting_vertices.get()));
-                std::vector<GrB_Index> meeting_vertices_indices(meeting_vertices_nvals);
-                {
-                    GrB_Index nvals = meeting_vertices_nvals;
-                    ok(GrB_Vector_extractTuples_UINT64(meeting_vertices_indices.data(), nullptr, &nvals,
-                                                       meeting_vertices.get()));
-                    assert(meeting_vertices_nvals == nvals);
+#pragma omp parallel num_threads(GlobalNThreads)
+            {
+
+                GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_INT64, input.persons.size(),
+                                                              input.persons.size());
+#pragma omp for schedule(static)
+                for (GrB_Index i = 0; i < columns_where_vertices_meet_nvals; ++i) {
+                    GrB_Index meet_column = columns_where_vertices_meet_indices[i];
+
+                    // get persons who meet at vertex meet_column
+                    auto meeting_vertices = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
+                    ok(GrB_Col_extract(meeting_vertices.get(), GrB_NULL, GrB_NULL, half_reachable.get(), GrB_ALL,
+                                       0, meet_column, GrB_NULL));
+                    GrB_Index meeting_vertices_nvals;
+                    ok(GrB_Vector_nvals(&meeting_vertices_nvals, meeting_vertices.get()));
+                    std::vector<GrB_Index> meeting_vertices_indices(meeting_vertices_nvals);
+                    {
+                        GrB_Index nvals = meeting_vertices_nvals;
+                        ok(GrB_Vector_extractTuples_UINT64(meeting_vertices_indices.data(), nullptr, &nvals,
+                                                           meeting_vertices.get()));
+                        assert(meeting_vertices_nvals == nvals);
+                    }
+
+                    // diag to select meeting_vertices' tags
+                    auto meeting_vertices_diag = GB(GrB_Matrix_new, GrB_BOOL, input.persons.size(),
+                                                    input.persons.size());
+                    ok(GrB_Matrix_build_BOOL(meeting_vertices_diag.get(),
+                                             meeting_vertices_indices.data(), meeting_vertices_indices.data(),
+                                             array_of_true(meeting_vertices_nvals).get(), meeting_vertices_nvals,
+                                             GxB_PAIR_BOOL));
+
+                    auto filtered_hasInterestTran = GB(GrB_Matrix_new, GrB_BOOL,
+                                                       input.hasInterestTran.src->size(),
+                                                       input.hasInterestTran.trg->size());
+                    ok(GrB_mxm(filtered_hasInterestTran.get(), GrB_NULL, GrB_NULL, GxB_ANY_PAIR_BOOL,
+                               input.hasInterestTran.matrix.get(), meeting_vertices_diag.get(), GrB_NULL));
+
+                    ok(GrB_mxm(common_interests.get(), common_interests.get(), GrB_NULL, GxB_PLUS_TIMES_UINT64,
+                               filtered_hasInterestTran.get(), filtered_hasInterestTran.get(), GrB_DESC_SCT0));
                 }
-
-                // diag to select meeting_vertices' tags
-                auto meeting_vertices_diag = GB(GrB_Matrix_new, GrB_BOOL, input.persons.size(), input.persons.size());
-                ok(GrB_Matrix_build_BOOL(meeting_vertices_diag.get(),
-                                         meeting_vertices_indices.data(), meeting_vertices_indices.data(),
-                                         array_of_true(meeting_vertices_nvals).get(), meeting_vertices_nvals,
-                                         GxB_PAIR_BOOL));
-
-                auto filtered_hasInterestTran = GB(GrB_Matrix_new, GrB_BOOL,
-                                                   input.hasInterestTran.src->size(),
-                                                   input.hasInterestTran.trg->size());
-                ok(GrB_mxm(filtered_hasInterestTran.get(), GrB_NULL, GrB_NULL, GxB_ANY_PAIR_BOOL,
-                           input.hasInterestTran.matrix.get(), meeting_vertices_diag.get(), GrB_NULL));
-
-                ok(GrB_mxm(common_interests.get(), common_interests.get(), GrB_NULL, GxB_PLUS_TIMES_UINT64,
-                           filtered_hasInterestTran.get(), filtered_hasInterestTran.get(), GrB_DESC_SCT0));
             }
 
             ok(GxB_Matrix_select(common_interests.get(), GrB_NULL, GrB_NULL,

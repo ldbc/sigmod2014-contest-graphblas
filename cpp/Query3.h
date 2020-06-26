@@ -524,9 +524,9 @@ class Query3 : public Query<int, int, std::string> {
 
         auto person_scores = makeSmallestElementsContainer<score_type>(topKLimit);
 
-//        reachable_count_tags_strategy(local_persons.get(), relevant_persons_nvals, person_scores);
+        reachable_count_tags_strategy(local_persons.get(), relevant_persons_nvals, person_scores);
 //        tagCount_filtered_reachable_count_tags_strategy(local_persons.get(), person_scores);
-        tagCount_msbfs_strategy(local_persons.get(), person_scores);
+//        tagCount_msbfs_strategy(local_persons.get(), person_scores);
 
         std::string result, comment;
         bool firstIter = true;

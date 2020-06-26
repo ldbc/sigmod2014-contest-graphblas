@@ -232,6 +232,9 @@ class Query3 : public Query<int, int, std::string> {
         std::cerr << "max_tag_count: " << (unsigned) max_tag_count << std::endl;
 #endif
 
+        GBxx_Object<GrB_Matrix> last_common_interests_pattern = GB(GrB_Matrix_new, GrB_BOOL, input.persons.size(),
+                                                                   input.persons.size());
+
         // persons with 10 tags, persons with 9..10 tags, ...
         auto relevant_persons = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
         for (int lower_tag_count = max_tag_count;;) {
@@ -340,8 +343,8 @@ class Query3 : public Query<int, int, std::string> {
                     {
                         GrB_Index nvals = meeting_vertices_nvals;
                         ok(GrB_Vector_extractTuples_UINT8(meeting_vertices_indices.data(),
-                                                           meeting_vertices_vals.data(), &nvals,
-                                                           meeting_vertices.get()));
+                                                          meeting_vertices_vals.data(), &nvals,
+                                                          meeting_vertices.get()));
                         assert(meeting_vertices_nvals == nvals);
                     }
 
@@ -362,14 +365,20 @@ class Query3 : public Query<int, int, std::string> {
 
 #pragma omp critical(Q3_merge_thread_local_matrices)
                 {
-                    ok(GrB_transpose(common_interests_global.get(), GrB_NULL, GxB_PAIR_UINT64, common_interests.get(),
-                                     GrB_DESC_T0));
+                    ok(GrB_transpose(common_interests_global.get(), last_common_interests_pattern.get(),
+                                     GxB_PAIR_UINT64,
+                                     common_interests.get(),
+                                     GrB_DESC_SCT0));
                     auto ptr = common_interests_global.release();
                     ok(GrB_Matrix_wait(&ptr));
                     common_interests_global.reset(ptr);
                 }
             }
 
+            // store current pattern to evaluate only once
+            ok(GrB_transpose(last_common_interests_pattern.get(), GrB_NULL, GxB_PAIR_BOOL,
+                             common_interests_global.get(), GrB_DESC_T0));
+            // keep offdiag tril
             ok(GxB_Matrix_select(common_interests_global.get(), GrB_NULL, GrB_NULL,
                                  GxB_OFFDIAG, common_interests_global.get(), GrB_NULL, GrB_NULL));
             ok(GxB_Matrix_select(common_interests_global.get(), GrB_NULL, GrB_NULL,
@@ -387,13 +396,15 @@ class Query3 : public Query<int, int, std::string> {
             // count tag scores per person pairs
             GrB_Index common_interests_nvals;
             ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests_global.get()));
-            if (common_interests_nvals < topKLimit) {
+            bool might_contain_duplicates = false;
+            if (lower_tag_count == 0 && person_scores.size() < topKLimit) {
+                might_contain_duplicates = true;
                 // there are not enough non-zero scores
                 // add reachable persons with zero common tags
                 // assign 0 to every reachable person pair, but select non-zero score (first operand) if present
                 // common_interests <h_reachable_knows_tril> 1ST= 0
                 ok(GrB_Matrix_assign_INT64(common_interests_global.get(),
-                                           common_interests_pattern.get(), GrB_FIRST_INT64,
+                                           last_common_interests_pattern.get(), GrB_FIRST_INT64,
                                            0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
 
                 // recount nvals
@@ -411,7 +422,6 @@ class Query3 : public Query<int, int, std::string> {
                 assert(common_interests_nvals == nvals);
             }
 
-            person_scores.removeElements();
             // collect top scores
             for (size_t i = 0; i < common_interests_vals.size(); ++i) {
                 GrB_Index p1_index = common_interests_rows[i],
@@ -424,8 +434,14 @@ class Query3 : public Query<int, int, std::string> {
                 if (p1_id > p2_id)
                     std::swap(p1_id, p2_id);
 
-                // DESC score
-                person_scores.add({-score, p1_id, p2_id});
+                // do not add duplicates
+                if (!might_contain_duplicates ||
+                    std::find_if(person_scores.elements.begin(), person_scores.elements.end(),
+                                 [&](auto &t) { return std::get<1>(t) == p1_id && std::get<2>(t) == p2_id; })
+                    == person_scores.elements.end()) {
+                    // DESC score
+                    person_scores.add({-score, p1_id, p2_id});
+                }
             }
 
             if (person_scores.size() == topKLimit && std::get<0>(person_scores.max()) == -lower_tag_count) {

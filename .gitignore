@@ -203,5 +203,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-p*k/
 *.swp

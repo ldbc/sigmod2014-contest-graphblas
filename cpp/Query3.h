@@ -208,10 +208,10 @@ class Query3 : public Query<int, int, std::string> {
     inline __attribute__((always_inline))
     void push_next(GrB_Matrix Next, GrB_Matrix Seen, GrB_Matrix Edges) {
         // next<!seen> = next * A
-        ok(GrB_mxm(Next, Seen, NULL, GxB_ANY_PAIR_BOOL, Next, Edges, GrB_DESC_RC));
+        ok(GrB_mxm(Next, Seen, NULL, GxB_ANY_PAIR_UINT8, Next, Edges, GrB_DESC_RSC));
 
         // seen pair= next
-        ok(GrB_transpose(Seen, NULL, GxB_PAIR_BOOL, Next, GrB_DESC_T0));
+        ok(GrB_transpose(Seen, NULL, GxB_PAIR_UINT8, Next, GrB_DESC_T0));
     }
 
     void tagCount_msbfs_strategy(GrB_Vector const local_persons,
@@ -257,19 +257,27 @@ class Query3 : public Query<int, int, std::string> {
             }
 
             // build diagonal matrix of relevant persons
-            auto persons_diag_mx = GB(GrB_Matrix_new, GrB_BOOL, input.persons.size(), input.persons.size());
-            ok(GrB_Matrix_build_BOOL(persons_diag_mx.get(),
-                                     relevant_persons_indices.data(), relevant_persons_indices.data(),
-                                     array_of_true(relevant_persons_nvals).get(), relevant_persons_nvals,
-                                     GxB_PAIR_BOOL));
+            auto persons_diag_mx = GB(GrB_Matrix_new, GrB_UINT8, input.persons.size(), input.persons.size());
+            ok(GrB_Matrix_build_UINT8(persons_diag_mx.get(),
+                                      relevant_persons_indices.data(), relevant_persons_indices.data(),
+                                      (uint8_t *) array_of_true(relevant_persons_nvals).get(), relevant_persons_nvals,
+                                      GxB_PAIR_BOOL));
 
             auto next_mx = GB(GrB_Matrix_dup, persons_diag_mx.get());
             auto seen_mx = GB(GrB_Matrix_dup, next_mx.get());
 
             // MSBFS from relevant persons
-            // TODO: fix algorithm for odd maximumHopCount
             for (int i = 0; i < maximumHopCount / 2; ++i) {
                 push_next(next_mx.get(), seen_mx.get(), input.knows.matrix.get());
+            }
+            ok(GrB_Matrix_assign_UINT8(seen_mx.get(), seen_mx.get(), GrB_NULL, 2, GrB_ALL, 0, GrB_ALL, 0, GrB_NULL));
+            // one more step is needed for odd distances
+            if (maximumHopCount % 2 == 1) {
+                // next<!seen> = next * A
+                ok(GrB_mxm(next_mx.get(), seen_mx.get(), NULL, GxB_ANY_PAIR_BOOL, next_mx.get(),
+                           input.knows.matrix.get(), GrB_DESC_RSC));
+                ok(GrB_Matrix_assign_UINT8(seen_mx.get(), next_mx.get(), GrB_NULL, 1, GrB_ALL, 0, GrB_ALL, 0,
+                                           GrB_NULL));
             }
 
             // TODO: offdiag? tril?
@@ -288,10 +296,10 @@ class Query3 : public Query<int, int, std::string> {
             }
 #endif
             // keep vertices where at least 2 vertices meet
-            auto scalar2 = GB(GxB_Scalar_new, GrB_UINT64);
-            ok(GxB_Scalar_setElement_UINT64(scalar2.get(), 2));
+            auto scalar3 = GB(GxB_Scalar_new, GrB_UINT64);
+            ok(GxB_Scalar_setElement_UINT64(scalar3.get(), 3));
             ok(GxB_Vector_select(columns_where_vertices_meet.get(), GrB_NULL, GrB_NULL, GxB_GE_THUNK,
-                                 columns_where_vertices_meet.get(), scalar2.get(), GrB_NULL));
+                                 columns_where_vertices_meet.get(), scalar3.get(), GrB_NULL));
 
             // extract columns_where_vertices_meet
             GrB_Index columns_where_vertices_meet_nvals;
@@ -322,21 +330,29 @@ class Query3 : public Query<int, int, std::string> {
                     GrB_Index meet_column = columns_where_vertices_meet_indices[i];
 
                     // get persons who meet at vertex meet_column
-                    auto meeting_vertices = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
+                    auto meeting_vertices = GB(GrB_Vector_new, GrB_UINT8, input.persons.size());
                     ok(GrB_Col_extract(meeting_vertices.get(), GrB_NULL, GrB_NULL, half_reachable.get(), GrB_ALL,
                                        0, meet_column, GrB_NULL));
                     GrB_Index meeting_vertices_nvals;
                     ok(GrB_Vector_nvals(&meeting_vertices_nvals, meeting_vertices.get()));
                     std::vector<GrB_Index> meeting_vertices_indices(meeting_vertices_nvals);
+                    std::vector<uint8_t> meeting_vertices_vals(meeting_vertices_nvals);
                     {
                         GrB_Index nvals = meeting_vertices_nvals;
-                        ok(GrB_Vector_extractTuples_UINT64(meeting_vertices_indices.data(), nullptr, &nvals,
+                        ok(GrB_Vector_extractTuples_UINT8(meeting_vertices_indices.data(),
+                                                           meeting_vertices_vals.data(), &nvals,
                                                            meeting_vertices.get()));
                         assert(meeting_vertices_nvals == nvals);
                     }
 
                     for (GrB_Index p1_iter = 0; p1_iter < meeting_vertices_nvals; ++p1_iter) {
+                        auto val1 = meeting_vertices_vals[p1_iter];
+                        bool is_from_next1 = val1 == 1;
                         for (GrB_Index p2_iter = 0; p2_iter < p1_iter; ++p2_iter) {
+                            auto val2 = meeting_vertices_vals[p2_iter];
+                            if (is_from_next1 && val2 == 1)
+                                continue;
+
                             GrB_Index p1 = meeting_vertices_indices[p1_iter];
                             GrB_Index p2 = meeting_vertices_indices[p2_iter];
                             ok(GrB_Matrix_setElement_UINT64(common_interests.get(), 0, p1, p2));

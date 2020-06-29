@@ -39,8 +39,6 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             assert(nvals1 == nvals2);
             GrB_Matrix_build_BOOL(Sel, I, I, X, nvals1, GrB_LOR);
 
-//            ok(GrB_mxm(Sel, NULL, NULL, GxB_ANY_PAIR_BOOL, Sel, Knows, NULL));
-
             GrB_Matrix M2;
             ok(GrB_Matrix_new(&M2, GrB_BOOL, n, input.comments.size()));
             GrB_mxm(M2, NULL, NULL, GxB_ANY_PAIR_BOOL, Sel, HasCreatorTransposed, NULL);

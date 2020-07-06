@@ -6,5 +6,9 @@ jobs:
     resource_class: xlarge
     steps:
       - checkout
-      - run: wget "https://www.dropbox.com/s/sgrwihjji551teq/o1k.zip?dl=1" -O temp.zip && unzip temp.zip -d csvs && rm temp.zip
+      - run:
+          name: Load test data
+          command: |
+            cd csvs/
+            sha1sum -c o1k.sha1 || ( wget "https://www.dropbox.com/s/sgrwihjji551teq/o1k.zip?dl=1" -O temp.zip && unzip temp.zip && rm temp.zip )
       - run: python/scripts/run_all_queries.sh

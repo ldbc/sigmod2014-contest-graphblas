@@ -15,11 +15,12 @@ RUN cmake .. -DGBCOMPACT=1
 RUN JOBS=$(nproc) make install
 RUN ldconfig
 
+WORKDIR /opt
 RUN git clone https://github.com/GraphBLAS/LAGraph
 
-WORKDIR /opt/LAGraph
-RUN JOBS=$(nproc) make
-RUN make install
+WORKDIR /opt/LAGraph/build
+RUN cmake ..
+RUN JOBS=$(nproc) make install
 RUN ldconfig
 
 COPY . /opt/sigmod14-pc

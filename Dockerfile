@@ -18,7 +18,8 @@ RUN ldconfig
 RUN git clone https://github.com/GraphBLAS/LAGraph
 
 WORKDIR /opt/LAGraph
-RUN JOBS=$(nproc) make install
+RUN JOBS=$(nproc) make
+RUN make install
 RUN ldconfig
 
 COPY . /opt/sigmod14-pc

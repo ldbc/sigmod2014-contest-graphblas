@@ -13,7 +13,7 @@ jobs:
           name: Load test data
           command: |
             cd csvs/
-            sha1sum -c o1k.sha1 || ( wget "https://www.dropbox.com/s/sgrwihjji551teq/o1k.zip?dl=1" -O temp.zip && unzip temp.zip && rm temp.zip )
+            sha1sum -c o1k.sha1 || ( wget "https://www.dropbox.com/s/sgrwihjji551teq/o1k.zip?dl=1" -O temp.zip && unzip -o temp.zip && rm temp.zip && sha1sum -c o1k.sha1 )
       - save_cache:
           key: csvs-{{ checksum "csvs/o1k.sha1" }}
           paths:

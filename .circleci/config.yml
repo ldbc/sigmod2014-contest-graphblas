@@ -1,8 +1,7 @@
 version: 2
 jobs:
- build:
-   machine: true
-   resource_class: large
-   steps:
-     - checkout
-     - run: docker build . -t ldbc/sigmod14-pc-grb
+  build:
+    resource_class: large
+    steps:
+      - checkout
+      - run: docker build . -t ldbc/sigmod14-pc-grb

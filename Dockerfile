@@ -1,7 +1,5 @@
 FROM ubuntu:20.04
 
-RUN echo $(nproc)
-
 # to prevent tzdata from requiring user input
 # https://askubuntu.com/a/1013396/415610
 ENV DEBIAN_FRONTEND=noninteractive
@@ -19,8 +17,7 @@ RUN ldconfig
 
 RUN git clone https://github.com/GraphBLAS/LAGraph
 
-WORKDIR /opt/LAGraph/build
-RUN cmake ..
+WORKDIR /opt/LAGraph
 RUN JOBS=$(nproc) make install
 RUN ldconfig
 

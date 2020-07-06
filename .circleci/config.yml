@@ -1,8 +1,10 @@
 version: 2.1
 jobs:
   build:
-    machine: true
+    docker:
+      - image: ftsrg/pygraphblas-notebook
     resource_class: xlarge
     steps:
       - checkout
-      - run: docker build . -t ldbc/sigmod14-pc-grb
+      - run: wget "https://www.dropbox.com/s/sgrwihjji551teq/o1k.zip?dl=1" -O temp.zip && unzip temp.zip -d csvs && rm temp.zip
+      - run: python/scripts/run_all_queries.sh

@@ -39,21 +39,18 @@ Put [converted CSVs](../README.md#preprocessing-the-provided-data-sets) to `../c
 To build and test the query implementation on o1k (original contest data set with 1k persons) with [test queries](query-parameters.cpp), run:
 
 ```bash
-rm -rf cmake-build-release
-mkdir cmake-build-release
+scripts/rebuild.sh
 pushd cmake-build-release
-cmake -DCMAKE_BUILD_TYPE=Release -DPRINT_RESULTS=1 ..
-make
 ./sigmod2014pc_cpp
 popd
 ```
 
 To only build run this from the repo's root:
 ```bash
-pushd cpp && rm -rf cmake-build-release && mkdir cmake-build-release && pushd cmake-build-release && cmake -DCMAKE_BUILD_TYPE=Release -DPRINT_RESULTS=1 .. && make -j$(nproc) ; popd ; popd
+cpp/scripts/rebuild.sh
 ```
 
-Remove `-DPRINT_RESULTS=1` if result and comment columns are not necessary.
+Prefix the build command with `PRINT_RESULTS=0` to set the environment variable if result and comment columns are not necessary.
 
 ## Generate new query parameters
 

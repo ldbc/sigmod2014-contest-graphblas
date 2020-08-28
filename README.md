@@ -92,7 +92,7 @@ cp -r results/* results-old/ && rm -rf results/*k
 Replace `«PID»` and remove `#` before running.
 
 ```bash
-sudo bash -c 'while [[ -d /proc/«PID» ]]; do date; sleep 60; done; echo SHUTDOWN!; #systemctl poweroff -i'
+sudo bash -c 'while [[ -d /proc/«PID» ]]; do date; sleep 60; done; wall SHUTDOWN IN 1 MIN!; sleep 60; wall SHUTDOWN NOW!; #systemctl poweroff -i'
 ```
 
 #### Compare results

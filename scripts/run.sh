@@ -13,13 +13,13 @@ SCRIPTS_FOLDER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # To limit the number of parameters, set the PARAMS_NUMBER environment variable
 
-for SIZE in $SIZES
+for ((CURRENT_ITERATION=1; CURRENT_ITERATION<=ITERATION_COUNT; CURRENT_ITERATION++))
 do
-  for ((CURRENT_ITERATION=1; CURRENT_ITERATION<=ITERATION_COUNT; CURRENT_ITERATION++))
+  for SIZE in $SIZES
   do
     echo "======================================================================"
-    echo "Size: $SIZE of {$SIZES}"
     echo "Iteration: $CURRENT_ITERATION/$ITERATION_COUNT"
+    echo "Size: $SIZE of {$SIZES}"
     echo "======================================================================"
     echo
 

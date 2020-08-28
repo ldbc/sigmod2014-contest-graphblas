@@ -18,6 +18,6 @@ jobs:
           key: csvs-{{ checksum "csvs/o1k.sha1" }}
           paths:
             - csvs
-      - run: python/scripts/run_all_queries.sh
+#      - run: python/scripts/run_all_queries.sh
       - run: cpp/scripts/rebuild.sh
       - run: cd cpp/cmake-build-release && ./sigmod2014pc_cpp

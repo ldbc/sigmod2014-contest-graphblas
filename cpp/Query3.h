@@ -12,14 +12,15 @@
 #include "Query.h"
 #include <cstdio>
 #include <omp.h>
+#include <sstream>
 
 #define LIMIT_KB 5*1024*1024
 
-#define LOG_LINE { RefreshMemAvailable();   if(MemAvailable_kb<LIMIT_KB){std::cerr << "--- DEBUG: " << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; }}
-#define LOG_LINE2(msg) { RefreshMemAvailable();   if(MemAvailable_kb<LIMIT_KB){std::cerr << "--- DEBUG: " << msg << ' ' << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; }}
+#define LOG_LINE2(msg) { RefreshMemAvailable();   if(MemAvailable_kb<LIMIT_KB){std::stringstream stream; stream << "--- DEBUG: " << msg << ' ' << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; std::cerr<<stream.str(); }}
+#define LOG_LINE { LOG_LINE2(""); }
 
 class Query3 : public Query<int, int, std::string> {
-    int MemAvailable_kb = 10*1024*1024;
+    int MemAvailable_kb = 0;
     int counter = 0;
     int topKLimit, maximumHopCount;
     std::string placeName;

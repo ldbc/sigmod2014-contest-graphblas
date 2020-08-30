@@ -273,8 +273,10 @@ class Query3 : public Query<int, int, std::string> {
             for (int i = 0; i < maximumHopCount / 2; ++i) {
                 push_next(next_mx.get(), seen_mx.get(), input.knows.matrix.get());
             }
+            // persons reached in the first (maximumHopCount / 2) steps are marked with 2
             ok(GrB_Matrix_assign_UINT8(seen_mx.get(), seen_mx.get(), GrB_NULL, 2, GrB_ALL, 0, GrB_ALL, 0, GrB_NULL));
-            // one more step is needed for odd distances
+
+            // one more "half" step is needed for odd distances: nodes reached now are marked with 1
             if (maximumHopCount % 2 == 1) {
                 // next<!seen> = next * A
                 ok(GrB_mxm(next_mx.get(), seen_mx.get(), NULL, GxB_ANY_PAIR_BOOL, next_mx.get(),
@@ -287,7 +289,7 @@ class Query3 : public Query<int, int, std::string> {
 //            ok(GxB_Matrix_select(seen_mx.get(), GrB_NULL, GrB_NULL, GxB_OFFDIAG, seen_mx.get(), GrB_NULL, GrB_NULL));
             auto half_reachable = std::move(seen_mx);
 
-            // find vertices where relevant persons meet
+            // find vertices where relevant persons meet: reduce to row vector
             auto columns_where_vertices_meet = GB(GrB_Vector_new, GrB_UINT64, input.persons.size());
             ok(GrB_Matrix_reduce_Monoid(columns_where_vertices_meet.get(), GrB_NULL, GrB_NULL,
                                         GrB_PLUS_MONOID_UINT64, half_reachable.get(), GrB_DESC_T0));
@@ -298,7 +300,17 @@ class Query3 : public Query<int, int, std::string> {
                 std::cerr << "columns_where_vertices_meet nvals:" << nvals << std::endl;
             }
 #endif
-            // keep vertices where at least 2 vertices meet
+            // prune: goal: keep vertices where at least 2 vertices meet
+            // invalid values:
+            // - 1: single person reached (in the last "half" step)
+            // - 2: single person reached in the first (maximumHopCount / 2) steps,
+            //      or for odd maximumHopCount (2*e+1): 2 persons in the last "half" step with 1+1 values:
+            //        two 1 values mean the distance is (floor((2*e+1) / 2) + 1)*2 = (2*e+1)+1 > maximumHopCount
+            // valid values:
+            // - 3 (odd only): 1 + 2 values: floor((2*e+1) / 2) + (floor((2*e+1) / 2) + 1) = 2*e+1 = maximumHopCount
+            // - 4: 2 + 2 values: two persons reached each other in the first (maximumHopCount / 2) steps
+            // false positives:
+            // - >= 3: 1+1+1+... without value 2
             auto scalar3 = GB(GxB_Scalar_new, GrB_UINT64);
             ok(GxB_Scalar_setElement_UINT64(scalar3.get(), 3));
             ok(GxB_Vector_select(columns_where_vertices_meet.get(), GrB_NULL, GrB_NULL, GxB_GE_THUNK,
@@ -326,6 +338,7 @@ class Query3 : public Query<int, int, std::string> {
 
 #pragma omp parallel num_threads(GlobalNThreads)
             {
+                // thread-local
                 GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),
                                                               input.persons.size());
 #pragma omp for schedule(static)
@@ -353,6 +366,7 @@ class Query3 : public Query<int, int, std::string> {
                         bool is_from_next1 = val1 == 1;
                         for (GrB_Index p2_iter = 0; p2_iter < p1_iter; ++p2_iter) {
                             auto val2 = meeting_vertices_vals[p2_iter];
+                            // 1 & 1 values means the persons meet after maximumHopCount + 1, which is invalid
                             if (is_from_next1 && val2 == 1)
                                 continue;
 

@@ -11,11 +11,12 @@
 #include "utils.h"
 #include "Query.h"
 #include <cstdio>
+#include <omp.h>
 
 #define LIMIT_KB 5*1024*1024
 
 #define LOG_LINE { RefreshMemAvailable();   if(MemAvailable_kb<LIMIT_KB){std::cerr << "--- DEBUG: " << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; }}
-#define LOG_LINE2 (msg) { RefreshMemAvailable();   if(MemAvailable_kb<5*1024*1024){ std::cerr << "--- DEBUG: " << msg << ' ' << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; }}
+#define LOG_LINE2(msg) { RefreshMemAvailable();   if(MemAvailable_kb<LIMIT_KB){std::cerr << "--- DEBUG: " << msg << ' ' << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; }}
 
 class Query3 : public Query<int, int, std::string> {
     int MemAvailable_kb = 10*1024*1024;
@@ -370,13 +371,13 @@ class Query3 : public Query<int, int, std::string> {
             {
                 GBxx_Object<GrB_Matrix> common_interests = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),
                                                               input.persons.size());
-                LOG_LINE;
+                LOG_LINE2("T"<< omp_get_thread_num());
 
 #pragma omp for schedule(static)
                 for (GrB_Index i = 0; i < columns_where_vertices_meet_nvals; ++i) {
                     GrB_Index meet_column = columns_where_vertices_meet_indices[i];
 
-                    LOG_LINE;
+                    LOG_LINE2("T"<< omp_get_thread_num());
                     // get persons who meet at vertex meet_column
                     auto meeting_vertices = GB(GrB_Vector_new, GrB_UINT8, input.persons.size());
                     ok(GrB_Col_extract(meeting_vertices.get(), GrB_NULL, GrB_NULL, half_reachable.get(), GrB_ALL,
@@ -386,7 +387,7 @@ class Query3 : public Query<int, int, std::string> {
                     std::vector<GrB_Index> meeting_vertices_indices(meeting_vertices_nvals);
                     std::vector<uint8_t> meeting_vertices_vals(meeting_vertices_nvals);
                     {
-                        LOG_LINE;
+                        LOG_LINE2("T"<< omp_get_thread_num());
                         GrB_Index nvals = meeting_vertices_nvals;
                         ok(GrB_Vector_extractTuples_UINT8(meeting_vertices_indices.data(),
                                                           meeting_vertices_vals.data(), &nvals,
@@ -394,7 +395,7 @@ class Query3 : public Query<int, int, std::string> {
                         assert(meeting_vertices_nvals == nvals);
                     }
 
-                    LOG_LINE;
+                    LOG_LINE2("T"<< omp_get_thread_num());
                     for (GrB_Index p1_iter = 0; p1_iter < meeting_vertices_nvals; ++p1_iter) {
                         auto val1 = meeting_vertices_vals[p1_iter];
                         bool is_from_next1 = val1 == 1;
@@ -408,7 +409,7 @@ class Query3 : public Query<int, int, std::string> {
                             ok(GrB_Matrix_setElement_UINT64(common_interests.get(), 0, p1, p2));
                         }
                     }
-                    LOG_LINE;
+                    LOG_LINE2("T"<< omp_get_thread_num());
                 }
 
 #pragma omp critical(Q3_merge_thread_local_matrices)
@@ -420,7 +421,7 @@ class Query3 : public Query<int, int, std::string> {
                     auto ptr = common_interests_global.release();
                     ok(GrB_Matrix_wait(&ptr));
                     common_interests_global.reset(ptr);
-                    LOG_LINE;
+                    LOG_LINE2("T"<< omp_get_thread_num());
                 }
             }
             LOG_LINE;

@@ -273,6 +273,12 @@ class Query3 : public Query<int, int, std::string> {
             for (int i = 0; i < maximumHopCount / 2; ++i) {
                 push_next(next_mx.get(), seen_mx.get(), input.knows.matrix.get());
             }
+
+            // find vertices where relevant persons meet: reduce to row vector
+            auto columns_where_vertices_meet = GB(GrB_Vector_new, GrB_UINT64, input.persons.size());
+            ok(GrB_Matrix_reduce_Monoid(columns_where_vertices_meet.get(), GrB_NULL, GrB_NULL,
+                                        GrB_PLUS_MONOID_UINT64, seen_mx.get(), GrB_DESC_T0));
+
             // persons reached in the first (maximumHopCount / 2) steps are marked with 2
             ok(GrB_Matrix_assign_UINT8(seen_mx.get(), seen_mx.get(), GrB_NULL, 2, GrB_ALL, 0, GrB_ALL, 0, GrB_NULL));
 
@@ -283,16 +289,17 @@ class Query3 : public Query<int, int, std::string> {
                            input.knows.matrix.get(), GrB_DESC_RSC));
                 ok(GrB_Matrix_assign_UINT8(seen_mx.get(), next_mx.get(), GrB_NULL, 1, GrB_ALL, 0, GrB_ALL, 0,
                                            GrB_NULL));
+                ok(GrB_Matrix_reduce_Monoid(columns_where_vertices_meet.get(), columns_where_vertices_meet.get(), GrB_PLUS_UINT64,
+                                            GrB_LOR_MONOID_BOOL, next_mx.get(), GrB_DESC_T0));
             }
 
             // TODO: offdiag? tril?
 //            ok(GxB_Matrix_select(seen_mx.get(), GrB_NULL, GrB_NULL, GxB_OFFDIAG, seen_mx.get(), GrB_NULL, GrB_NULL));
             auto half_reachable = std::move(seen_mx);
+            GrB_Matrix half_reachable_ptr =half_reachable.release() ;
+            GrB_Matrix_wait(&half_reachable_ptr);
+            half_reachable.reset(half_reachable_ptr);
 
-            // find vertices where relevant persons meet: reduce to row vector
-            auto columns_where_vertices_meet = GB(GrB_Vector_new, GrB_UINT64, input.persons.size());
-            ok(GrB_Matrix_reduce_Monoid(columns_where_vertices_meet.get(), GrB_NULL, GrB_NULL,
-                                        GrB_PLUS_MONOID_UINT64, half_reachable.get(), GrB_DESC_T0));
 #ifndef NDEBUG
             {
                 GrB_Index nvals;
@@ -301,6 +308,7 @@ class Query3 : public Query<int, int, std::string> {
             }
 #endif
             // prune: goal: keep vertices where at least 2 vertices meet
+            // TODO: rewrite comment
             // invalid values:
             // - 1: single person reached (in the last "half" step)
             // - 2: single person reached in the first (maximumHopCount / 2) steps,
@@ -311,10 +319,10 @@ class Query3 : public Query<int, int, std::string> {
             // - 4: 2 + 2 values: two persons reached each other in the first (maximumHopCount / 2) steps
             // false positives:
             // - >= 3: 1+1+1+... without value 2
-            auto scalar3 = GB(GxB_Scalar_new, GrB_UINT64);
-            ok(GxB_Scalar_setElement_UINT64(scalar3.get(), 3));
+            auto scalar2 = GB(GxB_Scalar_new, GrB_UINT64);
+            ok(GxB_Scalar_setElement_UINT64(scalar2.get(), 2));
             ok(GxB_Vector_select(columns_where_vertices_meet.get(), GrB_NULL, GrB_NULL, GxB_GE_THUNK,
-                                 columns_where_vertices_meet.get(), scalar3.get(), GrB_NULL));
+                                 columns_where_vertices_meet.get(), scalar2.get(), GrB_NULL));
 
             // extract columns_where_vertices_meet
             GrB_Index columns_where_vertices_meet_nvals;

@@ -1,57 +1,6 @@
 #include "ccv.h"
 #include "assert.h"
 
-uint64_t extract(const GrB_Matrix A, const GrB_Index i, const GrB_Index j) {
-    uint64_t x;
-    GrB_Info info = ok(GrB_Matrix_extractElement_UINT64(&x, A, i, j), false);
-    if (info == GrB_NO_VALUE) {
-        return 0xcccccccccccccccc;
-    }
-    return x;
-}
-
-uint64_t extract_v(const GrB_Vector v, const GrB_Index i) {
-    uint64_t x;
-    GrB_Info info = ok(GrB_Vector_extractElement_UINT64(&x, v, i), false);
-    if (info == GrB_NO_VALUE) {
-        return 9999999;
-    }
-    return x;
-}
-
-void print_bit_matrix(const GrB_Matrix A) {
-    GrB_Index nrows, ncols;
-    ok(GrB_Matrix_nrows(&nrows, A));
-    ok(GrB_Matrix_ncols(&ncols, A));
-    for (GrB_Index i = 0; i < nrows; i++) {
-        printf("%4ld:", i);
-        for (GrB_Index j = 0; j < ncols; j++) {
-            printf(" %016lx", extract(A, i, j));
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
-void print_bit_matrices(const GrB_Matrix frontier, const GrB_Matrix next, const GrB_Matrix seen,
-                        const GrB_Vector next_popcount, const GrB_Vector sp) {
-    GrB_Index nrows, ncols;
-    ok(GrB_Matrix_nrows(&nrows, frontier));
-    ok(GrB_Matrix_ncols(&ncols, frontier));
-    printf("          frontier             next               seen         next_popcount    sp\n");
-    for (GrB_Index i = 0; i < nrows; i++) {
-        printf("%4ld:", i);
-        for (GrB_Index j = 0; j < ncols; j++) {
-            printf(
-                    " %016lx   %016lx   %016lx   %13ld   %3ld",
-                    extract(frontier, i, j), extract(next, i, j), extract(seen, i, j), extract_v(next_popcount, i),
-                    extract_v(sp, i));
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
 inline __attribute__((always_inline))
 void create_diagonal_bit_matrix(GrB_Matrix D) {
     GrB_Index n, nrows;

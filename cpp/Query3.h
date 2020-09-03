@@ -16,7 +16,8 @@
 
 #define LIMIT_KB 5*1024*1024
 
-#define LOG_LINE2(msg) { RefreshMemAvailable();   if(MemAvailable_kb<LIMIT_KB){std::stringstream stream; stream << "--- DEBUG: " << msg << ' ' << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; std::cerr<<stream.str(); }}
+#define LOG_LINE2_FORCE(msg) { {std::stringstream stream; stream << "--- DEBUG: " << msg << ' ' << __FILE__ << ':' << __LINE__ << " " << __func__ << " ---" << std::endl; std::cerr<<stream.str(); }}
+#define LOG_LINE2(msg) { RefreshMemAvailable();   if(MemAvailable_kb<LIMIT_KB) LOG_LINE2_FORCE(msg);}
 #define LOG_LINE { LOG_LINE2(""); }
 
 class Query3 : public Query<int, int, std::string> {
@@ -265,7 +266,7 @@ class Query3 : public Query<int, int, std::string> {
             if (MemAvailable_kb < LIMIT_KB)
                 std::cerr << "Loop:" << lower_tag_count << std::endl;
 
-            LOG_LINE;
+            LOG_LINE2_FORCE("lower_tag_count: " << lower_tag_count);
             // add persons with less tags
             auto limit = GB(GxB_Scalar_new, GrB_UINT8);
             ok(GxB_Scalar_setElement_INT32(limit.get(), lower_tag_count));
@@ -327,6 +328,7 @@ class Query3 : public Query<int, int, std::string> {
             // TODO: offdiag? tril?
 //            ok(GxB_Matrix_select(seen_mx.get(), GrB_NULL, GrB_NULL, GxB_OFFDIAG, seen_mx.get(), GrB_NULL, GrB_NULL));
             auto half_reachable = std::move(seen_mx);
+            GxB_Matrix_fprint(half_reachable.get(), "half_reachable", GxB_SUMMARY, stdout);
             LOG_LINE;
             // find vertices where relevant persons meet
             auto columns_where_vertices_meet = GB(GrB_Vector_new, GrB_UINT64, input.persons.size());

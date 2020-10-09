@@ -43,7 +43,7 @@ Set the parameters:
 
 #### Approach #1
 
-Cleanup, construct the overlay graph, query and compute the shortest path using a single query:
+Cleanup previous results, construct the induced subgraph, query and compute the shortest path using a single query:
 ```
 MATCH ()-[f:FREQ_COMM]->()
 DELETE f
@@ -266,7 +266,7 @@ Set tag parameter `$t`:
 :param t => 'Bill_Clinton'
 ```
 
-Construct the overlay graph:
+Construct the induced subgraph:
 ```
 MATCH
   (t:Tag {name: $t})<-[:HAS_TAG]-(f1:Forum)

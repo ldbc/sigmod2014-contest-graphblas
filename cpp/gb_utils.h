@@ -4,6 +4,7 @@
 #include <numeric>
 
 extern "C" {
+#define LAGRAPH_EXPERIMENTAL_ASK_BEFORE_BENCHMARKING 1
 #include <GraphBLAS.h>
 #include <LAGraph.h>
 }

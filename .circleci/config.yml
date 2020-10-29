@@ -18,9 +18,8 @@ jobs:
           key: csvs-{{ checksum "csvs/o1k.sha1" }}
           paths:
             - csvs
-      - run: export JOBS=8
       - run: sudo apt update && sudo apt install cmake g++
-      - run: git clone --branch v4.0.0draft5 https://github.com/DrTimothyAldenDavis/GraphBLAS && cd GraphBLAS && make && sudo make install && sudo ldconfig && cd ..
+      - run: export JOBS=8 && git clone --branch v4.0.0draft5 https://github.com/DrTimothyAldenDavis/GraphBLAS && cd GraphBLAS && make && sudo make install && sudo ldconfig && cd ..
       - run: git clone --branch master https://github.com/GraphBLAS/LAGraph && cd LAGraph && make && sudo make install && sudo ldconfig && cd ..
 #      - run: python/scripts/run_all_queries.sh
       - run: cpp/scripts/rebuild.sh

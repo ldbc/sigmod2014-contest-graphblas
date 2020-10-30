@@ -23,4 +23,4 @@ jobs:
       - run: git clone --depth 1 --branch master https://github.com/GraphBLAS/LAGraph && cd LAGraph/build && cmake .. && make -j8 && sudo make install && sudo ldconfig && cd ../..
 #      - run: python/scripts/run_all_queries.sh
       - run: cpp/scripts/rebuild.sh
-      - run: cd cpp/cmake-build-release && ./sigmod2014pc_cpp
+      - run: cd cpp/cmake-build-release && ThreadsNum=8 ./sigmod2014pc_cpp

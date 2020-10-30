@@ -78,6 +78,9 @@ class Query3 : public Query<int, int, std::string> {
         auto tag_count_per_person = GB(GrB_Vector_new, GrB_UINT8, input.persons.size());
 
         ok(GrB_Vector_assign_UINT8(tag_count_per_person.get(), local_persons, GrB_NULL, 0, GrB_ALL, 0, GrB_NULL));
+        GrB_Vector v = tag_count_per_person.get();
+        GrB_Vector_wait (&v); // TODO: remove forced wait
+
         ok(GrB_Matrix_reduce_Monoid(tag_count_per_person.get(), local_persons, GrB_NULL, GrB_PLUS_MONOID_UINT8,
                                     hasInterest.get(), GrB_NULL));
 
@@ -221,6 +224,8 @@ class Query3 : public Query<int, int, std::string> {
 
         // every local person has at least 0 tags
         ok(GrB_Vector_assign_UINT8(tag_count_per_person.get(), local_persons, GrB_NULL, 0, GrB_ALL, 0, GrB_NULL));
+        GrB_Vector v = tag_count_per_person.get();
+        GrB_Vector_wait (&v); // TODO: remove forced wait
         // count tags per person
         ok(GrB_Matrix_reduce_Monoid(tag_count_per_person.get(), local_persons, GrB_NULL, GrB_PLUS_MONOID_UINT8,
                                     hasInterest.get(), GrB_NULL));

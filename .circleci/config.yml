@@ -10,7 +10,7 @@ jobs:
   build:
     docker:
       - image: cimg/base:edge-20.04
-    resource_class: xlarge
+    resource_class: 2xlarge
     steps:
       - checkout
       - restore_cache:
@@ -26,10 +26,10 @@ jobs:
           paths:
             - csvs
       - run: sudo apt update && sudo apt install cmake g++
-      #- run: git clone --depth 1 --branch v4.0.0draft5 https://github.com/DrTimothyAldenDavis/GraphBLAS && cd GraphBLAS/build && cmake .. -DGB_BURBLE=0 -DGBCOMPACT=0 && make -j8 && sudo make install && sudo ldconfig && cd ../..
-      - run: git clone --depth 1 --branch v3.3.3 https://github.com/DrTimothyAldenDavis/GraphBLAS && cd GraphBLAS/build && cmake .. -DGB_BURBLE=0 -DGBCOMPACT=0 && make -j8 && sudo make install && sudo ldconfig && cd ../..
-      - run: git clone --depth 1 --branch master https://github.com/GraphBLAS/LAGraph && cd LAGraph/build && cmake .. && make -j8 && sudo make install && sudo ldconfig && cd ../..
+      #- run: git clone --depth 1 --branch v4.0.0draft5 https://github.com/DrTimothyAldenDavis/GraphBLAS && cd GraphBLAS/build && cmake .. -DGB_BURBLE=0 -DGBCOMPACT=0 && make -j16 && sudo make install && sudo ldconfig && cd ../..
+      - run: git clone --depth 1 --branch v3.3.3 https://github.com/DrTimothyAldenDavis/GraphBLAS && cd GraphBLAS/build && cmake .. -DGB_BURBLE=0 -DGBCOMPACT=0 && make -j16 && sudo make install && sudo ldconfig && cd ../..
+      - run: git clone --depth 1 --branch master https://github.com/GraphBLAS/LAGraph && cd LAGraph/build && cmake .. && make -j16 && sudo make install && sudo ldconfig && cd ../..
 #      - run: python/scripts/run_all_queries.sh
       - run: cpp/scripts/rebuild.sh
-      - run: cd cpp/cmake-build-release && ThreadsNum=8 ./sigmod2014pc_cpp
+      - run: cd cpp/cmake-build-release && ThreadsNum=16 ./sigmod2014pc_cpp
       - slack/status

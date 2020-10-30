@@ -1,6 +1,7 @@
 # SIGMOD 2014 Programming Contest
 
-See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
+* [Technical report discussing the contest](https://arxiv.org/pdf/2010.12243.pdf)
+* [Paper at HPEC 2020](http://mit.bme.hu/~szarnyas/ldbc/hpec2020-sigmod14-msbfs-camera-ready.pdf)
 
 ## Use [pygraphblas](https://github.com/michelp/pygraphblas) in notebooks
 

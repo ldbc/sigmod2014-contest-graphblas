@@ -1,4 +1,11 @@
 version: 2.1
+orbs:
+  slack: circleci/slack@3.4.2
+workflows:
+  version: 2
+  build:
+    jobs:
+    - build
 jobs:
   build:
     docker:
@@ -24,3 +31,4 @@ jobs:
 #      - run: python/scripts/run_all_queries.sh
       - run: cpp/scripts/rebuild.sh
       - run: cd cpp/cmake-build-release && ThreadsNum=8 ./sigmod2014pc_cpp
+      - slack/status

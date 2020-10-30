@@ -121,7 +121,7 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
             query2(3, "1986-06-14", R"(Chiang_Kai-shek Mohandas_Karamchand_Gandhi Joseph_Stalin % component sizes 6 6 5)"),
             query2(7, "1987-06-24", R"(Chiang_Kai-shek Augustine_of_Hippo Genghis_Khan Haile_Selassie_I Karl_Marx Lyndon_B._Johnson Robert_John_\"Mutt\"_Lange % component sizes 4 3 3 3 3 3 3)"),
 
-            query3(3, 2, "Asia", R"(361|812 174|280 280|812 % common interest counts 4 3 3)"),
+            //query3(3, 2, "Asia", R"(361|812 174|280 280|812 % common interest counts 4 3 3)"),
             query3(4, 3, "Indonesia", R"(396|398 363|367 363|368 363|372 % common interest counts 2 1 1 1)"),
             query3(3, 2, "Egypt", R"(110|116 106|110 106|112 % common interest counts 1 0 0)"),
             query3(3, 2, "Italy", R"(420|825 421|424 10|414 % common interest counts 1 1 0)"),

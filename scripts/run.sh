@@ -25,7 +25,7 @@ do
 
     for TOOL in $TOOLS
     do
-      "$SCRIPTS_FOLDER"/run-tool.sh "$TOOL" p${SIZE}k "$CSVS_BASE_FOLDER" $PARAMS_NUMBER
+      "$SCRIPTS_FOLDER"/run-tool.sh "$TOOL" p${SIZE}k "$CSVS_BASE_FOLDER"
     done
   done
 done

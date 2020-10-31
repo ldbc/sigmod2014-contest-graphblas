@@ -74,7 +74,7 @@ Log file and measurement results in CSV are saved to `results/$SIZE/$TOOL_NAME`.
 Run the following:
 
 ```bash
-PARAMS_NUMBER=100 ITERATION_COUNT=1 QUERIES=1,2,3,4 scripts/run.sh "«TOOL1_PATH» «TOOL2_PATH»..." 1,10,100,1000 csvs
+PARAMS_NUMBER=100; ITERATION_COUNT=1 QUERIES=1,2,3,4 scripts/run.sh "«TOOL1_PATH» «TOOL2_PATH»..." 1,10,100,1000 csvs $PARAMS_NUMBER
 ```
 
 Parameters: paths of tools, sizes, CSVs folder.

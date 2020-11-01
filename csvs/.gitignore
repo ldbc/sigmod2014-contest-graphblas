@@ -5,3 +5,4 @@
 !*/
 # Don't ignore .gitignore
 !.gitignore
+!*.sha*

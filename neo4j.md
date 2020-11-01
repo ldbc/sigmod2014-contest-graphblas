@@ -43,7 +43,7 @@ Set the parameters:
 
 #### Approach #1
 
-Cleanup, construct the overlay graph, query and compute the shortest path using a single query:
+Cleanup previous results, construct the induced subgraph, query and compute the shortest path using a single query:
 ```
 MATCH ()-[f:FREQ_COMM]->()
 DELETE f
@@ -221,8 +221,6 @@ ORDER BY numTags DESC, p1.id ASC, p2.id ASC
 LIMIT $topK
 ```
 
-Note that in Neo4j Enterprise, you need to use `CYPHER runtime=interpreted` due to a [bug in the slotted runtime](https://github.com/neo4j/neo4j/issues/12441).
-
 If you go with option 2, you can compute the results with a separate query:
 
 ```
@@ -268,7 +266,7 @@ Set tag parameter `$t`:
 :param t => 'Bill_Clinton'
 ```
 
-Construct the overlay graph:
+Construct the induced subgraph:
 ```
 MATCH
   (t:Tag {name: $t})<-[:HAS_TAG]-(f1:Forum)

@@ -1,6 +1,7 @@
 # SIGMOD 2014 Programming Contest
 
-See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
+* [Technical report discussing the contest](https://arxiv.org/pdf/2010.12243.pdf)
+* [Paper at HPEC 2020](http://mit.bme.hu/~szarnyas/ldbc/hpec2020-sigmod14-msbfs-camera-ready.pdf)
 
 ## Use [pygraphblas](https://github.com/michelp/pygraphblas) in notebooks
 
@@ -10,7 +11,7 @@ See our website at <https://ftsrg.mit.bme.hu/paper-hpec2020/>.
 ### Steps
 - Clone [fixes branch](https://github.com/szarnyasg/pygraphblas/tree/fixes) of https://github.com/szarnyasg/pygraphblas/
 - Run `./build-custom.sh` to build the Docker image with slight modifications
-- To run pygrpahblas in Docker:
+- To run pygraphblas in Docker:
     - Mount this repo to the container by adding `-v «PATH»/sigmod2014-pc:/home/jovyan/sigmod2014-pc` to [notebook.sh](https://github.com/szarnyasg/pygraphblas/blob/fixes/notebook.sh), where `«PATH»` is the absolute path to this repository.
     - Start `./notebook.sh`
     - Open Jupyter Notebook at: http://127.0.0.1:8888/?token=«TOKEN»
@@ -83,7 +84,7 @@ Parameters: paths of tools, sizes, CSVs folder.
 #### Archive results and delete old code before new measurements
 
 ```bash
-cpp/cmake-build-release
+rm -rf cpp/cmake-build-release
 cp -r results/* results-old/ && rm -rf results/*k
 ```
 
@@ -92,7 +93,7 @@ cp -r results/* results-old/ && rm -rf results/*k
 Replace `«PID»` and remove `#` before running.
 
 ```bash
-sudo bash -c 'while [[ -d /proc/«PID» ]]; do date; sleep 60; done; echo SHUTDOWN!; #systemctl poweroff -i'
+sudo bash -c 'while [[ -d /proc/«PID» ]]; do date; sleep 60; done; wall SHUTDOWN IN 1 MIN!; sleep 60; wall SHUTDOWN NOW!; #systemctl poweroff -i'
 ```
 
 #### Compare results

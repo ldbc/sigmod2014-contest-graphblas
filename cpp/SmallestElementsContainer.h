@@ -7,11 +7,11 @@
 /// \tparam Comparator type of comparator
 template<typename ElementT, typename Comparator>
 class SmallestElementsContainer {
+public:
     std::vector<ElementT> elements;
     int sizeLimit;
     Comparator comparator;
 
-public:
     /// You can use makeSmallestElementsContainer&lt;ElementT&gt;(size_limit, comparator) instead.
     explicit SmallestElementsContainer(int size_limit, Comparator comparator)
             : sizeLimit(size_limit), comparator(std::move(comparator)) {
@@ -32,6 +32,14 @@ public:
                 elements.pop_back();
             }
         }
+    }
+
+    size_t size() const{
+        return elements.size();
+    }
+
+    ElementT const &max() const{
+        return elements.front();
     }
 
     /// Return all elements of the container in ascending order. Afterwards the container is empty.

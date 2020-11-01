@@ -26,6 +26,40 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
         GrB_Matrix A;
         GBxx_Object<GrB_Matrix> personToPerson;
 
+        // std::cout << "==" << std::endl;
+        // std::cout << p1 << std::endl;
+        // std::cout << p2 << std::endl;
+        // std::cout << "==" << std::endl;
+
+        // std::cout << std::endl;
+        // std::cout << "== knows ==" << std::endl;
+        // std::string knows_str = "knows.grb";
+        // char *knows_cstr = new char[knows_str.length() + 1];
+        // strcpy(knows_cstr, knows_str.c_str());
+        // GrB_Matrix K = input.knows.matrix.get();
+        // LAGraph_binwrite(&K, knows_cstr, NULL);
+        // delete [] knows_cstr;
+
+        // std::cout << "== hasCreator ==" << std::endl;
+        // std::string hasCreator_str = "hasCreator.grb";
+        // char *hasCreator_cstr = new char[hasCreator_str.length() + 1];
+        // strcpy(hasCreator_cstr, hasCreator_str.c_str());
+        // GrB_Matrix HC = input.hasCreator.matrix.get();
+        // LAGraph_binwrite(&HC, hasCreator_cstr, NULL);
+        // delete [] hasCreator_cstr;
+
+        // std::cout << "== replyOf ==" << std::endl;
+        // std::string replyOf_str = "replyOf.grb";
+        // char *replyOf_cstr = new char[replyOf_str.length() + 1];
+        // strcpy(replyOf_cstr, replyOf_str.c_str());
+        // GrB_Matrix RO = input.replyOf.matrix.get();
+        // LAGraph_binwrite(&RO, replyOf_cstr, NULL);
+        // delete [] replyOf_cstr;
+
+        // std::cout << "==-- serialized --==" << std::endl;
+
+
+
         if (comment_lower_limit == -1) {
             A = input.knows.matrix.get();
         } else {

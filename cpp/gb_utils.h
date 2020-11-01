@@ -150,16 +150,46 @@ namespace gbxx {
     };
 }
 
+/**
+ * Owning smart pointer that disposes GrB object when it goes out of scope.
+ *
+ * Usage:
+ * Initialize using first (out) parameter of function
+ *   GBxx_Object<GrB_Matrix> mx = GB(GrB_Matrix_new, GrB_BOOL, nrows, ncols);
+ *
+ * Initialize manually
+ *   GrB_Matrix mx_ptr = nullptr;
+ *   // init
+ *   GBxx_Object<GrB_Matrix> mx{mx_ptr};
+ *
+ * When a GrB_Matrix* pointer is needed
+ *   // binwrite might change the pointer since it uses export and import
+ *   GrB_Matrix mx_ptr = mx.release();
+ *   LAGraph_binwrite(&mx_ptr, "outfile.grb", nullptr);
+ *   mx.reset(mx_ptr);
+ */
 template<typename Type>
 using GBxx_Object = std::unique_ptr<typename std::remove_pointer<Type>::type, gbxx::GBxx_deleter<Type>>;
 
 template<typename Type>
 using GBxx_Object_shared = std::shared_ptr<typename std::remove_pointer<Type>::type>;
 
-template<typename Type, typename ...Args, typename ...Args2>
-GBxx_Object<Type> GB(GrB_Info (&func)(Type *, Args2...), Args &&... args) {
+
+/**
+ * Initialize a GBxx_Object<Type> smart pointer using func.
+ *
+ * Usage:
+ *   GBxx_Object<GrB_Matrix> mx = GB(GrB_Matrix_new, GrB_BOOL, nrows, ncols);
+ *
+ * @tparam Type GrB object type
+ * @param func A function: func(Type*, Args...)
+ * @param args 2nd and more parameters of func.
+ * @return The smart pointer initialized with func(&out, args...)
+ */
+template<typename Type, typename ...ArgsIn, typename ...Args>
+GBxx_Object<Type> GB(GrB_Info (&func)(Type *, Args...), ArgsIn &&... args) {
     Type gb_instance = nullptr;
-    ok(func(&gb_instance, std::forward<Args>(args)...));
+    ok(func(&gb_instance, std::forward<ArgsIn>(args)...));
 
     return {gb_instance, {}};
 }

@@ -19,7 +19,7 @@ jobs:
       - run:
           name: Load test data
           command: |
-            apt update && apt install -y zstd
+            sudo apt update && sudo apt install -y zstd
             cd csvs/
             sha1sum -c o1k.sha1 || ( curl -L http://mit.bme.hu/~szarnyas/spc2014/data/o1k.tar.zst | tar -xv -I unzstd && sha1sum -c o1k.sha1 )
             curl -L http://mit.bme.hu/~szarnyas/spc2014/data/p10k.tar.zst | tar -xv -I unzstd

@@ -48,7 +48,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             ok(GxB_Matrix_select(personToPerson.get(), GrB_NULL, GrB_NULL, GxB_GT_THUNK, personToPerson.get(),
                                  limit.get(), GrB_NULL));
             // make symmetric
-            ok(GrB_eWiseMult_Matrix_BinaryOp(personToPerson.get(), GrB_NULL, GrB_NULL,
+            ok(GrB_Matrix_eWiseMult_BinaryOp(personToPerson.get(), GrB_NULL, GrB_NULL,
                                              GxB_PAIR_UINT64, personToPerson.get(), personToPerson.get(), GrB_DESC_T0));
 
             A = personToPerson.get();
@@ -110,8 +110,8 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
                 break;
             }
 
-            ok(GrB_eWiseAdd_Vector_BinaryOp(seen1.get(), NULL, NULL, GrB_LOR, seen1.get(), next1.get(), NULL));
-            ok(GrB_eWiseAdd_Vector_BinaryOp(seen2.get(), NULL, NULL, GrB_LOR, seen2.get(), next2.get(), NULL));
+            ok(GrB_Vector_eWiseAdd_BinaryOp(seen1.get(), NULL, NULL, GrB_LOR, seen1.get(), next1.get(), NULL));
+            ok(GrB_Vector_eWiseAdd_BinaryOp(seen2.get(), NULL, NULL, GrB_LOR, seen2.get(), next2.get(), NULL));
         }
 
 #ifndef NDEBUG

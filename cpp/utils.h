@@ -7,14 +7,24 @@
 #include <fstream>
 #include <iomanip>
 
+#include "BaseQuery.h"
+
 struct BenchmarkParameters {
+    enum RunMode {
+        Test,
+        Param,
+        File
+    };
+
     std::string CsvPath;
     std::string ParamsPath;
     std::string RunIndex;
     std::string Tool;
     std::string ChangeSet;
-    int Query;
+    int Query = -1;
+    RunMode Mode = Test;
     char const *const *QueryParams = nullptr;
+    std::string QueryParamsFilePath;
     int QueryParamsNum = 0;
     int ThreadsNum = 0;
 };
@@ -23,9 +33,9 @@ BenchmarkParameters parse_benchmark_params(int argc, char *argv[]);
 
 extern int GlobalNThreads;
 
-void report_load(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime);
+void report_load(BenchmarkParameters const &parameters, std::chrono::nanoseconds runtime);
 
-void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime,
+void report_result(BaseQuery const &query, BenchmarkParameters const &parameters, std::chrono::nanoseconds runtime,
                    std::tuple<std::string, std::string> const &result_tuple);
 
 // https://stackoverflow.com/a/26351760

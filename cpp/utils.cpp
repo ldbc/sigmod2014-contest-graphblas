@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "utils.h"
+#include "BaseQuery.h"
 
 using namespace std::string_literals;
 
@@ -23,15 +24,24 @@ BenchmarkParameters parse_benchmark_params(int argc, char *argv[]) {
     BenchmarkParameters params;
 
     if (argc >= 4) {
-        if (argv[2] != "PARAM"sv)
-            throw std::runtime_error(
-                    "Command line arguments should be: <CSV_FOLDER> PARAM <QUERY_ID> <QUERY_PARAMS>...");
-
         params.CsvPath = argv[1];
-        params.Query = std::stoi(argv[3]);
-        params.QueryParams = argv + 4;
-        params.QueryParamsNum = argc - 4;
+        if (argv[2] == "PARAM"sv) {
+            params.Mode = BenchmarkParameters::Param;
+            params.Query = std::stoi(argv[3]);
+            params.QueryParams = argv + 4;
+            params.QueryParamsNum = argc - 4;
+        } else if (argv[2] == "FILE"sv) {
+            params.Mode = BenchmarkParameters::File;
+            params.QueryParamsFilePath = argv[3];
+
+            if (argc >= 5)
+                params.Query = std::stoi(argv[4]);
+        } else
+            throw std::runtime_error(
+                    "Command line arguments should be: <CSV_FOLDER> PARAM <QUERY_ID> <QUERY_PARAMS>...\n"
+                    "or <CSV_FOLDER> FILE <QUERY_PARAMS_TXT_FILE> <OPTIONAL_QUERY_ID>");
     } else {
+        params.Mode = BenchmarkParameters::Test;
         params.CsvPath = getenv_string("CsvPath", "../../csvs/o1k/");
         params.ParamsPath = getenv_string("ParamsPath", "../../params/o1k/");
         params.Query = std::stoi(getenv_string("Query", "0"));
@@ -62,11 +72,19 @@ void report_load(const BenchmarkParameters &parameters, std::chrono::nanoseconds
     std::cout
             << 'q' << parameters.Query << CSV_SEPARATOR
             << round<microseconds>(runtime).count() << CSV_SEPARATOR;
+
+    if (parameters.Mode != BenchmarkParameters::Param)
+        std::cout << std::endl;
 }
 
-void report_result(const BenchmarkParameters &parameters, std::chrono::nanoseconds runtime,
+void report_result(BaseQuery const &query, BenchmarkParameters const &parameters, std::chrono::nanoseconds runtime,
                    std::tuple<std::string, std::string> const &result_tuple) {
     using namespace std::chrono;
+
+    if (parameters.Mode != BenchmarkParameters::Param)
+        std::cout
+                << 'q' << query.getQueryId() << CSV_SEPARATOR
+                << CSV_SEPARATOR;
 
     auto const&[result, comment] = result_tuple;
 

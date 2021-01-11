@@ -53,7 +53,7 @@ class Query4 : public Query<int, std::string> {
 
         // call MSBFS-based closeness centrality value computation
         // TODO: free mapping
-        auto [ccv, mapping] = compute_ccv(member_friends.get());
+        auto[ccv, mapping] = compute_ccv(member_friends.get());
 //        auto [ccv, mapping] = compute_ccv_bool(member_friends.get());
 
         // extract tuples from ccv result
@@ -80,11 +80,11 @@ class Query4 : public Query<int, std::string> {
         // collect top scores
         for (size_t i = 0; i < cc_values.size(); ++i) {
             double score = cc_values[i];
-            
+
             GrB_Index person_local_index = cc_indices[i];
             GrB_Index person_index = relevant_person_indices[person_local_index];
             uint64_t person_id = input.persons.vertexIds[person_index];
-            
+
             person_scores.add({score, person_id});
         }
 
@@ -106,8 +106,12 @@ class Query4 : public Query<int, std::string> {
     }
 
 public:
-    Query4(BenchmarkParameters parameters, ParameterType query_params, QueryInput const &input)
-            : Query(std::move(parameters), std::move(query_params), input) {
+    int getQueryId() const override {
+        return 4;
+    }
+
+    Query4(BenchmarkParameters const &benchmark_parameters, ParameterType query_params, QueryInput const &input)
+            : Query(benchmark_parameters, std::move(query_params), input) {
         std::tie(topKLimit, tagName) = queryParams;
     }
 };

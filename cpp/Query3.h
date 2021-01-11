@@ -608,8 +608,12 @@ class Query3 : public Query<int, int, std::string> {
     }
 
 public:
-    Query3(BenchmarkParameters parameters, ParameterType query_params, QueryInput const &input)
-            : Query(std::move(parameters), std::move(query_params), input) {
+    int getQueryId() const override {
+        return 3;
+    }
+
+    Query3(BenchmarkParameters const &benchmark_parameters, ParameterType query_params, QueryInput const &input)
+            : Query(benchmark_parameters, std::move(query_params), input) {
         std::tie(topKLimit, maximumHopCount, placeName) = queryParams;
     }
 };

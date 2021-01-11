@@ -26,12 +26,12 @@ int main(int argc, char *argv[]) {
     GlobalNThreads = LAGraph_get_nthreads();
     std::cerr << "Threads: " << GlobalNThreads << '/' << omp_get_max_threads() << std::endl;
 
+    auto queriesToRun = getQueriesWithParameters(parameters);
+
     std::unique_ptr<QueryInput> input = load(parameters);
 
-    std::vector<std::function<std::string(void)>> queriesToRun = getQueriesWithParameters(parameters, *input);
-
     for (auto const &task :queriesToRun) {
-        task();
+        task(parameters, *input);
     }
 
     // Cleanup

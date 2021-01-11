@@ -7,10 +7,10 @@
 #include <iostream>
 
 template<typename QueryType, typename... ParameterT>
-auto getQueryWrapper(BenchmarkParameters benchmark_parameters, QueryInput const &input) {
-    return [=, &input](ParameterT &&...query_parameters, std::optional<std::string> expected_result = std::nullopt)
-            -> std::function<std::string()> {
-        return [=, &input]() -> std::string {
+auto getQueryWrapper() {
+    return [=](ParameterT &&...query_parameters, std::optional<std::string> expected_result = std::nullopt)
+            -> std::function<std::string(BenchmarkParameters const &, QueryInput const &)> {
+        return [=](BenchmarkParameters const &benchmark_parameters, QueryInput const &input) -> std::string {
             auto[result, comment] = QueryType(benchmark_parameters, std::make_tuple(query_parameters...), input)
                     .initial();
             if (expected_result) {
@@ -48,55 +48,120 @@ auto getQueryWrapper(BenchmarkParameters benchmark_parameters, QueryInput const 
     };
 }
 
-std::vector<std::function<std::string()>>
-getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput const &input) {
-    auto query1 = getQueryWrapper<Query1, uint64_t, uint64_t, int>(benchmark_parameters, input);
-    auto query2 = getQueryWrapper<Query2, int, std::string>(benchmark_parameters, input);
-    auto query3 = getQueryWrapper<Query3, int, int, std::string>(benchmark_parameters, input);
-    auto query4 = getQueryWrapper<Query4, int, std::string>(benchmark_parameters, input);
+auto getQueryWrappers() {
+    auto query1 = getQueryWrapper<Query1, uint64_t, uint64_t, int>();
+    auto query2 = getQueryWrapper<Query2, int, std::string>();
+    auto query3 = getQueryWrapper<Query3, int, int, std::string>();
+    auto query4 = getQueryWrapper<Query4, int, std::string>();
 
-    if (benchmark_parameters.QueryParams) {
-        switch (benchmark_parameters.Query) {
-            case 1:
-                return {query1(std::stoull(benchmark_parameters.QueryParams[0]),
-                               std::stoull(benchmark_parameters.QueryParams[1]),
-                               std::stoi(benchmark_parameters.QueryParams[2]))};
-            case 2:
-                return {query2(std::stoi(benchmark_parameters.QueryParams[0]),
-                               benchmark_parameters.QueryParams[1])};
-            case 3:
-                return {query3(std::stoi(benchmark_parameters.QueryParams[0]),
-                               std::stoi(benchmark_parameters.QueryParams[1]),
-                               benchmark_parameters.QueryParams[2])};
-            case 4:
-                return {query4(std::stoi(benchmark_parameters.QueryParams[0]),
-                               benchmark_parameters.QueryParams[1])};
+    return std::make_tuple(query1, query2, query3, query4);
+}
 
-            default:
-                throw std::runtime_error("Unknown query: " + std::to_string(benchmark_parameters.Query));
+auto getQuery(char const *const *query_params, int query) {
+    auto[query1, query2, query3, query4] = getQueryWrappers();
+
+    switch (query) {
+        case 1:
+            return query1(std::stoull(query_params[0]),
+                          std::stoull(query_params[1]),
+                          std::stoi(query_params[2]));
+        case 2:
+            return query2(std::stoi(query_params[0]),
+                          query_params[1]);
+        case 3:
+            return query3(std::stoi(query_params[0]),
+                          std::stoi(query_params[1]),
+                          query_params[2]);
+        case 4:
+            return query4(std::stoi(query_params[0]),
+                          query_params[1]);
+
+        default:
+            throw std::runtime_error("Unknown query: " + std::to_string(query));
+    }
+}
+
+auto parseQueryParamsFile(BenchmarkParameters &benchmark_parameters) {
+    using namespace std::literals;
+    std::vector<std::function<std::string(BenchmarkParameters const &, QueryInput const &)>> queries;
+
+    std::optional<int> querySeen;
+    io::LineReader in(benchmark_parameters.QueryParamsFilePath);
+    while (char *line = in.next_line()) {
+        constexpr size_t maxParamsCount = 3;
+        char const *queryParams[maxParamsCount] = {nullptr};
+        std::string_view line_sv{line};
+
+        int query = line["query"sv.length()] - '0';
+        // limit queries by command line argument
+        if (benchmark_parameters.Query > 0 && benchmark_parameters.Query != query)
+            continue;
+        if (querySeen) {
+            if (querySeen.value() != query)
+                querySeen = -1;
+        } else
+            querySeen = query;
+
+        size_t startIdx = "query1("sv.length();
+        // remove last parentheses
+        line[(line_sv.length() - ")"sv.length())] = '\0';
+
+        auto delimiter = ", "sv;
+        for (size_t i = 0; i < maxParamsCount; ++i) {
+            queryParams[i] = line + startIdx;
+
+            size_t nextDelimiterIdx = line_sv.find(delimiter, startIdx);
+            if (nextDelimiterIdx == decltype(line_sv)::npos)
+                break;
+
+            line[nextDelimiterIdx] = '\0';
+
+            startIdx = nextDelimiterIdx + delimiter.length();
         }
+
+        queries.push_back(getQuery(queryParams, query));
+    }
+    if (querySeen)
+        benchmark_parameters.Query = querySeen.value();
+
+    return queries;
+}
+
+std::vector<std::function<std::string(BenchmarkParameters const &, QueryInput const &)>>
+getQueriesWithParameters(BenchmarkParameters &benchmark_parameters) {
+    if (benchmark_parameters.Mode == BenchmarkParameters::Param) {
+        return {getQuery(benchmark_parameters.QueryParams, benchmark_parameters.Query)};
+    } else if (benchmark_parameters.Mode == BenchmarkParameters::File) {
+        return parseQueryParamsFile(benchmark_parameters);
     } else {
         // TEST CASES
-        // test place name lookup
-        for (size_t placeIndex = 0; placeIndex < input.places.size(); ++placeIndex) {
-            auto const &place_name_ref = input.places.names[placeIndex];
-            GrB_Index result = input.places.findIndexByName(place_name_ref);
-            if (placeIndex != result) {
-                std::string const &nameAtResultPosition =
-                        result < input.places.size() ? input.places.names[result] : "invalid index";
+        auto placeNameLookupTest = [](BenchmarkParameters const &, QueryInput const &input) -> std::string {
+            for (size_t placeIndex = 0; placeIndex < input.places.size(); ++placeIndex) {
+                auto const &place_name_ref = input.places.names[placeIndex];
+                GrB_Index result = input.places.findIndexByName(place_name_ref);
+                if (placeIndex != result) {
+                    std::string const &nameAtResultPosition =
+                            result < input.places.size() ? input.places.names[result] : "invalid index";
 
-                // for duplicate names minimum index should be returned
-                if (nameAtResultPosition != place_name_ref || result > placeIndex)
-                    throw std::runtime_error(
-                            "Place name lookup: indices mismatch:\nExpected: \"" + std::to_string(placeIndex)
-                            + "\" (" + place_name_ref + ")\nActual:   \"" + std::to_string(result) +
-                            "\" (" + nameAtResultPosition + ')');
+                    // for duplicate names minimum index should be returned
+                    if (nameAtResultPosition != place_name_ref || result > placeIndex)
+                        throw std::runtime_error(
+                                "Place name lookup: indices mismatch:\nExpected: \"" +
+                                std::to_string(placeIndex)
+                                + "\" (" + place_name_ref + ")\nActual:   \"" + std::to_string(result) +
+                                "\" (" + nameAtResultPosition + ')');
+                }
             }
-        }
+            return "";
+        };
 
-        std::vector<std::function<std::string()>> vector{
+        auto[query1, query2, query3, query4] = getQueryWrappers();
+
+        std::vector<std::function<std::string(BenchmarkParameters const &, QueryInput const &)>> tests{
 // formatter markers: https://stackoverflow.com/a/19492318
 // @formatter:off
+            placeNameLookupTest,
+
             query1(868, 868, -1, R"(0 % path 868 (other shortest paths may exist))"),
             query1(204, 204, -1, R"(0 % path 204 (other shortest paths may exist))"),
             query1(786, 799, 1,	R"(4 % path 786-63-31-60-799 (other shortest paths may exist))"),
@@ -153,6 +218,6 @@ getQueriesWithParameters(BenchmarkParameters benchmark_parameters, QueryInput co
 
         };
 
-        return vector;
+        return tests;
     }
 }

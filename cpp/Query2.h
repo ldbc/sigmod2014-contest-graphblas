@@ -53,7 +53,8 @@ class Query2 : public Query<int, std::string> {
 #pragma omp parallel num_threads(GlobalNThreads)
         {
             auto tag_scores_local = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
-            GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL, input.personsWithBirthdays.size());
+            GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL,
+                                                               input.personsWithBirthdays.size());
 
 #pragma omp for schedule(dynamic)
             for (int tag_index = 0; tag_index < input.tags.size(); ++tag_index) {
@@ -82,7 +83,8 @@ class Query2 : public Query<int, std::string> {
 
                     // assuming that all component_ids will be in [0, n)
                     GrB_Matrix knows_subgraph_owning_ptr = knows_subgraph.release();
-                    GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv5b, &knows_subgraph_owning_ptr, false);
+                    GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv5b, &knows_subgraph_owning_ptr,
+                                                                   false);
                     knows_subgraph.reset(knows_subgraph_owning_ptr);
 
                     std::vector<uint64_t> components(interested_person_nvals),
@@ -127,7 +129,11 @@ class Query2 : public Query<int, std::string> {
     }
 
 public:
-    Query2(BenchmarkParameters parameters, ParameterType query_params, QueryInput const &input)
-            : Query(std::move(parameters), std::move(query_params), input),
+    int getQueryId() const override {
+        return 2;
+    }
+
+    Query2(BenchmarkParameters const &benchmark_parameters, ParameterType query_params, QueryInput const &input)
+            : Query(benchmark_parameters, std::move(query_params), input),
               top_k_limit(std::get<0>(queryParams)), birthday_limit_str(std::get<1>(queryParams)) {}
 };

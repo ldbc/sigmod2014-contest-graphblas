@@ -37,7 +37,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             // ok(GxB_Matrix_fprint(personAToComment2.get(), "personAToComment2", GxB_SUMMARY, stdout));
 
             personToPerson = GB(GrB_Matrix_new, GrB_UINT64, input.persons.size(),
-                                                        input.persons.size());
+                                input.persons.size());
 
             ok(GrB_mxm(personToPerson.get(), input.knows.matrix.get(), GrB_NULL, GxB_PLUS_TIMES_INT64,
                        personAToComment2.get(), input.hasCreator.matrix.get(), GrB_DESC_S));
@@ -84,7 +84,8 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
                 break;
             }
 
-            ok(GrB_Vector_eWiseMult_BinaryOp(intersection1.get(), NULL, NULL, GxB_PAIR_BOOL, next1.get(), next2.get() /*prev next2*/, NULL));
+            ok(GrB_Vector_eWiseMult_BinaryOp(intersection1.get(), NULL, NULL, GxB_PAIR_BOOL, next1.get(),
+                                             next2.get() /*prev next2*/, NULL));
 
             GrB_Index intersection1_nvals;
             ok(GrB_Vector_nvals(&intersection1_nvals, intersection1.get()));
@@ -94,7 +95,8 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             }
 
             ok(GrB_vxm(next2.get(), seen2.get(), NULL, GxB_ANY_PAIR_BOOL, next2.get(), A, GrB_DESC_RSC));
-            ok(GrB_Vector_eWiseMult_BinaryOp(intersection2.get(), NULL, NULL, GxB_PAIR_BOOL, next1.get(), next2.get() /*current next2*/, NULL));
+            ok(GrB_Vector_eWiseMult_BinaryOp(intersection2.get(), NULL, NULL, GxB_PAIR_BOOL, next1.get(),
+                                             next2.get() /*current next2*/, NULL));
 
             GrB_Index intersection2_nvals;
             ok(GrB_Vector_nvals(&intersection2_nvals, intersection2.get()));
@@ -115,7 +117,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
         }
 
 #ifndef NDEBUG
-//        ok(GxB_Vector_fprint(v_output.get(), "output_vec", GxB_SUMMARY, stdout));
+        //        ok(GxB_Vector_fprint(v_output.get(), "output_vec", GxB_SUMMARY, stdout));
 #endif
 
         std::string result_str, comment_str;
@@ -124,8 +126,12 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
     }
 
 public:
-    Query1(BenchmarkParameters parameters, ParameterType query_params, QueryInput const &input)
-            : Query(std::move(parameters), std::move(query_params), input) {
+    int getQueryId() const override {
+        return 1;
+    }
+
+    Query1(BenchmarkParameters const &benchmark_parameters, ParameterType query_params, QueryInput const &input)
+            : Query(benchmark_parameters, std::move(query_params), input) {
         uint64_t p1_id, p2_id;
 
         std::tie(p1_id, p2_id, comment_lower_limit) = queryParams;

@@ -33,7 +33,7 @@ option(
         OFF
 )
 if (PRINT_RESULTS)
-    target_compile_definitions(sigmod2014pc_cpp PRIVATE PRINT_RESULTS)
+    add_definitions(-DPRINT_RESULTS)
 endif()
 
 add_executable(paramgen

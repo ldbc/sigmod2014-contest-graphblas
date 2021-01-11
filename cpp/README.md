@@ -50,6 +50,11 @@ To only build run this from the repo's root:
 cpp/scripts/rebuild.sh
 ```
 
+To run all queries on size `o1k` (from the root folder):
+```bash
+cpp/cmake-build-release/sigmod2014pc_cpp csvs/o1k/ FILE <(cat params/o1k/query*.txt)
+```
+
 Prefix the build command with `PRINT_RESULTS=0` to set the environment variable if result and comment columns are not necessary.
 
 ## Generate new query parameters

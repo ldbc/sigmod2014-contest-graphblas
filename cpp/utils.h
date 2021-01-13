@@ -45,6 +45,11 @@ constexpr auto array_of(T &&... t)
     return {{std::forward<T>(t)...}};
 }
 
+// https://stackoverflow.com/a/36585702
+inline std::string const &to_string(std::string const &str) {
+    return str;
+}
+
 inline char const CSV_SEPARATOR = ',';
 inline char const *CSV_SEPARATOR_STR = ",";
 

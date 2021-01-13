@@ -3,6 +3,8 @@
 #include <chrono>
 #include <utility>
 #include <memory>
+#include <map>
+#include <string>
 #include "input.h"
 #include "BaseQuery.h"
 #include "gb_utils.h"
@@ -16,6 +18,9 @@ protected:
     BenchmarkParameters const &benchmarkParameters;
     ParameterType queryParams;
     QueryInput const &input;
+#ifdef PRINT_EXTRA_COMMENTS
+    std::map<std::string, std::string> comments;
+#endif
 
     virtual std::tuple<std::string, std::string> initial_calculation() = 0;
 
@@ -28,6 +33,19 @@ public:
         auto initial_start = high_resolution_clock::now();
 
         auto result_tuple = initial_calculation();
+
+#ifdef PRINT_EXTRA_COMMENTS
+        std::string valueSeparator = "=", pairSeparator = "&";
+        auto &comment = std::get<1>(result_tuple);
+        comment = "comment" + valueSeparator + comment;
+
+        for (const auto&[key, value] : comments) {
+            comment += pairSeparator;
+            comment += key;
+            comment += valueSeparator;
+            comment += value;
+        }
+#endif
 
         report_result(*this, benchmarkParameters, round<nanoseconds>(high_resolution_clock::now() - initial_start),
                       result_tuple);

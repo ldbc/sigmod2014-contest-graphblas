@@ -19,8 +19,10 @@ jobs:
       - run:
           name: Load test data
           command: |
+            sudo apt update && sudo apt install -y zstd
             cd csvs/
-            sha1sum -c o1k.sha1 || ( wget "https://www.dropbox.com/s/sgrwihjji551teq/o1k.zip?dl=1" -O temp.zip && unzip -o temp.zip && rm temp.zip && sha1sum -c o1k.sha1 )
+            sha1sum -c o1k.sha1 || ( curl -L http://mit.bme.hu/~szarnyas/spc2014/data/o1k.tar.zst | tar -xv -I unzstd && sha1sum -c o1k.sha1 )
+            sha1sum -c p10k.sha1 || ( curl -L http://mit.bme.hu/~szarnyas/spc2014/data/p10k.tar.zst | tar -xv -I unzstd && sha1sum -c p10k.sha1 )
       - save_cache:
           key: csvs-{{ checksum "csvs/o1k.sha1" }}
           paths:

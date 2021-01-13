@@ -25,6 +25,8 @@ protected:
 
     virtual std::tuple<std::string, std::string> initial_calculation() = 0;
 
+    virtual std::array<std::string, sizeof...(ParameterT)> parameter_names() = 0;
+
 public:
     Query(BenchmarkParameters const &benchmark_parameters, ParameterType queryParams, QueryInput const &input)
             : benchmarkParameters{benchmark_parameters}, queryParams{std::move(queryParams)}, input(input) {}
@@ -40,14 +42,7 @@ public:
         auto &comment = std::get<1>(result_tuple);
         comment = "\"comment" + valueSeparator + comment;
 
-        // https://stackoverflow.com/a/54053084
-        std::string paramsStr;
-        std::apply([&paramsStr](auto &&... args) {
-            // using std::to_string or utils.h/to_string
-            using namespace std;
-            ((paramsStr += (paramsStr.empty() ? "" : "|") + to_string(args)), ...);
-        }, queryParams);
-        comments.emplace("queryParams", paramsStr);
+        comments.merge(getQueryParamsMap(queryParams, parameter_names()));
 
         for (const auto&[key, value] : comments) {
             comment += pairSeparator;

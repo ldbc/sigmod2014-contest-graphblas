@@ -125,6 +125,10 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
         return {result_str, comment_str};
     }
 
+    std::array<std::string, 3> parameter_names() override {
+        return {"p1_id", "p2_id", "comment_lower_limit"};
+    }
+
 public:
     int getQueryId() const override {
         return 1;

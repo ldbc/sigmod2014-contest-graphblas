@@ -128,6 +128,10 @@ class Query2 : public Query<int, std::string> {
         return {result, comment};
     }
 
+    std::array<std::string, 2> parameter_names() override {
+        return {"top_k_limit", "birthday_limit"};
+    }
+
 public:
     int getQueryId() const override {
         return 2;

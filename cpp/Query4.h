@@ -105,6 +105,10 @@ class Query4 : public Query<int, std::string> {
         return {result, comment};
     }
 
+    std::array<std::string, 2> parameter_names() override {
+        return {"topKLimit", "tagName"};
+    }
+
 public:
     int getQueryId() const override {
         return 4;

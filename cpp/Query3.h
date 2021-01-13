@@ -607,6 +607,10 @@ class Query3 : public Query<int, int, std::string> {
         return {result, comment};
     }
 
+    std::array<std::string, 3> parameter_names() override {
+        return {"topKLimit", "maximumHopCount", "placeName"};
+    }
+
 public:
     int getQueryId() const override {
         return 3;

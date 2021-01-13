@@ -6,6 +6,9 @@
 #include <memory>
 #include <fstream>
 #include <iomanip>
+#include <string>
+#include <map>
+#include <utility>
 
 #include "BaseQuery.h"
 
@@ -48,6 +51,25 @@ constexpr auto array_of(T &&... t)
 // https://stackoverflow.com/a/36585702
 inline std::string const &to_string(std::string const &str) {
     return str;
+}
+
+// https://en.cppreference.com/w/cpp/utility/integer_sequence
+template<typename... ParameterT, typename T, T... Ints>
+std::map<std::string, std::string> getQueryParamsMapImpl(std::tuple<ParameterT...> const &query_params,
+                                                         std::array<std::string, sizeof...(ParameterT)> parameter_names,
+                                                         std::integer_sequence<T, Ints...>) {
+    // using std::to_string or to_string
+    using namespace std;
+
+    std::map<std::string, std::string> paramsMap;
+    ((paramsMap.emplace(std::get<Ints>(parameter_names), to_string(std::get<Ints>(query_params)))), ...);
+    return paramsMap;
+}
+
+template<typename... ParameterT>
+std::map<std::string, std::string> getQueryParamsMap(std::tuple<ParameterT...> const &query_params,
+                                                     std::array<std::string, sizeof...(ParameterT)> parameter_names) {
+    return getQueryParamsMapImpl(query_params, parameter_names, std::make_index_sequence<sizeof...(ParameterT)>{});
 }
 
 inline char const CSV_SEPARATOR = ',';

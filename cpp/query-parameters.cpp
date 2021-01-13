@@ -31,7 +31,8 @@ auto getQueryWrapper() {
 
                 if (result != expected_result_value) {
                     std::ostringstream params_stream;
-//                    ((params_stream << query_parameters << ", "), ...);
+                    // If your compiler doesn't support fold expression, comment the following line out.
+                    ((params_stream << query_parameters << ", "), ...);
                     std::string params = params_stream.str();
                     // remove comma
                     if (params.length() >= 2)

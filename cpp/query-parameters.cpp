@@ -11,8 +11,9 @@ auto getQueryWrapper() {
     return [=](ParameterT &&...query_parameters, std::optional<std::string> expected_result = std::nullopt)
             -> std::function<std::string(BenchmarkParameters const &, QueryInput const &)> {
         return [=](BenchmarkParameters const &benchmark_parameters, QueryInput const &input) -> std::string {
-            auto[result, comment] = QueryType(benchmark_parameters, std::make_tuple(query_parameters...), input)
-                    .initial();
+            auto query = QueryType(benchmark_parameters, std::make_tuple(query_parameters...), input);
+            auto[result, comment] = query.initial();
+
             if (expected_result) {
                 std::string expected_result_value = expected_result.value();
 
@@ -37,9 +38,8 @@ auto getQueryWrapper() {
                         params.erase(params.length() - 2);
 
                     throw std::runtime_error(
-                            "Results of query (" + params + ") mismatch:\nExpected: \"" + expected_result_value +
-                            "\"\nActual:   \"" +
-                            result + '"');
+                            "Results of query" + std::to_string(query.getQueryId()) + "(" + params + ") mismatch:\n" +
+                            "Expected: \"" + expected_result_value + "\"\nActual:   \"" + result + '"');
                 }
             }
 

@@ -24,6 +24,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
         }
 
         GrB_Matrix A;
+        // lifecycle prevents moving this into else branch
         GBxx_Object<GrB_Matrix> personToPerson;
 
         if (comment_lower_limit == -1) {

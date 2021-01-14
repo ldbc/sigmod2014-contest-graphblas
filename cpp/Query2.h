@@ -62,8 +62,7 @@ class Query2 : public Query<int, std::string> {
                                    input.hasInterestTran.matrix.get(), GrB_ALL, 0, tag_index,
                                    GrB_DESC_RST0));
 
-                GrB_Index interested_person_nvals;
-                ok(GrB_Vector_nvals(&interested_person_nvals, interested_person_vec.get()));
+                GrB_Index interested_person_nvals = GBxx_nvals(interested_person_vec);
 
                 uint64_t score = 0;
                 if (interested_person_nvals != 0) {

@@ -78,8 +78,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
         for (GrB_Index level = 1; level < n / 2 + 1; level++) {
             ok(GrB_vxm(next1.get(), seen1.get(), NULL, GxB_ANY_PAIR_BOOL, next1.get(), A, GrB_DESC_RSC));
 
-            GrB_Index next1nvals;
-            ok(GrB_Vector_nvals(&next1nvals, next1.get()));
+            GrB_Index next1nvals = GBxx_nvals(next1);
             if (next1nvals == 0) {
                 distance = -1;
                 break;
@@ -88,8 +87,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             ok(GrB_Vector_eWiseMult_BinaryOp(intersection1.get(), NULL, NULL, GxB_PAIR_BOOL, next1.get(),
                                              next2.get() /*prev next2*/, NULL));
 
-            GrB_Index intersection1_nvals;
-            ok(GrB_Vector_nvals(&intersection1_nvals, intersection1.get()));
+            GrB_Index intersection1_nvals = GBxx_nvals(intersection1);
             if (intersection1_nvals > 0) {
                 distance = level * 2 - 1;
                 break;
@@ -99,15 +97,13 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             ok(GrB_Vector_eWiseMult_BinaryOp(intersection2.get(), NULL, NULL, GxB_PAIR_BOOL, next1.get(),
                                              next2.get() /*current next2*/, NULL));
 
-            GrB_Index intersection2_nvals;
-            ok(GrB_Vector_nvals(&intersection2_nvals, intersection2.get()));
+            GrB_Index intersection2_nvals = GBxx_nvals(intersection2);
             if (intersection2_nvals > 0) {
                 distance = level * 2;
                 break;
             }
 
-            GrB_Index next2nvals;
-            ok(GrB_Vector_nvals(&next2nvals, next2.get()));
+            GrB_Index next2nvals = GBxx_nvals(next2);
             if (next2nvals == 0) {
                 distance = -1;
                 break;

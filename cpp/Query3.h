@@ -100,8 +100,7 @@ class Query3 : public Query<int, int, std::string> {
             ok(GxB_Vector_select(relevant_persons.get(), GrB_NULL, GxB_PAIR_BOOL, GxB_EQ_THUNK,
                                  tag_count_per_person.get(),
                                  limit.get(), GrB_NULL));
-            GrB_Index relevant_persons_nvals;
-            ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
+            GrB_Index relevant_persons_nvals = GBxx_nvals(relevant_persons);
 
             std::vector<GrB_Index> relevant_persons_indices(relevant_persons_nvals);
             {
@@ -126,8 +125,7 @@ class Query3 : public Query<int, int, std::string> {
                 ok(GrB_mxm(next_mx.get(), seen_mx.get(), GrB_NULL, GxB_ANY_PAIR_BOOL, next_mx.get(),
                            input.knows.matrix.get(), GrB_DESC_RSC));
 
-                GrB_Index next_mx_nvals;
-                ok(GrB_Matrix_nvals(&next_mx_nvals, next_mx.get()));
+                GrB_Index next_mx_nvals = GBxx_nvals(next_mx);
                 // if emptied the component
                 if (next_mx_nvals == 0)
                     break;
@@ -151,7 +149,7 @@ class Query3 : public Query<int, int, std::string> {
                        hasInterest.get(), input.hasInterestTran.matrix.get(), GrB_DESC_S));
 
             // count tag scores per person pairs
-            ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+            common_interests_nvals = GBxx_nvals(common_interests);
             if (common_interests_nvals < topKLimit) {
                 // there are not enough non-zero scores
                 // add reachable persons with zero common tags
@@ -161,7 +159,7 @@ class Query3 : public Query<int, int, std::string> {
                                            0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
 
                 // recount nvals
-                ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+                common_interests_nvals = GBxx_nvals(common_interests);
             }
 
             // extract result from matrix
@@ -248,8 +246,7 @@ class Query3 : public Query<int, int, std::string> {
             ok(GxB_Vector_select(relevant_persons.get(), GrB_NULL, GxB_PAIR_BOOL, GxB_EQ_THUNK,
                                  tag_count_per_person.get(),
                                  limit.get(), GrB_NULL));
-            GrB_Index relevant_persons_nvals;
-            ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
+            GrB_Index relevant_persons_nvals = GBxx_nvals(relevant_persons);
 
             // extract relevant person indices
             std::vector<GrB_Index> relevant_persons_indices(relevant_persons_nvals);
@@ -295,11 +292,7 @@ class Query3 : public Query<int, int, std::string> {
             ok(GrB_Matrix_reduce_Monoid(columns_where_vertices_meet.get(), GrB_NULL, GrB_NULL,
                                         GrB_PLUS_MONOID_UINT64, half_reachable.get(), GrB_DESC_T0));
 #ifndef NDEBUG
-            {
-                GrB_Index nvals;
-                ok(GrB_Vector_nvals(&nvals, columns_where_vertices_meet.get()));
-                std::cerr << "columns_where_vertices_meet nvals:" << nvals << std::endl;
-            }
+            std::cerr << "columns_where_vertices_meet nvals:" << GBxx_nvals(columns_where_vertices_meet) << std::endl;
 #endif
             // prune: goal: keep vertices where at least 2 vertices meet
             // invalid values:
@@ -318,8 +311,7 @@ class Query3 : public Query<int, int, std::string> {
                                  columns_where_vertices_meet.get(), scalar3.get(), GrB_NULL));
 
             // extract columns_where_vertices_meet
-            GrB_Index columns_where_vertices_meet_nvals;
-            ok(GrB_Vector_nvals(&columns_where_vertices_meet_nvals, columns_where_vertices_meet.get()));
+            GrB_Index columns_where_vertices_meet_nvals = GBxx_nvals(columns_where_vertices_meet);
             std::vector<GrB_Index> columns_where_vertices_meet_indices(columns_where_vertices_meet_nvals);
             {
                 GrB_Index nvals = columns_where_vertices_meet_nvals;
@@ -350,8 +342,7 @@ class Query3 : public Query<int, int, std::string> {
                     auto meeting_vertices = GB(GrB_Vector_new, GrB_UINT8, input.persons.size());
                     ok(GrB_Col_extract(meeting_vertices.get(), GrB_NULL, GrB_NULL, half_reachable.get(), GrB_ALL,
                                        0, meet_column, GrB_NULL));
-                    GrB_Index meeting_vertices_nvals;
-                    ok(GrB_Vector_nvals(&meeting_vertices_nvals, meeting_vertices.get()));
+                    GrB_Index meeting_vertices_nvals = GBxx_nvals(meeting_vertices);
                     std::vector<GrB_Index> meeting_vertices_indices(meeting_vertices_nvals);
                     std::vector<uint8_t> meeting_vertices_vals(meeting_vertices_nvals);
                     {
@@ -409,8 +400,7 @@ class Query3 : public Query<int, int, std::string> {
 #endif
 
             // count tag scores per person pairs
-            GrB_Index common_interests_nvals;
-            ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests_global.get()));
+            GrB_Index common_interests_nvals = GBxx_nvals(common_interests_global);
             bool might_contain_duplicates = false;
             if (lower_tag_count == 0 && person_scores.size() < topKLimit) {
                 might_contain_duplicates = true;
@@ -423,7 +413,7 @@ class Query3 : public Query<int, int, std::string> {
                                            0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
 
                 // recount nvals
-                ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests_global.get()));
+                common_interests_nvals = GBxx_nvals(common_interests_global);
             }
 
             // extract result from matrix
@@ -498,8 +488,7 @@ class Query3 : public Query<int, int, std::string> {
             ok(GrB_mxm(next_mx.get(), seen_mx.get(), GrB_NULL, GxB_ANY_PAIR_BOOL, next_mx.get(),
                        input.knows.matrix.get(), GrB_DESC_RSC));
 
-            GrB_Index next_mx_nvals;
-            ok(GrB_Matrix_nvals(&next_mx_nvals, next_mx.get()));
+            GrB_Index next_mx_nvals = GBxx_nvals(next_mx);
             // if emptied the component
             if (next_mx_nvals == 0)
                 break;
@@ -523,8 +512,7 @@ class Query3 : public Query<int, int, std::string> {
                    hasInterest.get(), input.hasInterestTran.matrix.get(), GrB_DESC_S));
 
         // count tag scores per person pairs
-        GrB_Index common_interests_nvals;
-        ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+        GrB_Index common_interests_nvals = GBxx_nvals(common_interests);
 
         if (common_interests_nvals < topKLimit) {
             // there are not enough non-zero scores
@@ -535,7 +523,7 @@ class Query3 : public Query<int, int, std::string> {
                                        0, GrB_ALL, 0, GrB_ALL, 0, GrB_DESC_S));
 
             // recount nvals
-            ok(GrB_Matrix_nvals(&common_interests_nvals, common_interests.get()));
+            common_interests_nvals = GBxx_nvals(common_interests);
         }
 
         // extract result from matrix
@@ -574,8 +562,7 @@ class Query3 : public Query<int, int, std::string> {
         auto local_persons = getRelevantPersons();
 
         // extract person indices
-        GrB_Index relevant_persons_nvals;
-        ok(GrB_Vector_nvals(&relevant_persons_nvals, local_persons.get()));
+        GrB_Index relevant_persons_nvals = GBxx_nvals(local_persons);
         if (relevant_persons_nvals == 0)
             return {"", "Nobody lives/studies/works there."};
 

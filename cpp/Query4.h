@@ -34,8 +34,7 @@ class Query4 : public Query<int, std::string> {
                    GxB_LOR_LAND_BOOL, relevant_forums.get(), input.hasMember.matrix.get(), GrB_NULL));
 
         // transform relevant_persons vec. to array
-        GrB_Index relevant_persons_nvals;
-        ok(GrB_Vector_nvals(&relevant_persons_nvals, relevant_persons.get()));
+        GrB_Index relevant_persons_nvals = GBxx_nvals(relevant_persons);
         std::vector<GrB_Index> relevant_person_indices(relevant_persons_nvals);
         {
             GrB_Index nvals_out = relevant_persons_nvals;
@@ -57,8 +56,7 @@ class Query4 : public Query<int, std::string> {
 //        auto [ccv, mapping] = compute_ccv_bool(member_friends.get());
 
         // extract tuples from ccv result
-        GrB_Index ccv_nvals;
-        ok(GrB_Vector_nvals(&ccv_nvals, ccv.get()));
+        GrB_Index ccv_nvals = GBxx_nvals(ccv);
         std::vector<GrB_Index> cc_indices(ccv_nvals);
         std::vector<double> cc_values(ccv_nvals);
         {

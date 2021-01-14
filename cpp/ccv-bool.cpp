@@ -48,8 +48,8 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv_bo
 //    bool push = true; // TODO: add heuristic
 //    //Heuristic
 //    float threshold = 0.015;
-//    GrB_Index frontier_nvals, matrix_nrows, source_nrows;
-//    ok(GrB_Matrix_nvals(&frontier_nvals, frontier.get()));
+//    GrB_Index frontier_nvals = GBxx_nvals(frontier);
+//    GrB_Index matrix_nrows, source_nrows;
 //    ok(GrB_Matrix_nrows(&matrix_nrows, A));
 //    //This should be the amount of bfs traversals, but since we traverse from all
 //    //nodes, this equals A.nrows
@@ -68,8 +68,7 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv_bo
         // next<!seen> = next * A
         ok(GrB_mxm(next.get(), seen.get(), NULL, GxB_ANY_PAIR_BOOL, next.get(), A, GrB_DESC_RC));
 
-        GrB_Index next_nvals;
-        ok(GrB_Matrix_nvals(&next_nvals, next.get()));
+        GrB_Index next_nvals = GBxx_nvals(next);
 
         if (next_nvals == 0) {
 //            printf("no new vertices found\n");

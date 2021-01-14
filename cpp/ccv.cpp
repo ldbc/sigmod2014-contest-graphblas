@@ -104,8 +104,7 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
 
         ok(GrB_Matrix_apply(Next.get(), Next.get(), GrB_BAND_UINT64, GrB_BNOT_UINT64, Seen.get(), NULL));
         ok(GxB_Matrix_select(Next.get(), GrB_NULL, GrB_NULL, GxB_NONZERO, Next.get(), GrB_NULL, GrB_NULL));
-        GrB_Index next_nvals;
-        ok(GrB_Matrix_nvals(&next_nvals, Next.get()));
+        GrB_Index next_nvals = GBxx_nvals(Next);
 
 
         if (next_nvals == 0) {

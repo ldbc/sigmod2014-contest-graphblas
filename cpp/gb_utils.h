@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <numeric>
+#include <type_traits>
 
 extern "C" {
 #define LAGRAPH_EXPERIMENTAL_ASK_BEFORE_BENCHMARKING 1
@@ -196,3 +197,32 @@ GBxx_Object<Type> GB(GrB_Info (&func)(Type *, Args...), ArgsIn &&... args) {
 
 template<typename Z, typename X>
 using GBxx_unary_function = void (*)(Z *, const X *);
+
+/**
+ * unwrap(GBxx_Object<GrB_*> o) = o.get()
+ * unwrap(GrB_* o) = o
+ */
+template<typename Type>
+auto unwrap(Type const &v) {
+    if constexpr (std::is_pointer_v<Type>)
+        return v;
+    else
+        return v.get();
+}
+
+//
+// Wrappers
+//
+
+template<typename GBxx_Object>
+GrB_Index GBxx_nvals(GBxx_Object const &o) {
+    auto ptr = unwrap(o);
+    GrB_Index nvals;
+    if constexpr (std::is_same_v<decltype(ptr), GrB_Matrix>)
+        ok(GrB_Matrix_nvals(&nvals, ptr));
+    else if constexpr (std::is_same_v<decltype(ptr), GrB_Vector>)
+        ok(GrB_Vector_nvals(&nvals, ptr));
+    else
+        ok(GxB_Scalar_nvals(&nvals, ptr));
+    return nvals;
+}

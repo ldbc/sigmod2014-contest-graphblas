@@ -115,7 +115,7 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
 
             GrB_Index next2nvals = GBxx_nvals(next2);
 #ifdef PRINT_EXTRA_COMMENTS
-            next2_max = std::max(next2_max, next2nvals)
+            next2_max = std::max(next2_max, next2nvals);
 #endif
             if (next2nvals == 0) {
                 distance = -1;
@@ -125,8 +125,8 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
             ok(GrB_Vector_eWiseAdd_BinaryOp(seen1.get(), NULL, NULL, GrB_LOR, seen1.get(), next1.get(), NULL));
             ok(GrB_Vector_eWiseAdd_BinaryOp(seen2.get(), NULL, NULL, GrB_LOR, seen2.get(), next2.get(), NULL));
         }
-        add_comment_if_on("next1_max", std::to_string(GBxx_nvals(next1_max)));
-        add_comment_if_on("next2_max", std::to_string(GBxx_nvals(next2_max)));
+        add_comment_if_on("next1_max", std::to_string(next1_max));
+        add_comment_if_on("next2_max", std::to_string(next2_max));
         add_comment_if_on("seen1", std::to_string(GBxx_nvals(seen1)));
         add_comment_if_on("seen2", std::to_string(GBxx_nvals(seen2)));
         add_comment_if_on("level", std::to_string(level));

@@ -30,7 +30,7 @@ protected:
     }
 
 #else
-#define add_comment_if_on(expr) static_cast<void>(0)
+#define add_comment_if_on(...) static_cast<void>(0)
 #endif
 
 

@@ -5,6 +5,7 @@
 #include <memory>
 #include <map>
 #include <string>
+#include <stdexcept>
 #include "input.h"
 #include "utils.h"
 #include "BaseQuery.h"
@@ -21,7 +22,17 @@ protected:
     QueryInput const &input;
 #ifdef PRINT_EXTRA_COMMENTS
     std::map<std::string, std::string> comments;
+
+    inline void add_comment_if_on(std::string &&key, std::string &&value) {
+        auto[iter, newlyInserted] = comments.emplace(std::move(key), std::move(value));
+        if (!newlyInserted)
+            throw std::runtime_error{iter->first + " already exists."};
+    }
+
+#else
+#define add_comment_if_on(expr) static_cast<void>(0)
 #endif
+
 
     virtual std::tuple<std::string, std::string> initial_calculation() = 0;
 

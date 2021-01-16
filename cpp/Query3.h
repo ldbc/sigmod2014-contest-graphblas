@@ -236,7 +236,8 @@ class Query3 : public Query<int, int, std::string> {
 
         // persons with 10 tags, persons with 9..10 tags, ...
         auto relevant_persons = GB(GrB_Vector_new, GrB_BOOL, input.persons.size());
-        for (int lower_tag_count = max_tag_count;;) {
+        int lower_tag_count;
+        for (lower_tag_count = max_tag_count;;) {
 #ifndef NDEBUG
             std::cerr << "Loop:" << lower_tag_count << std::endl;
 #endif
@@ -461,6 +462,8 @@ class Query3 : public Query<int, int, std::string> {
             else
                 break;
         }
+        add_comment_if_on("last_common_interests_pattern", std::to_string(GBxx_nvals(last_common_interests_pattern)));
+        add_comment_if_on("last_lower_tag_count", std::to_string(lower_tag_count));
     }
 
     void reachable_count_tags_strategy(GrB_Vector const local_persons,

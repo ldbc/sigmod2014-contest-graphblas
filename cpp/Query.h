@@ -23,7 +23,7 @@ protected:
 #ifdef PRINT_EXTRA_COMMENTS
     std::map<std::string, std::string> comments;
 
-    inline void add_comment_if_on(std::string &&key, std::string &&value) {
+    inline void add_comment_if_on(std::string key, std::string value) {
         auto[iter, newlyInserted] = comments.emplace(std::move(key), std::move(value));
         if (!newlyInserted)
             throw std::runtime_error{iter->first + " already exists."};
@@ -54,6 +54,25 @@ public:
         comment = "\"comment" + valueSeparator + comment;
 
         comments.merge(getQueryParamsMap(queryParams, parameter_names()));
+
+        auto[vertexCollections, edgeCollections]=input.getElements(getQueryId());
+        for (BaseVertexCollection const &vertex : vertexCollections) {
+            add_comment_if_on("vertexInput_" + vertex.vertexName, std::to_string(vertex.size()));
+        }
+        for (EdgeCollection const &edge : edgeCollections) {
+            int start = 0;
+            int len = edge.filePath.length();
+            std::string_view csv_extension{".csv"};
+            if (edge.filePath.find(csv_extension) == len - csv_extension.length()) {
+                len -= csv_extension.length();
+            }
+            if (edge.filePath.find(benchmarkParameters.CsvPath) == 0) {
+                start = benchmarkParameters.CsvPath.length();
+                len -= start;
+            }
+            std::string edgeName = edge.filePath.substr(start, len);
+            add_comment_if_on("edgeInput_" + edgeName, std::to_string(GBxx_nvals(edge.matrix)));
+        }
 
         for (const auto&[key, value] : comments) {
             comment += pairSeparator;

@@ -133,7 +133,7 @@ struct PersonIsLocatedInCityTranEdgeCollection : public EdgeCollection {
     Places const &places;
 
     PersonIsLocatedInCityTranEdgeCollection(Persons &persons, Places const &places)
-            : EdgeCollection("", true), persons(persons), places(places) {}
+            : EdgeCollection("PersonIsLocatedInCity", true), persons(persons), places(places) {}
 
     void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
         trg = &persons;
@@ -206,7 +206,7 @@ struct HasCreatorEdgeCollection : public EdgeCollection {
     Persons const &persons;
 
     HasCreatorEdgeCollection(Comments &comments, Persons const &persons)
-            : EdgeCollection("", false), comments(comments), persons(persons) {}
+            : EdgeCollection("HasCreator", false), comments(comments), persons(persons) {}
 
     void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
         src = &comments;
@@ -279,7 +279,7 @@ struct OrganizationIsLocatedInPlaceTranEdgeCollection : public EdgeCollection {
     Places const &places;
 
     OrganizationIsLocatedInPlaceTranEdgeCollection(Organizations &organizations, Places const &places)
-            : EdgeCollection("", true), organizations(organizations), places(places) {}
+            : EdgeCollection("OrganizationIsLocatedInPlace", true), organizations(organizations), places(places) {}
 
     void importFile(const std::vector<std::reference_wrapper<BaseVertexCollection>> &vertex_collection) override {
         trg = &organizations;
@@ -349,7 +349,22 @@ struct QueryInput : public BaseQueryInput {
             isPartOfTran{parameters.CsvPath + "place_isPartOf_place.csv", true},
             workAtTran{parameters.CsvPath + "person_workAt_organisation.csv", true},
             studyAtTran{parameters.CsvPath + "person_studyAt_organisation.csv", true} {
-        switch (parameters.Query) {
+        std::tie(vertexCollections, edgeCollections) = getElements(parameters.Query);
+
+        for (auto const &collection : vertexCollections) {
+            collection.get().importFile();
+        }
+        for (auto const &collection : edgeCollections) {
+            collection.get().importFile(vertexCollections);
+        }
+    }
+
+    std::tuple<std::vector<std::reference_wrapper<BaseVertexCollection>>, std::vector<std::reference_wrapper<EdgeCollection>>>
+    getElements(int query) {
+        std::vector<std::reference_wrapper<BaseVertexCollection>> vertexCollections;
+        std::vector<std::reference_wrapper<EdgeCollection>> edgeCollections;
+
+        switch (query) {
             case 1:
                 vertexCollections = {comments, persons};
                 edgeCollections = {knows, hasCreator, replyOf};
@@ -375,11 +390,23 @@ struct QueryInput : public BaseQueryInput {
                 break;
         }
 
-        for (auto const &collection : vertexCollections) {
-            collection.get().importFile();
+        return {vertexCollections, edgeCollections};
+    }
+
+    std::tuple<std::vector<std::reference_wrapper<const BaseVertexCollection>>, std::vector<std::reference_wrapper<const EdgeCollection>>>
+    getElements(int query) const {
+        auto[vertexCollectionsIn, edgeCollectionsIn] = const_cast<QueryInput &>(*this).getElements(query);
+
+        std::vector<std::reference_wrapper<const BaseVertexCollection>> vertexCollectionsOut;
+        std::vector<std::reference_wrapper<const EdgeCollection>> edgeCollectionsOut;
+
+        for (auto const &vertex:vertexCollectionsIn) {
+            vertexCollectionsOut.emplace_back(vertex);
         }
-        for (auto const &collection : edgeCollections) {
-            collection.get().importFile(vertexCollections);
+        for (auto const &edge:edgeCollectionsIn) {
+            edgeCollectionsOut.emplace_back(edge);
         }
+
+        return {vertexCollectionsOut, edgeCollectionsOut};
     }
 };

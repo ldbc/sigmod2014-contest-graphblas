@@ -37,6 +37,7 @@ class Query2 : public Query<int, std::string> {
         ok(GxB_Vector_select(birthday_person_mask.get(), GrB_NULL, GrB_NULL,
                              GxB_GE_THUNK, birthday_person_mask.get(),
                              birthday_limit.get(), GrB_NULL));
+        add_comment_if_on("birthday_person_mask", std::to_string(GBxx_nvals(birthday_person_mask)));
 
         // store the score and a reference to the tag name
         using tag_score_type = std::tuple<uint64_t, std::reference_wrapper<std::string const>>;
@@ -50,11 +51,14 @@ class Query2 : public Query<int, std::string> {
 
         auto tag_scores = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
 
+        GrB_Index interested_person_nvals_sum = 0, knows_subgraph_sum = 0, knows_subgraph_n = 0;
+
 #pragma omp parallel num_threads(GlobalNThreads)
         {
             auto tag_scores_local = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
             GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL,
                                                                input.personsWithBirthdays.size());
+            GrB_Index interested_person_nvals_sum_local = 0, knows_subgraph_sum_local = 0, knows_subgraph_n_local = 0;
 
 #pragma omp for schedule(dynamic)
             for (int tag_index = 0; tag_index < input.tags.size(); ++tag_index) {
@@ -63,6 +67,7 @@ class Query2 : public Query<int, std::string> {
                                    GrB_DESC_RST0));
 
                 GrB_Index interested_person_nvals = GBxx_nvals(interested_person_vec);
+                interested_person_nvals_sum_local += interested_person_nvals;
 
                 uint64_t score = 0;
                 if (interested_person_nvals != 0) {
@@ -79,6 +84,8 @@ class Query2 : public Query<int, std::string> {
                                           interested_person_indices.data(), interested_person_nvals,
                                           interested_person_indices.data(), interested_person_nvals,
                                           GrB_NULL));
+                    knows_subgraph_sum_local += GBxx_nvals(knows_subgraph);
+                    ++knows_subgraph_n_local;
 
                     // assuming that all component_ids will be in [0, n)
                     GrB_Matrix knows_subgraph_owning_ptr = knows_subgraph.release();
@@ -105,10 +112,18 @@ class Query2 : public Query<int, std::string> {
             }
 
 #pragma omp critical(Q2_merge_thread_local_toplists)
-            for (auto score : tag_scores_local.removeElements()) {
-                tag_scores.add(score);
+            {
+                for (auto score : tag_scores_local.removeElements()) {
+                    tag_scores.add(score);
+                }
+                interested_person_nvals_sum += interested_person_nvals_sum_local;
+                knows_subgraph_sum += knows_subgraph_sum_local;
+                knows_subgraph_n += knows_subgraph_n_local;
             }
         }
+        add_comment_if_on("interested_person_nvals_sum", std::to_string(interested_person_nvals_sum));
+        add_comment_if_on("knows_subgraph_sum", std::to_string(knows_subgraph_sum));
+        add_comment_if_on("knows_subgraph_n", std::to_string(knows_subgraph_n));
 
         std::string result, comment;
         bool firstIter = true;

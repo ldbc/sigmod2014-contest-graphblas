@@ -1,5 +1,6 @@
+#include <functional>
+#include <cassert>
 #include "ccv.h"
-#include "assert.h"
 
 inline __attribute__((always_inline))
 void create_diagonal_bit_matrix(GrB_Matrix D) {
@@ -33,7 +34,8 @@ void fun_sum_popcount(void *z, const void *x) {
 }
 
 // TODO: mapping comes from LAGraph (C code) and needs to be freed
-std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(GrB_Matrix A) {
+std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>>
+compute_ccv(GrB_Matrix A, std::function<void(std::string, std::string)> const &add_comment) {
     // initializing unary operator for next_popcount
     GBxx_Object<GrB_UnaryOp> op_popcount = GB(GrB_UnaryOp_new, fun_sum_popcount, GrB_UINT64, GrB_UINT64);
     GBxx_Object<GrB_Semiring> BOR_FIRST, BOR_SECOND;
@@ -114,17 +116,20 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
         // next_popCount = reduce(apply(popcount, Next))
         ok(GrB_Matrix_apply(Next_PopCount.get(), NULL, NULL, op_popcount.get(), Next.get(), NULL));
         ok(GrB_Matrix_reduce_Monoid(next_popcount.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, Next_PopCount.get(),
-                GrB_DESC_T0));
+                                    GrB_DESC_T0));
 
         // Seen = Seen | Next
         ok(GrB_Matrix_eWiseAdd_BinaryOp(Seen.get(), NULL, NULL, GrB_BOR_UINT64, Seen.get(), Next.get(), NULL));
 
         // sp += (next_popcount * level)
         //   next_popcount * level is expressed as next_popcount *= level_v
-        ok(GrB_Vector_apply_BinaryOp1st_UINT64(next_popcount.get(), NULL, NULL, GrB_TIMES_UINT64, level, next_popcount.get(), NULL));
+        ok(GrB_Vector_apply_BinaryOp1st_UINT64(next_popcount.get(), NULL, NULL, GrB_TIMES_UINT64, level,
+                                               next_popcount.get(), NULL));
 
         ok(GrB_Vector_eWiseAdd_BinaryOp(sp.get(), NULL, NULL, GrB_PLUS_UINT64, sp.get(), next_popcount.get(), NULL));
     }
+    add_comment("Seen", std::to_string(GBxx_nvals(Seen)));
+
     // compsize = reduce(Seen, row -> popcount(row))
     ok(GrB_Matrix_apply(Seen_PopCount.get(), NULL, NULL, op_popcount.get(), Seen.get(), NULL));
     ok(GrB_Matrix_reduce_Monoid(compsize.get(), NULL, NULL, GxB_PLUS_UINT64_MONOID, Seen_PopCount.get(), GrB_DESC_T0));
@@ -139,9 +144,10 @@ std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>> compute_ccv(Gr
     // C(p)-1
     ok(GrB_Vector_apply_BinaryOp2nd_UINT64(compsize.get(), NULL, NULL, GrB_MINUS_UINT64, compsize.get(), 1, NULL));
     // (C(p)-1)^2
-    ok(GrB_Vector_eWiseMult_BinaryOp(compsize.get(), NULL, NULL, GrB_TIMES_UINT64, compsize.get(), compsize.get(), NULL));
+    ok(GrB_Vector_eWiseMult_BinaryOp(compsize.get(), NULL, NULL, GrB_TIMES_UINT64, compsize.get(), compsize.get(),
+                                     NULL));
 
-    ok(GrB_Vector_apply_BinaryOp1st_UINT64(sp.get(), NULL, NULL, GrB_TIMES_UINT64, n-1, sp.get(), NULL));
+    ok(GrB_Vector_apply_BinaryOp1st_UINT64(sp.get(), NULL, NULL, GrB_TIMES_UINT64, n - 1, sp.get(), NULL));
     ok(GrB_Vector_eWiseMult_BinaryOp(ccv_result.get(), NULL, NULL, GrB_DIV_FP64, compsize.get(), sp.get(), NULL));
 
     return std::tuple<GBxx_Object<GrB_Vector>, std::unique_ptr<GrB_Index[]>>{std::move(ccv_result), nullptr};

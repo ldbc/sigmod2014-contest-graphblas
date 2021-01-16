@@ -35,6 +35,7 @@ class Query4 : public Query<int, std::string> {
 
         // transform relevant_persons vec. to array
         GrB_Index relevant_persons_nvals = GBxx_nvals(relevant_persons);
+        add_comment_if_on("relevant_persons_nvals", std::to_string(relevant_persons_nvals));
         std::vector<GrB_Index> relevant_person_indices(relevant_persons_nvals);
         {
             GrB_Index nvals_out = relevant_persons_nvals;
@@ -49,10 +50,18 @@ class Query4 : public Query<int, std::string> {
         ok(GrB_Matrix_extract(member_friends.get(), GrB_NULL, GrB_NULL, input.knows.matrix.get(),
                               relevant_person_indices.data(), relevant_person_indices.size(),
                               relevant_person_indices.data(), relevant_person_indices.size(), GrB_NULL));
+        add_comment_if_on("member_friends", std::to_string(GBxx_nvals(member_friends)));
 
         // call MSBFS-based closeness centrality value computation
         // TODO: free mapping
-        auto[ccv, mapping] = compute_ccv(member_friends.get());
+
+        std::function<void(std::string, std::string)> add_comment =
+#ifdef PRINT_EXTRA_COMMENTS
+                [this](std::string key, std::string value) { add_comment_if_on(std::move(key), std::move(value)); };
+#else
+                [](auto key, auto value){};
+#endif
+        auto[ccv, mapping] = compute_ccv(member_friends.get(), add_comment);
 //        auto [ccv, mapping] = compute_ccv_bool(member_friends.get());
 
         // extract tuples from ccv result

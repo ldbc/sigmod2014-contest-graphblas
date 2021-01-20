@@ -283,6 +283,7 @@ class Query3 : public Query<int, int, std::string> {
                 ok(GrB_Matrix_assign_UINT8(seen_mx.get(), next_mx.get(), GrB_NULL, 1, GrB_ALL, 0, GrB_ALL, 0,
                                            GrB_NULL));
             }
+            add_comment_if_on("seen_mx", std::to_string(GBxx_nvals(seen_mx)));
 
             // TODO: offdiag? tril?
 //            ok(GxB_Matrix_select(seen_mx.get(), GrB_NULL, GrB_NULL, GxB_OFFDIAG, seen_mx.get(), GrB_NULL, GrB_NULL));

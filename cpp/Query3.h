@@ -566,6 +566,7 @@ class Query3 : public Query<int, int, std::string> {
 
         // extract person indices
         GrB_Index relevant_persons_nvals = GBxx_nvals(local_persons);
+        add_comment_if_on("relevant_persons", std::to_string(relevant_persons_nvals));
         if (relevant_persons_nvals == 0)
             return {"", "Nobody lives/studies/works there."};
 

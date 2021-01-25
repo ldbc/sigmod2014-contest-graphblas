@@ -51,14 +51,15 @@ class Query2 : public Query<int, std::string> {
 
         auto tag_scores = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
 
-        GrB_Index interested_person_nvals_sum = 0, knows_subgraph_sum = 0, knows_subgraph_n = 0;
+        GrB_Index interested_person_nvals_sum = 0, knows_subgraph_sum = 0, knows_subgraph_n = 0, num_of_components_sum = 0;
 
 #pragma omp parallel num_threads(GlobalNThreads)
         {
             auto tag_scores_local = makeSmallestElementsContainer<tag_score_type>(top_k_limit, comparator);
             GBxx_Object<GrB_Vector> interested_person_vec = GB(GrB_Vector_new, GrB_BOOL,
                                                                input.personsWithBirthdays.size());
-            GrB_Index interested_person_nvals_sum_local = 0, knows_subgraph_sum_local = 0, knows_subgraph_n_local = 0;
+            GrB_Index interested_person_nvals_sum_local = 0, knows_subgraph_sum_local = 0, knows_subgraph_n_local = 0,
+                    num_of_components_sum_local = 0;
 
 #pragma omp for schedule(dynamic)
             for (int tag_index = 0; tag_index < input.tags.size(); ++tag_index) {
@@ -105,6 +106,8 @@ class Query2 : public Query<int, std::string> {
                     // count size of each component
                     for (auto component_id:components)
                         ++component_sizes[component_id];
+                    num_of_components_sum_local +=
+                            component_sizes.size() - std::count(component_sizes.begin(), component_sizes.end(), 0);
 
                     score = *std::max_element(component_sizes.begin(), component_sizes.end());
                 }
@@ -119,11 +122,13 @@ class Query2 : public Query<int, std::string> {
                 interested_person_nvals_sum += interested_person_nvals_sum_local;
                 knows_subgraph_sum += knows_subgraph_sum_local;
                 knows_subgraph_n += knows_subgraph_n_local;
+                num_of_components_sum += num_of_components_sum_local;
             }
         }
         add_comment_if_on("interested_person_nvals_sum", std::to_string(interested_person_nvals_sum));
         add_comment_if_on("knows_subgraph_sum", std::to_string(knows_subgraph_sum));
         add_comment_if_on("knows_subgraph_n", std::to_string(knows_subgraph_n));
+        add_comment_if_on("num_of_components_sum", std::to_string(num_of_components_sum));
 
         std::string result, comment;
         bool firstIter = true;

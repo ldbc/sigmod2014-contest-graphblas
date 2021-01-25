@@ -18,6 +18,26 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
     GrB_Index p1, p2;
     int comment_lower_limit;
 
+    std::tuple<GrB_Index, GrB_Index> componentSizes(GrB_Matrix A, GrB_Index n) {
+        // assuming that all component_ids will be in [0, n)
+        GBxx_Object<GrB_Matrix> A_dup = GB(GrB_Matrix_dup, A);
+        GrB_Matrix A_owning_ptr = A_dup.release();
+        GBxx_Object<GrB_Vector> components_vector = GB(LAGraph_cc_fastsv5b, &A_owning_ptr, false);
+        A_dup.reset(A_owning_ptr);
+
+        std::vector<uint64_t> components(n);
+
+        // GrB_NULL to avoid extracting matrix values (SuiteSparse extension)
+        GrB_Index nvals_out = n;
+        ok(GrB_Vector_extractTuples_UINT64(GrB_NULL, components.data(), &nvals_out, components_vector.get()));
+        assert(n == nvals_out);
+
+        return {
+                std::count(components.begin(), components.end(), p1),
+                std::count(components.begin(), components.end(), p2)
+        };
+    }
+
     std::tuple<std::string, std::string> initial_calculation() override {
         if (p1 == p2) {
             return {"0", ""};
@@ -66,6 +86,10 @@ class Query1 : public Query<uint64_t, uint64_t, int> {
 
         GrB_Index n;
         ok(GrB_Matrix_nrows(&n, A));
+
+        auto[p1ComponentSize, p2ComponentSize] = componentSizes(A, n);
+        add_comment_if_on("p1ComponentSize", std::to_string(p1ComponentSize));
+        add_comment_if_on("p2ComponentSize", std::to_string(p2ComponentSize));
 
         GBxx_Object<GrB_Vector> next1 = GB(GrB_Vector_new, GrB_BOOL, n);
         GBxx_Object<GrB_Vector> next2 = GB(GrB_Vector_new, GrB_BOOL, n);

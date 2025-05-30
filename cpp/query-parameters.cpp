@@ -5,6 +5,7 @@
 #include "Query4.h"
 #include <stdexcept>
 #include <iostream>
+#include <optional>
 
 template<typename QueryType, typename... ParameterT>
 auto getQueryWrapper() {
